@@ -43,7 +43,7 @@ void MidiInput::init(){
 	try {
 		_midiIn = new RtMidiIn();
 		_midiIn->setQueueSizeLimit(65535);
-		_midiIn->ignoreTypes(true, true, true);
+		_midiIn->ignoreTypes(false, true, true);
 		_midiIn->setCallback(&receiveMessage);
 	}
 	catch (RtError &error ) {
