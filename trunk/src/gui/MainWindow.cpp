@@ -30,6 +30,7 @@
 #include "../tool/StandardTool.h"
 #include "../tool/NewNoteTool.h"
 #include "../tool/EventMoveTool.h"
+#include "../tool/EventTool.h"
 #include "EventWidget.h"
 #include "../tool/ToolButton.h"
 #include <QScrollArea>
@@ -66,6 +67,8 @@
 #include "../Terminal.h"
 #include <QTextEdit>
 #include <QToolBar>
+#include <QInputDialog>
+#include "../MidiEvent/OnEvent.h"
 
 MainWindow::MainWindow() : QMainWindow() {
 
@@ -378,6 +381,10 @@ MainWindow::MainWindow() : QMainWindow() {
 	QAction *setFileLengthMs = new QAction("Set File Length (ms)", this);
 	connect(setFileLengthMs, SIGNAL(triggered()), this,SLOT(setFileLengthMs()));
 	timingMB->addAction(setFileLengthMs);
+
+	QAction *scaleSelection = new QAction("Scale selected events", this);
+	connect(scaleSelection, SIGNAL(triggered()), this,SLOT(scaleSelection()));
+	timingMB->addAction(scaleSelection);
 
 	// View
 	QAction *zoomHorOutAction = new QAction("Zoom out horizontal", this);
@@ -825,4 +832,32 @@ void MainWindow::toggleScreenLock() {
 		_lockButton->setToolTip("Scroll automatically while playing/recording");
 		mw_matrixWidget->setScreenLocked(true);
 	}
+}
+
+void MainWindow::scaleSelection(){
+    bool ok;
+    double scale = QInputDialog::getDouble(this, "Scalefactor",
+    		"Scalefactor:", 1.0, 0, 2147483647, 1, &ok);
+    qWarning("scale %d events", EventTool::selectedEventList()->size());
+    if (ok && scale>0 && EventTool::selectedEventList()->size()>0 && file){
+    	// find minimum
+    	int minTime = 2147483647;
+    	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+    		if(e->midiTime() < minTime){
+    			minTime = e->midiTime();
+    		}
+    	}
+
+    	file->protocol()->startNewAction("Scale events", 0);
+    	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+    		e->setMidiTime((e->midiTime()-minTime)*scale + minTime);
+    		OnEvent *on = dynamic_cast<OnEvent*>(e);
+    		if(on){
+    			MidiEvent *off = on->offEvent();
+    			off->setMidiTime((off->midiTime()-minTime)*scale + minTime);
+    		}
+    		qWarning("scaled");
+    	}
+    	file->protocol()->endAction();
+    }
 }
