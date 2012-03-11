@@ -69,6 +69,7 @@ class MainWindow : public QMainWindow {
 		void newFile();
 		void panic();
 		void toggleScreenLock();
+		void scaleSelection();
 
 	protected:
 		void closeEvent(QCloseEvent *event);
