@@ -70,6 +70,10 @@ class MainWindow : public QMainWindow {
 		void panic();
 		void toggleScreenLock();
 		void scaleSelection();
+		void alignLeft();
+		void alignRight();
+		void equalize();
+		void deleteSelectedEvents();
 
 	protected:
 		void closeEvent(QCloseEvent *event);

@@ -384,7 +384,9 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 	if(MidiPlayer::isPlaying()){
 		painter->setPen(Qt::red);
 		int x = xPosOfMs(MidiPlayer::timeMs());
-		painter->drawLine(x, 0, x, height());
+		if(x>=lineNameWidth){
+			painter->drawLine(x, 0, x, height());
+		}
 		painter->setPen(Qt::black);
 	}
 
@@ -393,13 +395,19 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 			midiFile()->cursorTick()<=endTick)
 	{
 		int x = xPosOfMs(msOfTick(midiFile()->cursorTick()));
-		painter->setPen(Qt::blue);
-		painter->drawLine(x-4, timeHeight/2+2, x+4, timeHeight-2);
-		painter->drawLine(x+4, timeHeight/2+2, x-4, timeHeight-2);
-		painter->drawLine(x+4, timeHeight/2+2, x-4, timeHeight/2+2);
-		painter->drawLine(x+4, timeHeight-2, x-4, timeHeight-2);
-		painter->setPen(Qt::black);
-		painter->drawLine(x, timeHeight/2, x, timeHeight);
+
+		 QPointF points[3] = {
+		     QPointF(x-8, timeHeight/2+2),
+		     QPointF(x+8, timeHeight/2+2),
+		     QPointF(x, timeHeight-2),
+		 };
+
+		 painter->setBrush(QBrush(Qt::blue, Qt::SolidPattern));
+
+		painter->drawPolygon(points, 3);
+		painter->setPen(Qt::gray);
+		painter->drawLine(x, 0, x, height());
+
 	}
 
 	// border
@@ -846,4 +854,12 @@ void MatrixWidget::mouseDoubleClickEvent(QMouseEvent *event){
 void MatrixWidget::registerRelayout(){
 	delete pixmap;
 	pixmap = 0;
+}
+
+int MatrixWidget::minVisibleMidiTime(){
+	return startTick;
+}
+
+int MatrixWidget::maxVisibleMidiTime(){
+	return endTick;
 }

@@ -248,6 +248,22 @@ MainWindow::MainWindow() : QMainWindow() {
 	buttons->addWidget(new ToolButton(new EventMoveTool(false, true)));
 	buttons->addWidget(new ToolButton(new EventMoveTool(true, false)));
 	buttons->addWidget(new ToolButton(new SizeChangeTool()));
+
+        ClickButton *alignLeft = new ClickButton("align_left.png");
+        alignLeft->setToolTip("Align to leftmost");
+        buttons->addWidget(alignLeft);
+        connect(alignLeft, SIGNAL(clicked()), this, SLOT(alignLeft()));
+
+        ClickButton *alignRight = new ClickButton("align_right.png");
+        alignLeft->setToolTip("Align to rightmost");
+        buttons->addWidget(alignRight);
+        connect(alignRight, SIGNAL(clicked()), this, SLOT(alignRight()));
+
+        ClickButton *equalize = new ClickButton("equalize.png");
+        equalize->setToolTip("Equalize selection");
+        buttons->addWidget(equalize);
+        connect(equalize, SIGNAL(clicked()), this, SLOT(equalize()));
+
 	buttons->addWidget(new ToolButton(new NewNoteTool()));
 	buttons->addWidget(new ToolButton(new EraserTool()));
 
@@ -331,6 +347,8 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(loadAction, SIGNAL(triggered()), this, SLOT(load()));
 	fileMB->addAction(loadAction);
 
+	fileMB->addSeparator();
+
 	QAction *saveAction = new QAction("Save File", this);
 	saveAction->setIcon(QIcon("graphics/tool/save.png"));
 	connect(saveAction, SIGNAL(triggered()), this, SLOT(save()));
@@ -341,7 +359,37 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveas()));
 	fileMB->addAction(saveAsAction);
 
+	fileMB->addSeparator();
+
+	QAction *quitAction = new QAction("Quit", this);
+	connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
+	fileMB->addAction(quitAction);
+
 	// Edit
+	QAction *deleteAction = new QAction("Remove selected Events", this);
+	deleteAction->setIcon(QIcon("graphics/tool/eraser.png"));
+	connect(deleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedEvents()));
+	editMB->addAction(deleteAction);
+
+	editMB->addSeparator();
+
+	QAction *alignLeftAction = new QAction("Align events to leftmost", this);
+	alignLeftAction->setIcon(QIcon("graphics/tool/align_left.png"));
+	connect(alignLeftAction, SIGNAL(triggered()), this, SLOT(alignLeft()));
+	editMB->addAction(alignLeftAction);
+
+	QAction *alignRightAction = new QAction("Align events to rightmost", this);
+	alignRightAction->setIcon(QIcon("graphics/tool/align_right.png"));
+	connect(alignRightAction, SIGNAL(triggered()), this, SLOT(alignRight()));
+	editMB->addAction(alignRightAction);
+
+	QAction *equalizeAction = new QAction("Equalize selection", this);
+	equalizeAction->setIcon(QIcon("graphics/tool/equalize.png"));
+	connect(equalizeAction, SIGNAL(triggered()), this, SLOT(equalize()));
+	editMB->addAction(equalizeAction);
+
+	editMB->addSeparator();
+
 	QAction *undoAction = new QAction("Undo", this);
 	undoAction->setIcon(QIcon("graphics/tool/undo.png"));
 	connect(undoAction, SIGNAL(triggered()), this, SLOT(undo()));
@@ -364,6 +412,8 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(allChannelsInvisible, SIGNAL(triggered()), this,
 			SLOT(allChannelsInvisible()));
 	channelsMB->addAction(allChannelsInvisible);
+
+	channelsMB->addSeparator();
 
 	QAction *muteAllChannels = new QAction("Mute all Channels", this);
 	muteAllChannels->setIcon(QIcon("graphics/channelwidget/mute.png"));
@@ -421,6 +471,8 @@ MainWindow::MainWindow() : QMainWindow() {
 	stopAction->setIcon(QIcon("graphics/tool/stop.png"));
 	connect(stopAction, SIGNAL(triggered()), this, SLOT(stop()));
 	playbackMB->addAction(stopAction);
+
+	playbackMB->addSeparator();
 
 	QAction *forwardAction = new QAction("Set Cursor to the end of the File",
 			this);
@@ -549,6 +601,12 @@ void MainWindow::saveas(){
 	QString newPath = QFileDialog::getSaveFileName(this, "Save file as...",
 			dir);
 
+	// automatically add '.mid' extension
+	if(!newPath.endsWith(".mid", Qt::CaseInsensitive) && !newPath.endsWith(".midi", Qt::CaseInsensitive))
+	{
+		newPath.append(".mid");
+	}
+
 	if(file->save(newPath)){
 		file->setPath(newPath);
 		setWindowTitle("MidiEditor - " +file->path());
@@ -591,7 +649,7 @@ void MainWindow::load(){
 		QFileInfo(*f).dir().path();
 	}
 	QString newPath = QFileDialog::getOpenFileName(this, "Open file",
-			dir);
+			dir, "MIDI Files(*.mid *.midi);;All Files(*)");
 
 	bool ok = true;
 
@@ -856,8 +914,98 @@ void MainWindow::scaleSelection(){
     			MidiEvent *off = on->offEvent();
     			off->setMidiTime((off->midiTime()-minTime)*scale + minTime);
     		}
-    		qWarning("scaled");
     	}
+    	file->protocol()->endAction();
+    }
+}
+
+void MainWindow::alignLeft(){
+    if (EventTool::selectedEventList()->size()>1 && file){
+        // find minimum
+        int minTime = 2147483647;
+        foreach(MidiEvent *e, *EventTool::selectedEventList()){
+                if(e->midiTime() < minTime){
+                        minTime = e->midiTime();
+                }
+        }
+
+        file->protocol()->startNewAction("Align Left events", 0);
+        foreach(MidiEvent *e, *EventTool::selectedEventList()){
+                int onTime = e->midiTime();
+                e->setMidiTime(minTime);
+                OnEvent *on = dynamic_cast<OnEvent*>(e);
+                if(on){
+                        MidiEvent *off = on->offEvent();
+                        off->setMidiTime(minTime + (off->midiTime()-onTime));
+                }
+        }
+        file->protocol()->endAction();
+    }
+}
+
+void MainWindow::alignRight(){
+    if (EventTool::selectedEventList()->size()>1 && file){
+        // find maximum
+        int maxTime = 0;
+        foreach(MidiEvent *e, *EventTool::selectedEventList()){
+                OnEvent *on = dynamic_cast<OnEvent*>(e);
+                MidiEvent *off = on->offEvent();
+                if(off->midiTime() > maxTime){
+                        maxTime = off->midiTime();
+                }
+        }
+
+        file->protocol()->startNewAction("Align Right events", 0);
+        foreach(MidiEvent *e, *EventTool::selectedEventList()){
+                int onTime = e->midiTime();
+                OnEvent *on = dynamic_cast<OnEvent*>(e);
+                if(on){
+                        MidiEvent *off = on->offEvent();
+                        e->setMidiTime(maxTime - (off->midiTime()-onTime));
+                        off->setMidiTime(maxTime);
+                }
+        }
+        file->protocol()->endAction();
+    }
+}
+
+void MainWindow::equalize()
+{
+    if (EventTool::selectedEventList()->size()>1 && file){
+        // find average
+        int avgStart = 0;
+        int avgTime = 0;
+        int count = 0;
+        foreach(MidiEvent *e, *EventTool::selectedEventList()){
+                OnEvent *on = dynamic_cast<OnEvent*>(e);
+                MidiEvent *off = on->offEvent();
+                avgStart += e->midiTime();
+                avgTime += (off->midiTime() - e->midiTime());
+                count++;
+        }
+        avgStart /= count;
+        avgTime /= count;
+
+        file->protocol()->startNewAction("Equalize events", 0);
+        foreach(MidiEvent *e, *EventTool::selectedEventList()){
+                OnEvent *on = dynamic_cast<OnEvent*>(e);
+                if(on){
+                        MidiEvent *off = on->offEvent();
+                        e->setMidiTime(avgStart);
+                        off->setMidiTime(avgStart + avgTime);
+                }
+        }
+        file->protocol()->endAction();
+    }
+}
+
+void MainWindow::deleteSelectedEvents(){
+    if (EventTool::selectedEventList()->size()>0 && file){
+		file->protocol()->startNewAction("Remove Event(s)");
+		foreach(MidiEvent *ev, *EventTool::selectedEventList()){
+			file->channel(ev->channel())->removeEvent(ev);
+		}
+		EventTool::selectedEventList()->clear();
     	file->protocol()->endAction();
     }
 }

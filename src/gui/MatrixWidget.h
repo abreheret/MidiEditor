@@ -57,6 +57,8 @@ class MatrixWidget : public PaintWidget {
 		int yPosOfLine(int line);
 		void setScreenLocked(bool b);
 		bool screenLocked();
+		int minVisibleMidiTime();
+		int maxVisibleMidiTime();
 
 	public slots:
 		void scrollXChanged(int scrollPositionX);

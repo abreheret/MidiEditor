@@ -65,6 +65,7 @@ void VelocityWidget::paintEvent(QPaintEvent *event){
 		}
 		if(mode!=SINGLE_MODE){
 			painter->drawText(5, 15+BUTTON_SIZE, "Single Mode");
+			mousePressed = false;
 		}
 		if(mouseReleased && mouseInRect(singleModeRect)){
 			mouseReleased = false;
@@ -91,6 +92,7 @@ void VelocityWidget::paintEvent(QPaintEvent *event){
 		}
 		if(mousePressed && mouseInRect(lineModeRect)){
 			painter->fillRect(lineModeRect, QColor(150,150,150));
+			mousePressed = false;
 		}
 		if(mouseReleased && mouseInRect(lineModeRect)){
 			mouseReleased = false;
@@ -123,6 +125,7 @@ void VelocityWidget::paintEvent(QPaintEvent *event){
 		}
 		if(mode!=MOUSE_MODE){
 			painter->drawText(5, 15+BUTTON_SIZE, "Mouse Mode");
+			mousePressed = false;
 		}
 		if(mouseReleased && mouseInRect(mouseModeRect)){
 			mouseReleased = false;
@@ -194,33 +197,23 @@ void VelocityWidget::paintEvent(QPaintEvent *event){
 		}
 		if(velocity>0){
 			int h = (height()*velocity)/128;
-			bool selected =  EventTool::selectedEventList()->contains(event);
 			painter->fillRect(event->x(), height()-h, WIDTH, h, *c);
 			painter->drawLine(event->x(), height()-h, event->x()+
 					WIDTH,height()-h);
 			painter->drawLine(event->x(), height()-h, event->x(),height());
 			painter->drawLine(event->x()+WIDTH, height()-h, event->x()+WIDTH,
 					height());
-			if(mouseInRect(event->x(), height()-h-3, WIDTH, 6) &&
-					mode==SINGLE_MODE)
-			{
-				setCursor(Qt::SizeVerCursor);
-				if(!inDrag && mousePressed){
-					EventTool::selectEvent(event, !selected);
-					matrixWidget->update();
-				}
-				inEvent=true;
-			}
 		}
 	}
-
+	bool pressureReleased = false;
+	bool needsUpdate = false;
 	// paint selected events above all others
 	foreach(MidiEvent* event, *(EventTool::selectedEventList())){
 
 		int velocity = 0;
 		NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
 
-		if(noteOn && noteOn->shown()){
+		if(noteOn && noteOn->midiTime()>=matrixWidget->minVisibleMidiTime() && noteOn->midiTime()<=matrixWidget->maxVisibleMidiTime()){
 			velocity=noteOn->velocity();
 		}
 		if(velocity>0){
@@ -237,11 +230,39 @@ void VelocityWidget::paintEvent(QPaintEvent *event){
 				if(!inDrag && mousePressed){
 					EventTool::selectEvent(event, false);
 					matrixWidget->update();
+					pressureReleased = true;
 				}
 				inEvent=true;
 			}
 		}
 	}
+	// quick and dirty: selection, perhaps fill painted event in pq with selected events in the front?
+	// also so store heights and positions...
+	if(!pressureReleased){
+		foreach(MidiEvent* event, *list){
+			int velocity = 0;
+			NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
+			if(noteOn){
+				velocity=noteOn->velocity();
+			}
+			if(velocity>0){
+				int h = (height()*velocity)/128;
+				bool selected =  EventTool::selectedEventList()->contains(event);
+				if(!selected && mouseInRect(event->x(), height()-h-3, WIDTH, 6) &&
+						mode==SINGLE_MODE)
+				{
+					setCursor(Qt::SizeVerCursor);
+					if(!inDrag && mousePressed){
+						EventTool::selectEvent(event, true);
+						matrixWidget->update();
+						needsUpdate = true;
+					}
+					inEvent=true;
+				}
+			}
+		}
+	}
+
 	int dX = draggedX();
 	int dY = draggedY();
 	if(mode==LINE_MODE || mode==MOUSE_MODE){
@@ -280,14 +301,16 @@ void VelocityWidget::paintEvent(QPaintEvent *event){
 
 				// Edit all Events between startPosX and endX
 				foreach(MidiEvent* event, *list){
-					NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
-					if(noteOn){
-						int x = noteOn->x();
-						if(x<=endX && x>=startPosX){
-							int y = (x-startPosX)*(endY-startPosY)/
-									(endX-startPosX)+startPosY;
-							int velocity = 128*(height()-y)/height();
-							noteOn->setVelocity(velocity);
+					if(EventTool::selectedEventList()->contains(event)){
+						NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
+						if(noteOn){
+							int x = noteOn->x();
+							if(x<=endX && x>=startPosX){
+								int y = (x-startPosX)*(endY-startPosY)/
+										(endX-startPosX)+startPosY;
+								int velocity = 128*(height()-y)/height();
+								noteOn->setVelocity(velocity);
+							}
 						}
 					}
 				}
@@ -314,6 +337,11 @@ void VelocityWidget::paintEvent(QPaintEvent *event){
 	if(!inEvent && mousePressed && !inDrag && mode==SINGLE_MODE){
 		EventTool::selectedEventList()->clear();
 		matrixWidget->update();
+		needsUpdate = true;
+	}
+
+	if(needsUpdate){
+		update();
 	}
 }
 
