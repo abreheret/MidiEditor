@@ -35,6 +35,33 @@
 #include "../MidiEvent/TempoChangeEvent.h"
 #include "../MidiEvent/TimeSignatureEvent.h"
 
+QColor *MidiChannel::colorByChannelNumber(int number){
+
+	QColor *color;
+
+	switch(number){
+		case 0: { color = new QColor(241, 214, 107, 255);break; }
+		case 1: { color =  new QColor(205, 241, 142, 255);break; }
+		case 2: { color = new QColor(107, 241, 142, 255);break; }
+		case 3: { color = new QColor(107, 241, 231, 255);break; }
+		case 4: { color =  new QColor(200, 236, 255, 255);break; }
+		case 5: { color = new QColor(241, 107, 200, 255);break; }
+		case 6: { color = new QColor(170, 212, 170, 255);break; }
+		case 7: { color =  new QColor(212, 204, 170, 255);break; }
+		case 8: { color = new QColor(238, 233, 138, 255);break; }
+		case 9: { color = new QColor(243, 94, 54, 255);break; }
+		case 10: { color = new QColor(255, 145, 26, 255);break; }
+		case 11: { color = new QColor(181, 132, 80, 255);break; }
+		case 12: { color =  new QColor(102, 162, 37, 255);break; }
+		case 13: { color = new QColor(241, 164, 107, 255);break; }
+		case 14: { color = new QColor(222, 213, 66, 255);break; }
+		case 15: { color = new QColor(202, 222, 66, 255);break; }
+		default: { color = new QColor(50, 50, 255, 255); break; }
+	}
+
+	return color;
+}
+
 MidiChannel::MidiChannel(MidiFile *f, int num){
 
 	_midiFile = f;
@@ -48,25 +75,7 @@ MidiChannel::MidiChannel(MidiFile *f, int num){
 	_events = new QMultiMap<int, MidiEvent*>;
 
 	// the color only depends on the number
-	switch(num){
-		case 0: { _color = new QColor(241, 214, 107, 255);break; }
-		case 1: { _color =  new QColor(205, 241, 142, 255);break; }
-		case 2: { _color = new QColor(107, 241, 142, 255);break; }
-		case 3: { _color = new QColor(107, 241, 231, 255);break; }
-		case 4: { _color =  new QColor(200, 236, 255, 255);break; }
-		case 5: { _color = new QColor(241, 107, 200, 255);break; }
-		case 6: { _color = new QColor(170, 212, 170, 255);break; }
-		case 7: { _color =  new QColor(212, 204, 170, 255);break; }
-		case 8: { _color = new QColor(238, 233, 138, 255);break; }
-		case 9: { _color = new QColor(243, 94, 54, 255);break; }
-		case 10: { _color = new QColor(255, 145, 26, 255);break; }
-		case 11: { _color = new QColor(181, 132, 80, 255);break; }
-		case 12: { _color =  new QColor(102, 162, 37, 255);break; }
-		case 13: { _color = new QColor(241, 164, 107, 255);break; }
-		case 14: { _color = new QColor(222, 213, 66, 255);break; }
-		case 15: { _color = new QColor(202, 222, 66, 255);break; }
-		default: { _color = new QColor(50, 50, 255, 255); break; }
-	}
+	_color = colorByChannelNumber(num);
 }
 
 MidiChannel::MidiChannel(MidiChannel &other){
@@ -189,6 +198,12 @@ void MidiChannel::insertEvent(MidiEvent *event, int tick){
 	ProtocolEntry *toCopy = copy();
 	event->setFile(file());
 	event->setMidiTime(tick, false);
+	protocol(toCopy, this);
+}
+
+void MidiChannel::deleteAllEvents(){
+	ProtocolEntry *toCopy = copy();
+	_events->clear();
 	protocol(toCopy, this);
 }
 

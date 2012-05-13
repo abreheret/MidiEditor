@@ -154,6 +154,16 @@ class MidiChannel : public ProtocolEntry {
 		 */
 		void setEdit(bool b);
 
+		/**
+		 * \brief removes all events of the channel.
+		 */
+		void deleteAllEvents();
+
+		/**
+		 * \brief returns the color of the channel with the given number.
+		 */
+		static QColor *colorByChannelNumber(int number);
+
 		/*
 		 * The following methods reimplement methods from the superclass
 		 * ProtocolEntry
