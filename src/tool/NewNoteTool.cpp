@@ -85,7 +85,7 @@ bool NewNoteTool::release(){
 		int channel = file()->editedChannel();
 
 		// note
-		if(line>0 && line<128){
+		if(line>=0 && line<128){
 			currentProtocol()->startNewAction("Create Note", image());
 
 

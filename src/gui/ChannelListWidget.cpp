@@ -122,7 +122,7 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 		if(mouseInRect(22, y+35, 12, 12)){
 			painter->fillRect(22, y+35, 12, 12, QColor(0,0,0, 100));
 			if(file->channel(i)->mute()){
-				text = "make loud";
+				text = "make audible";
 			} else {
 				text = "mute channel";
 			}
@@ -151,7 +151,6 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 				file->protocol()->endAction();
 			}
 		}
-		painter->drawText(68, y+46, text);
 
 		if(file->channel(i)->edit()){
 			painter->drawImage(38, y+35,
@@ -165,17 +164,16 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 			painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 100));
 			if(!file->channel(i)->edit()){
 				text = "enter editmode";
-			} else {
-				text = "exit editmode";
-			}
-			if(mouseReleased){
-				file->protocol()->startNewAction(text);
-				for(int c = 0; c<17; c++){
-					file->channel(c)->setEdit(c==i);
+				if(mouseReleased){
+					file->protocol()->startNewAction(text);
+					for(int c = 0; c<17; c++){
+						file->channel(c)->setEdit(c==i);
+					}
+					file->protocol()->endAction();
 				}
-				file->protocol()->endAction();
 			}
 		}
+		painter->drawText(68, y+46, text);
 	}
 	if(mouseReleased && enabled){
 		emit(channelStateChanged());

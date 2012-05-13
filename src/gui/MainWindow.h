@@ -74,6 +74,8 @@ class MainWindow : public QMainWindow {
 		void alignRight();
 		void equalize();
 		void deleteSelectedEvents();
+		void deleteChannel(QAction *action);
+		void moveSelectedEventsToChannel(QAction *action);
 
 	protected:
 		void closeEvent(QCloseEvent *event);

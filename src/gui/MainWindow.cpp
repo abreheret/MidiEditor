@@ -84,7 +84,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	}
 	EditorTool::setMainWindow(this);
 
-	setWindowTitle("MidiEditor 1.0.1");
+	setWindowTitle("MidiEditor 1.0.2");
 	setWindowIcon(QIcon("graphics/icon.png"));
 
 	QWidget *central = new QWidget(this);
@@ -249,20 +249,20 @@ MainWindow::MainWindow() : QMainWindow() {
 	buttons->addWidget(new ToolButton(new EventMoveTool(true, false)));
 	buttons->addWidget(new ToolButton(new SizeChangeTool()));
 
-        ClickButton *alignLeft = new ClickButton("align_left.png");
-        alignLeft->setToolTip("Align to leftmost");
-        buttons->addWidget(alignLeft);
-        connect(alignLeft, SIGNAL(clicked()), this, SLOT(alignLeft()));
+	ClickButton *alignLeft = new ClickButton("align_left.png");
+	alignLeft->setToolTip("Align to leftmost");
+	buttons->addWidget(alignLeft);
+	connect(alignLeft, SIGNAL(clicked()), this, SLOT(alignLeft()));
 
-        ClickButton *alignRight = new ClickButton("align_right.png");
-        alignLeft->setToolTip("Align to rightmost");
-        buttons->addWidget(alignRight);
-        connect(alignRight, SIGNAL(clicked()), this, SLOT(alignRight()));
+	ClickButton *alignRight = new ClickButton("align_right.png");
+	alignLeft->setToolTip("Align to rightmost");
+	buttons->addWidget(alignRight);
+	connect(alignRight, SIGNAL(clicked()), this, SLOT(alignRight()));
 
-        ClickButton *equalize = new ClickButton("equalize.png");
-        equalize->setToolTip("Equalize selection");
-        buttons->addWidget(equalize);
-        connect(equalize, SIGNAL(clicked()), this, SLOT(equalize()));
+	ClickButton *equalize = new ClickButton("equalize.png");
+	equalize->setToolTip("Equalize selection");
+	buttons->addWidget(equalize);
+	connect(equalize, SIGNAL(clicked()), this, SLOT(equalize()));
 
 	buttons->addWidget(new ToolButton(new NewNoteTool()));
 	buttons->addWidget(new ToolButton(new EraserTool()));
@@ -390,6 +390,19 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	editMB->addSeparator();
 
+	QMenu *moveToChannelMenu = new QMenu("Move selected Events to channel...", editMB);
+	editMB->addMenu(moveToChannelMenu);
+	connect(moveToChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT(moveSelectedEventsToChannel(QAction*)));
+
+	for(int i = 0; i<16; i++){
+		QVariant variant(i);
+		QAction *moveToChannelAction = new QAction(QString::number(i), this);
+		moveToChannelAction->setData(variant);
+		moveToChannelMenu->addAction(moveToChannelAction);
+	}
+
+	editMB->addSeparator();
+
 	QAction *undoAction = new QAction("Undo", this);
 	undoAction->setIcon(QIcon("graphics/tool/undo.png"));
 	connect(undoAction, SIGNAL(triggered()), this, SLOT(undo()));
@@ -426,6 +439,19 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(unmuteAllChannels, SIGNAL(triggered()), this,
 			SLOT(unmuteAllChannels()));
 	channelsMB->addAction(unmuteAllChannels);
+
+	channelsMB->addSeparator();
+
+	QMenu *deleteChannelMenu = new QMenu("Remove all events from channel...", channelsMB);
+	channelsMB->addMenu(deleteChannelMenu);
+	connect(deleteChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT( deleteChannel(QAction*)));
+
+	for(int i = 0; i<16; i++){
+		QVariant variant(i);
+		QAction *delChannelAction = new QAction(QString::number(i), this);
+		delChannelAction->setData(variant);
+		deleteChannelMenu->addAction(delChannelAction);
+	}
 
 	// Timing
 	QAction *setFileLengthMs = new QAction("Set File Length (ms)", this);
@@ -473,12 +499,6 @@ MainWindow::MainWindow() : QMainWindow() {
 	playbackMB->addAction(stopAction);
 
 	playbackMB->addSeparator();
-
-	QAction *forwardAction = new QAction("Set Cursor to the end of the File",
-			this);
-	forwardAction->setIcon(QIcon("graphics/tool/forward.png"));
-	connect(forwardAction, SIGNAL(triggered()), this, SLOT(forward()));
-	playbackMB->addAction(forwardAction);
 
 	QAction *backAction = new QAction("Set Cursor to the beginning of the File",
 			this);
@@ -582,7 +602,24 @@ void MainWindow::save(){
 	if(!file) return;
 
 	if(QFile(file->path()).exists()){
+
+		bool printMuteWarning = false;
+
+		for(int i = 0; i<16; i++){
+			MidiChannel *ch = file->channel(i);
+			if(ch->mute()){
+				printMuteWarning = true;
+			}
+		}
+
+		if(printMuteWarning){
+			QMessageBox::information(this, "Channels mute or invisible",
+					"One or more channels are mute or invisible. They will be audible in the saved file!",
+					"Save file", 0, 0);
+		}
+
 		file->save(file->path());
+
 	} else {
 		saveas();
 	}
@@ -774,11 +811,13 @@ void MainWindow::closeEvent(QCloseEvent *event){
 
 void MainWindow::donate(){
 	DonateDialog *d = new DonateDialog(this);
+	d->setModal(true);
 	d->show();
 }
 
 void MainWindow::about(){
 	AboutDialog *d = new AboutDialog(this);
+	d->setModal(true);
 	d->show();
 }
 
@@ -786,6 +825,7 @@ void MainWindow::setFileLengthMs(){
 	if(!file) return;
 
 	FileLengthDialog *d = new FileLengthDialog(file, this);
+	d->setModal(true);
 	d->show();
 }
 
@@ -806,6 +846,7 @@ void MainWindow::setStartupCmd(){
 
 void MainWindow::midiSettings(){
 	MidiSettingsDialog *d = new MidiSettingsDialog(this);
+	d->setModal(true);
 	d->show();
 }
 
@@ -840,6 +881,7 @@ void MainWindow::stopRecord(){
 		QMultiMap<int, MidiEvent*> events = MidiInput::endInput();
 
 		RecordDialog *dialog = new RecordDialog(file, events, this);
+		dialog->setModal(true);
 		dialog->show();
 	}
 }
@@ -858,6 +900,7 @@ void MainWindow::newFile(){
 					} else {
 						saveas();
 					}
+					break;
 				}
 				case 1: {
 					// close
@@ -1008,4 +1051,44 @@ void MainWindow::deleteSelectedEvents(){
 		EventTool::selectedEventList()->clear();
     	file->protocol()->endAction();
     }
+}
+
+void MainWindow::deleteChannel(QAction *action){
+
+	if(!file){
+		return;
+	}
+
+	int num = action->data().toInt();
+	file->protocol()->startNewAction("Remove all events from channel "+QString::number(num));
+	file->channel(num)->deleteAllEvents();
+	file->protocol()->endAction();
+}
+
+
+void MainWindow::moveSelectedEventsToChannel(QAction *action){
+
+	if(!file){
+		return;
+	}
+
+	int num = action->data().toInt();
+	MidiChannel *channel = file->channel(num);
+
+    if (EventTool::selectedEventList()->size()>0){
+    	file->protocol()->startNewAction("Move selected events to channel "+QString::number(num));
+		foreach(MidiEvent *ev, *EventTool::selectedEventList()){
+			file->channel(ev->channel())->removeEvent(ev);
+			ev->setChannel(num, true);
+			OnEvent *onevent = dynamic_cast<OnEvent*>(ev);
+			if(onevent){
+				channel->insertEvent(onevent->offEvent(), onevent->offEvent()->midiTime());
+				onevent->offEvent()->setChannel(num);
+			}
+			channel->insertEvent(ev, ev->midiTime());
+		}
+
+    	file->protocol()->endAction();
+    }
+
 }
