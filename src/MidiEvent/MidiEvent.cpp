@@ -348,6 +348,9 @@ void MidiEvent::setMidiTime(int t, bool toProtocol){
 	ProtocolEntry *toCopy = copy();
 	file()->channelEvents(numChannel)->remove(timePos, this);
 	timePos = t;
+	if(timePos>file()->endTick()){
+		file()->setMaxLengthMs(file()->msOfTick(timePos)+100);
+	}
 	if(toProtocol){
 		protocol(toCopy, this);
 	} else {
@@ -492,6 +495,7 @@ void MidiEvent::generateWidget(QWidget *widget){
 
 	if(channel()<16){
 		channelL->addWidget(_channel_spinBox);
+		_channel_spinBox->setVisible(true);
 	} else {
 		_channel_label->setText("Channel: General Channel ("+QString::number(channel())+")");
 		_channel_spinBox->hide();
