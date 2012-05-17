@@ -31,6 +31,8 @@ class ProtocolWidget;
 class VelocityWidget;
 class EventWidget;
 class ClickButton;
+class QStringList;
+class QMenu;
 
 class MainWindow : public QMainWindow {
 
@@ -49,6 +51,7 @@ class MainWindow : public QMainWindow {
 		void forward();
 		void back();
 		void load();
+		void openFile(QString filePath);
 		void save();
 		void saveas();
 		void undo();
@@ -76,6 +79,13 @@ class MainWindow : public QMainWindow {
 		void deleteSelectedEvents();
 		void deleteChannel(QAction *action);
 		void moveSelectedEventsToChannel(QAction *action);
+		void updateRecentPathsList();
+		void openRecent(QAction *action);
+		void updateChannelMenu();
+		void editChannel(QAction *action);
+		void muteChannel(QAction *action);
+		void soloChannel(QAction *action);
+		void viewChannel(QAction *action);
 
 	protected:
 		void closeEvent(QCloseEvent *event);
@@ -91,6 +101,9 @@ class MainWindow : public QMainWindow {
 		EventWidget *_eventWidget;
 		QSettings *_settings;
 		ClickButton *_lockButton;
+		QStringList _recentFilePaths;
+		QMenu *_recentPathsMenu, *_editChannelMenu, *_channelVisibilityMenu, *_channelMuteMenu,
+			*_channelSoloMenu;
 };
 
 #endif

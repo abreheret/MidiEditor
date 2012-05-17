@@ -31,6 +31,7 @@ class ChannelListWidget : public PaintWidget {
 	public:
 		ChannelListWidget(QWidget *parent = 0);
 		void setFile(MidiFile *f);
+
 	signals:
 		void channelStateChanged();
 

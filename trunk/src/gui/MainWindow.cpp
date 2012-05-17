@@ -50,6 +50,8 @@
 #include <QMenuBar>
 #include <QAction>
 #include <QIcon>
+#include <QStringList>
+
 #include "../midi/MidiChannel.h"
 #include "DonateDialog.h"
 #include "AboutDialog.h"
@@ -77,11 +79,16 @@ MainWindow::MainWindow() : QMainWindow() {
 	_settings = new QSettings(QString("MidiEditor"), QString("NONE"));
 
 	startDirectory = QDir::homePath();
+
 	if(_settings->value("open_path").toString()!=""){
 		startDirectory = _settings->value("open_path").toString();
 	} else {
 		_settings->setValue("open_path", startDirectory);
 	}
+
+	// read recent paths
+	_recentFilePaths = _settings->value("recent_file_list").toStringList();
+
 	EditorTool::setMainWindow(this);
 
 	setWindowTitle("MidiEditor 1.0.2");
@@ -161,6 +168,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	// Channels
 	QScrollArea *channelScroll = new QScrollArea(upperTabWidget);
 	channelWidget = new ChannelListWidget(channelScroll);
+	connect(channelWidget, SIGNAL(channelStateChanged()), this, SLOT(updateChannelMenu()));
 	channelScroll->setWidget(channelWidget);
 	channelScroll->setWidgetResizable(true);
 	upperTabWidget->addTab(channelScroll, "Channels");
@@ -201,9 +209,6 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	// Buttons
 	QToolBar *buttons = new QToolBar(central);
-//	buttons->setIconSize(34);
-//	QBoxLayout *box = new QBoxLayout(QBoxLayout::LeftToRight, buttons);
-//	box->setContentsMargins(0,0,0,0);
 
 	ClickButton *newFile = new ClickButton("new.png");
 	newFile->setToolTip("Create new MidiFile");
@@ -347,6 +352,12 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(loadAction, SIGNAL(triggered()), this, SLOT(load()));
 	fileMB->addAction(loadAction);
 
+	_recentPathsMenu = new QMenu("Open recent..", this);
+	fileMB->addMenu(_recentPathsMenu);
+	connect(_recentPathsMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecent(QAction*)));
+
+	updateRecentPathsList();
+
 	fileMB->addSeparator();
 
 	QAction *saveAction = new QAction("Save File", this);
@@ -453,6 +464,55 @@ MainWindow::MainWindow() : QMainWindow() {
 		deleteChannelMenu->addAction(delChannelAction);
 	}
 
+	channelsMB->addSeparator();
+
+	_editChannelMenu = new QMenu("Editable channel...", channelsMB);
+	channelsMB->addMenu(_editChannelMenu);
+	connect(_editChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT(editChannel(QAction*)));
+
+	for(int i = 0; i<16; i++){
+		QVariant variant(i);
+		QAction *editChannelAction = new QAction(QString::number(i), this);
+		editChannelAction->setCheckable(true);
+		editChannelAction->setData(variant);
+		_editChannelMenu->addAction(editChannelAction);
+	}
+
+	_channelVisibilityMenu = new QMenu("Visible channels...", channelsMB);
+	channelsMB->addMenu(_channelVisibilityMenu);
+	connect(_channelVisibilityMenu, SIGNAL(triggered(QAction*)), this, SLOT(viewChannel(QAction*)));
+
+	for(int i = 0; i<16; i++){
+		QVariant variant(i);
+		QAction *viewChannelAction = new QAction(QString::number(i), this);
+		viewChannelAction->setCheckable(true);
+		viewChannelAction->setData(variant);
+		_channelVisibilityMenu->addAction(viewChannelAction);
+	}
+
+	_channelMuteMenu = new QMenu("Mute channels...", channelsMB);
+	channelsMB->addMenu(_channelMuteMenu);
+	connect(_channelMuteMenu, SIGNAL(triggered(QAction*)), this, SLOT(muteChannel(QAction*)));
+
+	for(int i = 0; i<16; i++){
+		QVariant variant(i);
+		QAction *muteChannelAction = new QAction(QString::number(i), this);
+		muteChannelAction->setCheckable(true);
+		muteChannelAction->setData(variant);
+		_channelMuteMenu->addAction(muteChannelAction);
+	}
+
+	_channelSoloMenu = new QMenu("Select solo channel...", channelsMB);
+	channelsMB->addMenu(_channelSoloMenu);
+	connect(_channelSoloMenu, SIGNAL(triggered(QAction*)), this, SLOT(soloChannel(QAction*)));
+
+	for(int i = 0; i<16; i++){
+		QVariant variant(i);
+		QAction *soloChannelAction = new QAction(QString::number(i), this);
+		soloChannelAction->setCheckable(true);
+		soloChannelAction->setData(variant);
+		_channelSoloMenu->addAction(soloChannelAction);
+	}
 	// Timing
 	QAction *setFileLengthMs = new QAction("Set File Length (ms)", this);
 	connect(setFileLengthMs, SIGNAL(triggered()), this,SLOT(setFileLengthMs()));
@@ -551,6 +611,7 @@ void MainWindow::setFile(MidiFile *file){
 	connect(file,SIGNAL(recalcWidgetSize()),mw_matrixWidget,SLOT(calcSizes()));
 
 	mw_matrixWidget->setFile(file);
+	updateChannelMenu();
 }
 
 void MainWindow::matrixSizeChanged(int maxScrollTime, int maxScrollLine,
@@ -618,8 +679,9 @@ void MainWindow::save(){
 					"Save file", 0, 0);
 		}
 
-		file->save(file->path());
-
+		if(!file->save(file->path())){
+			QMessageBox::warning(this, "Error", QString("The file could not be saved!"));
+		}
 	} else {
 		saveas();
 	}
@@ -647,6 +709,9 @@ void MainWindow::saveas(){
 	if(file->save(newPath)){
 		file->setPath(newPath);
 		setWindowTitle("MidiEditor - " +file->path());
+		updateRecentPathsList();
+	} else {
+		QMessageBox::warning(this, "Error", QString("The file could not be saved!"));
 	}
 }
 
@@ -688,18 +753,28 @@ void MainWindow::load(){
 	QString newPath = QFileDialog::getOpenFileName(this, "Open file",
 			dir, "MIDI Files(*.mid *.midi);;All Files(*)");
 
+	openFile(newPath);
+}
+
+void MainWindow::openFile(QString filePath){
+
 	bool ok = true;
 
-	QFile nf(newPath);
+	QFile nf(filePath);
 
-	if(!nf.exists()) return;
+	if(!nf.exists()){
+
+		QMessageBox::warning(this, "Error", QString("The file does not exist!"));
+		return;
+	}
 
 	startDirectory = QFileInfo(nf).absoluteDir().path()+"/";
 
-	MidiFile *mf = new MidiFile(newPath, &ok);
+	MidiFile *mf = new MidiFile(filePath, &ok);
 
 	if(ok){
 		setFile(mf);
+		updateRecentPathsList();
 	} else {
 		QMessageBox::warning(this, "Error", QString("No file opened"));
 	}
@@ -1090,5 +1165,169 @@ void MainWindow::moveSelectedEventsToChannel(QAction *action){
 
     	file->protocol()->endAction();
     }
+}
+
+void MainWindow::updateRecentPathsList(){
+
+	// if file opened put it at the top of the list
+	if(file){
+
+		QString currentPath = file->path();
+		QStringList newList;
+		newList.append(currentPath);
+
+		foreach(QString str, _recentFilePaths){
+			if(str != currentPath && newList.size()<10){
+				newList.append(str);
+			}
+		}
+
+		_recentFilePaths = newList;
+	}
+
+	// save list
+	QVariant list(_recentFilePaths);
+	_settings->setValue("recent_file_list", list);
+
+	// update menu
+	_recentPathsMenu->clear();
+	foreach(QString path, _recentFilePaths){
+		QFile f(path);
+		QString name = QFileInfo(f).fileName();
+
+		QVariant variant(path);
+		QAction *openRecentFileAction = new QAction(name, this);
+		openRecentFileAction->setData(variant);
+		_recentPathsMenu->addAction(openRecentFileAction);
+	}
 
 }
+
+void MainWindow::openRecent(QAction *action){
+
+	QString  path = action->data().toString();
+
+	if(file){
+		QString oldPath = file->path();
+		if(oldPath == path){
+			return;
+		}
+		if(!file->saved()){
+			switch(QMessageBox::question(this, "Save file?", "save file "+
+					file->path()+
+				" before closing?", "Save","Close without saving", "Break",0,2))
+			{
+				case 0: {
+					// save
+					if(QFile(file->path()).exists()){
+						file->save(file->path());
+					} else {
+						saveas();
+					}
+					break;
+				}
+				case 1: {
+					// close
+					break;
+				}
+				case 2: {
+					// break
+					return;
+				}
+			}
+		}
+	}
+
+	openFile(path);
+}
+
+
+void MainWindow::updateChannelMenu() {
+
+	// edit menu
+	foreach(QAction *action, _editChannelMenu->actions()){
+		int channel = action->data().toInt();
+		if(file){
+			action->setChecked(file->channel(channel)->edit());
+		} else {
+			action->setChecked(false);
+		}
+	}
+
+	// visibilitymenu
+	foreach(QAction *action, _channelVisibilityMenu->actions()){
+		int channel = action->data().toInt();
+		if(file){
+			action->setChecked(file->channel(channel)->visible());
+		} else {
+			action->setChecked(false);
+		}
+	}
+
+	// mute menu
+	foreach(QAction *action, _channelMuteMenu->actions()){
+		int channel = action->data().toInt();
+		if(file){
+			action->setChecked(file->channel(channel)->mute());
+		} else {
+			action->setChecked(false);
+		}
+	}
+
+	// solo menu
+	foreach(QAction *action, _channelSoloMenu->actions()){
+		int channel = action->data().toInt();
+		if(file){
+			action->setChecked(file->channel(channel)->solo());
+		} else {
+			action->setChecked(false);
+		}
+	}
+}
+
+void MainWindow::editChannel(QAction *action){
+	int channel = action->data().toInt();
+	if(file){
+		file->protocol()->startNewAction("Changed editable channel");
+		for(int i = 0; i<16; i++){
+			file->channel(i)->setEdit(i==channel);
+			updateChannelMenu();
+			channelWidget->update();
+		}
+		file->protocol()->endAction();
+	}
+}
+void MainWindow::muteChannel(QAction *action){
+	int channel = action->data().toInt();
+	if(file){
+		file->protocol()->startNewAction("Mute channel");
+		file->channel(channel)->setMute(action->isChecked());
+		updateChannelMenu();
+		channelWidget->update();
+		file->protocol()->endAction();
+	}
+}
+void MainWindow::soloChannel(QAction *action){
+	int channel = action->data().toInt();
+	if(file){
+		file->protocol()->startNewAction("Select solo channel");
+		for(int i = 0; i<16; i++){
+			file->channel(i)->setSolo(i==channel);
+			updateChannelMenu();
+			channelWidget->update();
+		}
+		file->protocol()->endAction();
+	}
+}
+
+void MainWindow::viewChannel(QAction *action){
+	int channel = action->data().toInt();
+	if(file){
+		file->protocol()->startNewAction("Channel visibility changed");
+		file->channel(channel)->setVisible(action->isChecked());
+		updateChannelMenu();
+		channelWidget->update();
+		file->protocol()->endAction();
+	}
+}
+

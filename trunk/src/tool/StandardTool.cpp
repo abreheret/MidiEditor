@@ -26,6 +26,10 @@
 #include "../midi/MidiFile.h"
 #include "../protocol/Protocol.h"
 
+#define NO_ACTION 0
+#define SIZE_CHANGE_ACTION 1
+#define MOVE_ACTION 2
+
 StandardTool::StandardTool() : EventTool() {
 	setImage("select.png");
 	moveTool = new EventMoveTool(true, true);
@@ -49,49 +53,111 @@ void StandardTool::draw(QPainter *painter){
 
 bool StandardTool::press(){
 
+	// find event to handle
+	MidiEvent *event = 0;
+	int minDiffToMouse = 0;
+	int action = NO_ACTION;
 	foreach(MidiEvent *ev, *(matrixWidget->activeEvents())){
-
-		// left/right side means SizeChangeTool
-		if(pointInRect(mouseX, mouseY, ev->x()-2, ev->y(), ev->x()+2,
-				ev->y()+ev->height()) ||
-				pointInRect(mouseX, mouseY, ev->x()+ev->width()-2, ev->y(),
-						ev->x()+ev->width()+2, ev->y()+ev->height()))
-		{
-			file()->protocol()->startNewAction("Selection changed", image());
-			ProtocolEntry* toCopy = copy();
-			EventTool::selectEvent(ev,!EventTool::selectedEvents->contains(ev));
-			protocol(toCopy, this);
-			file()->protocol()->endAction();
-
-			Tool::setCurrentTool(sizeChangeTool);
-			sizeChangeTool->move(mouseX, mouseY);
-			sizeChangeTool->press();
-			return false;
-		}
-
-		// in the event means EventMoveTool
-		if(pointInRect(mouseX, mouseY, ev->x(), ev->y(), ev->x()+ev->width(),
+		if(pointInRect(mouseX, mouseY, ev->x()-2, ev->y(), ev->x()+ev->width()+2,
 				ev->y()+ev->height()))
 		{
+			int diffToMousePos = 0;
+			int currentAction = NO_ACTION;
 
-			file()->protocol()->startNewAction("Selection changed", image());
-			ProtocolEntry* toCopy = copy();
-			EventTool::selectEvent(ev,!EventTool::selectedEvents->contains(ev));
-			protocol(toCopy, this);
-			file()->protocol()->endAction();
+			// left side means SizeChangeTool
+			if(pointInRect(mouseX, mouseY, ev->x()-2, ev->y(), ev->x()+2,
+					ev->y()+ev->height()))
+			{
+				diffToMousePos = ev->x()-mouseX;
+				currentAction = SIZE_CHANGE_ACTION;
+			}
 
-			Tool::setCurrentTool(moveTool);
-			moveTool->move(mouseX, mouseY);
-			moveTool->press();
-			return false;
+			// right side means SizeChangeTool
+			else if(pointInRect(mouseX, mouseY, ev->x()+ev->width()-2, ev->y(),
+					ev->x()+ev->width()+2, ev->y()+ev->height()))
+			{
+				diffToMousePos = ev->x()+ev->width()-mouseX;
+				currentAction = SIZE_CHANGE_ACTION;
+			}
+
+			// in the event means EventMoveTool
+			else
+			{
+				int diffRight = ev->x()+ev->width()-mouseX;
+				int diffLeft = diffToMousePos = ev->x()-mouseX;
+				if(diffLeft<0){
+					diffLeft*=-1;
+				}
+				if(diffRight<0){
+					diffRight*=-1;
+				}
+				if(diffLeft<diffRight){
+					diffToMousePos = diffLeft;
+				} else {
+					diffToMousePos = diffRight;
+				}
+				currentAction = MOVE_ACTION;
+			}
+
+			if(diffToMousePos < 0){
+				diffToMousePos*=-1;
+			}
+
+			if(!event || minDiffToMouse > diffToMousePos){
+				minDiffToMouse = diffToMousePos;
+				event = ev;
+				action = currentAction;
+			}
 		}
 	}
 
-	// no event means SelectTool
-	Tool::setCurrentTool(selectTool);
-	selectTool->move(mouseX, mouseY);
-	selectTool->press();
-	return true;
+	if(event){
+
+		switch(action){
+
+			case NO_ACTION: {
+				// no event means SelectTool
+				Tool::setCurrentTool(selectTool);
+				selectTool->move(mouseX, mouseY);
+				selectTool->press();
+				return true;
+			}
+
+			case SIZE_CHANGE_ACTION: {
+				file()->protocol()->startNewAction("Selection changed", image());
+				ProtocolEntry* toCopy = copy();
+				EventTool::selectEvent(event,!EventTool::selectedEvents->contains(event));
+				protocol(toCopy, this);
+				file()->protocol()->endAction();
+
+				Tool::setCurrentTool(sizeChangeTool);
+				sizeChangeTool->move(mouseX, mouseY);
+				sizeChangeTool->press();
+				return false;
+			}
+
+			case MOVE_ACTION: {
+				file()->protocol()->startNewAction("Selection changed", image());
+				ProtocolEntry* toCopy = copy();
+				EventTool::selectEvent(event,!EventTool::selectedEvents->contains(event));
+				protocol(toCopy, this);
+				file()->protocol()->endAction();
+
+				Tool::setCurrentTool(moveTool);
+				moveTool->move(mouseX, mouseY);
+				moveTool->press();
+				return false;
+			}
+		}
+	}
+
+	file()->protocol()->startNewAction("Selection changed", image());
+	ProtocolEntry* toCopy = copy();
+	EventTool::clearSelection();
+	protocol(toCopy, this);
+	file()->protocol()->endAction();
+
+	return false;
 }
 
 bool StandardTool::move(int mouseX, int mouseY){
