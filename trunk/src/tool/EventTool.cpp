@@ -54,6 +54,11 @@ void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 		return;
 	}
 
+	OffEvent *offevent = dynamic_cast<OffEvent*>(event);
+	if(offevent){
+		return;
+	}
+
 	if(single && !shiftPressed && (!strPressed || ignoreStr)){
 		selectedEvents->clear();
 		NoteOnEvent *on = dynamic_cast<NoteOnEvent*>(event);
