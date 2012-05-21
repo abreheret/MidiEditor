@@ -94,7 +94,7 @@ void MatrixWidget::timeMsChanged(int ms){
 		}
 
 		// sets the new position and repaints
-		emit scrollChanged(ms, file->maxTime(), startLineY,
+		emit scrollChanged(ms, (file->maxTime()-endTimeX+startTimeX), startLineY,
 				NUM_LINES-(endLineY-startLineY));
 	} else {
 		repaint();
@@ -862,4 +862,18 @@ int MatrixWidget::minVisibleMidiTime(){
 
 int MatrixWidget::maxVisibleMidiTime(){
 	return endTick;
+}
+
+void MatrixWidget::wheelEvent(QWheelEvent *event){
+	if(!file) return;
+
+	int maxTimeInFile = file->maxTime();
+	int widgetRange = endTimeX-startTimeX;
+
+	int scroll = -1*event->delta()*widgetRange/1000; // test
+
+	int newStartTime = startTimeX+scroll;
+
+	scrollXChanged(newStartTime);
+	emit scrollChanged(startTimeX, maxTimeInFile-widgetRange, startLineY, NUM_LINES-(endLineY-startLineY));
 }

@@ -88,6 +88,7 @@ class MatrixWidget : public PaintWidget {
 		void mouseReleaseEvent(QMouseEvent *event);
 		void keyPressEvent(QKeyEvent* e);
 		void keyReleaseEvent(QKeyEvent *event);
+		void wheelEvent(QWheelEvent *event);
 
 	private:
 		void paintChannel(QPainter *painter, int channel);

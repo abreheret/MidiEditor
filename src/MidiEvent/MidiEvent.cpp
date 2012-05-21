@@ -58,7 +58,7 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 	// brief first try to load the event. If this does not work try to use
 	// old first byte as new first byte. This is implemented in the end of this
 	// method using recursive calls.
-	// if startByte (paramater) is not 0, this is the second call so firsat and
+	// if startByte (paramater) is not 0, this is the second call so first and
 	// second byte must not be loaded from the stream but from the parameters.
 
 	*ok = true;

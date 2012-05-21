@@ -21,6 +21,7 @@
 
 #include "MidiEvent.h"
 #include <QMultiMap>
+#include <QList>
 
 class OnEvent;
 
@@ -36,6 +37,7 @@ class OffEvent : public MidiEvent{
 		static void enterOnEvent(OnEvent *event);
 		static void clearOnEvents();
 		static void removeOnEvent(OnEvent *event);
+		static QList<OnEvent*> corruptedOnEvents();
 		void draw(QPainter *p, QColor c);
 		int line();
 		QByteArray save();

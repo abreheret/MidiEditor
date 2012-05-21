@@ -23,6 +23,7 @@
 
 #include "../MidiEvent/MidiEvent.h"
 #include "../MidiEvent/OffEvent.h"
+#include "../MidiEvent/OnEvent.h"
 #include "../MidiEvent/ProgChangeEvent.h"
 #include "../MidiEvent/TimeSignatureEvent.h"
 #include "../MidiEvent/TempoChangeEvent.h"
@@ -105,6 +106,9 @@ MidiFile::MidiFile(int ticks, Protocol *p){
 
 bool MidiFile::readMidiFile(QDataStream *content){
 
+
+	OffEvent::clearOnEvents();
+
 	quint8 tempByte;
 
 	(*content)>>tempByte;
@@ -164,6 +168,15 @@ bool MidiFile::readMidiFile(QDataStream *content){
 		tempoEv->setTrack(0, false);
 		channel(17)->eventMap()->insert(0, tempoEv);
 	}
+
+	// find corrupted OnEvents (without OffEvent)
+	foreach(OnEvent *onevent, OffEvent::corruptedOnEvents()){
+		qWarning("mid error: found OnEvent without OffEvent - removing...");
+		channel(onevent->channel())->removeEvent(onevent);
+	}
+
+	OffEvent::clearOnEvents();
+
 	return true;
 }
 
