@@ -115,4 +115,7 @@ void ProgChangeEvent::setProgram(int p){
 	ProtocolEntry *toCopy = copy();
 	_program = p;
 	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		_instr_combo->setCurrentIndex(p);
+	}
 }

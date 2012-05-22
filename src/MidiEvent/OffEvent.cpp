@@ -64,6 +64,15 @@ OnEvent *OffEvent::onEvent(){
 	return _onEvent;
 }
 
+void OffEvent::setMidiTime(int t, bool toProtocol){
+	MidiEvent::setMidiTime(t, toProtocol);
+	if(_onEvent){
+		if(_onEvent->shownInEventWidget()){
+			OnEvent::_off_tick_box->setValue(t);
+		}
+	}
+}
+
 void OffEvent::enterOnEvent(OnEvent *event){
 	onEvents->insertMulti(event->line(), event);
 }

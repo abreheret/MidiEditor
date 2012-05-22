@@ -25,6 +25,7 @@
 #include <QSettings>
 
 class MatrixWidget;
+class MidiEvent;
 class MidiFile;
 class ChannelListWidget;
 class ProtocolWidget;
@@ -32,6 +33,7 @@ class VelocityWidget;
 class EventWidget;
 class ClickButton;
 class QStringList;
+class QTabWidget;
 class QMenu;
 
 class MainWindow : public QMainWindow {
@@ -86,9 +88,12 @@ class MainWindow : public QMainWindow {
 		void muteChannel(QAction *action);
 		void soloChannel(QAction *action);
 		void viewChannel(QAction *action);
+		void showEventWidget(MidiEvent *event);
 
 	protected:
 		void closeEvent(QCloseEvent *event);
+		void keyPressEvent(QKeyEvent* e);
+		void keyReleaseEvent(QKeyEvent *event);
 
 	private:
 		MatrixWidget *mw_matrixWidget;
@@ -104,6 +109,7 @@ class MainWindow : public QMainWindow {
 		QStringList _recentFilePaths;
 		QMenu *_recentPathsMenu, *_editChannelMenu, *_channelVisibilityMenu, *_channelMuteMenu,
 			*_channelSoloMenu;
+		QTabWidget *lowerTabWidget;
 };
 
 #endif

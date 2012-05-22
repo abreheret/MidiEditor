@@ -79,6 +79,9 @@ void TempoChangeEvent::setBeats(int beats){
 	_beats = beats;
 	file()->calcMaxTime();
 	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		_val_box->setValue(beats);
+	}
 
 }
 

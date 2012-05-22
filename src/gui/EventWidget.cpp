@@ -33,6 +33,7 @@ EventWidget::EventWidget(QWidget *parent) : QWidget(parent) {
 void EventWidget::setEvent(MidiEvent *event){
 	_event = event;
 	reload();
+	emit eventSelected(event);
 }
 
 MidiEvent *EventWidget::event(){

@@ -27,6 +27,8 @@
 #include "ChannelPressureEvent.h"
 #include "KeyPressureEvent.h"
 #include "../midi/MidiFile.h"
+#include "../gui/EventWidget.h"
+
 #include <QByteArray>
 #include <QSpinBox>
 #include <QLabel>
@@ -36,7 +38,7 @@
 #include "../midi/MidiChannel.h"
 
 quint8 MidiEvent::_startByte = 0;
-
+EventWidget *MidiEvent::_eventWidget = 0;
 MidiEvent::MidiEvent(int channel) : GraphicObject(), ProtocolEntry(){
 	numTrack = 0;
 	numChannel = channel;
@@ -302,6 +304,9 @@ void MidiEvent::setTrack(int num, bool toProtocol){
 			file()->setNumTracks(numTrack);
 		}
 	}
+	if(shownInEventWidget()){
+		_track_spinBox->setValue(num);
+	}
 }
 
 int MidiEvent::track(){
@@ -319,6 +324,9 @@ void MidiEvent::setChannel(int ch, bool toProtocol){
 		setMidiTime(midiTime(), toProtocol);
 	} else {
 		delete toCopy;
+	}
+	if(shownInEventWidget()){
+		_channel_spinBox->setValue(ch);
 	}
 }
 
@@ -357,6 +365,9 @@ void MidiEvent::setMidiTime(int t, bool toProtocol){
 		delete toCopy;
 	}
 	file()->channelEvents(numChannel)->insert(timePos, this);
+	if(shownInEventWidget()){
+		_timePos_spinBox->setValue(timePos);
+	}
 }
 
 int MidiEvent::midiTime(){
@@ -524,4 +535,19 @@ void MidiEvent::editByWidget(){
 	if(channel()<16 && channel()!=_channel_spinBox->value()){
 		setChannel(_channel_spinBox->value());
 	}
+}
+
+void MidiEvent::setEventWidget(EventWidget *widget){
+	_eventWidget = widget;
+}
+
+EventWidget *MidiEvent::eventWidget(){
+	return _eventWidget;
+}
+
+bool MidiEvent::shownInEventWidget(){
+	if(!_eventWidget){
+		return false;
+	}
+	return _eventWidget->event() == this;
 }

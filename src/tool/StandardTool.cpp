@@ -151,13 +151,10 @@ bool StandardTool::press(){
 		}
 	}
 
-	file()->protocol()->startNewAction("Selection changed", image());
-	ProtocolEntry* toCopy = copy();
-	EventTool::clearSelection();
-	protocol(toCopy, this);
-	file()->protocol()->endAction();
-
-	return false;
+	Tool::setCurrentTool(selectTool);
+	selectTool->move(mouseX, mouseY);
+	selectTool->press();
+	return true;
 }
 
 bool StandardTool::move(int mouseX, int mouseY){

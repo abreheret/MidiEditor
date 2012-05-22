@@ -5,7 +5,7 @@
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * (at your option) any later version.+
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -124,7 +124,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	rightSplitter->setContentsMargins(0,0,0,0);
 
 	// protocolList and EventWidget are tabbed
-	QTabWidget *lowerTabWidget = new QTabWidget(rightSplitter);
+	lowerTabWidget = new QTabWidget(rightSplitter);
 	rightSplitter->addWidget(lowerTabWidget);
 
 	rightSplitter->setStretchFactor(0, 15);
@@ -192,6 +192,8 @@ MainWindow::MainWindow() : QMainWindow() {
 	eventScroll->setWidget(_eventWidget);
 	eventScroll->setWidgetResizable(true);
 	lowerTabWidget->addTab(eventScroll, "Event");
+	MidiEvent::setEventWidget(_eventWidget);
+	connect(_eventWidget, SIGNAL(eventSelected(MidiEvent*)), this, SLOT(showEventWidget(MidiEvent*)));
 
 	// connect Scrollbars and Widgets
 	connect(vert, SIGNAL(valueChanged(int)), mw_matrixWidget,
@@ -1331,3 +1333,18 @@ void MainWindow::viewChannel(QAction *action){
 	}
 }
 
+void MainWindow::keyPressEvent(QKeyEvent *event){
+	mw_matrixWidget->takeKeyPressEvent(event);
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event){
+	mw_matrixWidget->takeKeyReleaseEvent(event);
+}
+
+void MainWindow::showEventWidget(MidiEvent *event){
+	if(event){
+		lowerTabWidget->setCurrentIndex(1);
+	} else {
+		lowerTabWidget->setCurrentIndex(0);
+	}
+}

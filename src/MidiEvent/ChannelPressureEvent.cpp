@@ -121,6 +121,9 @@ void ChannelPressureEvent::setValue(int v){
 	ProtocolEntry *toCopy = copy();
 	_value = v;
 	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		_val_box->setValue(v);
+	}
 }
 
 int ChannelPressureEvent::value(){
