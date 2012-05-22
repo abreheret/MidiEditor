@@ -38,6 +38,9 @@ class EventWidget : public QWidget {
 	public slots:
 		void submit();
 
+	signals:
+		void eventSelected(MidiEvent *event);
+
 	private:
 		MidiEvent *_event;
 		QWidget *_central;

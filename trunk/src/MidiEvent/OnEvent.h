@@ -41,10 +41,12 @@ class OnEvent : public MidiEvent{
 		void generateWidget(QWidget *widget);
 		void editByWidget();
 
+		static QSpinBox *_off_tick_box;
+
 	protected:
 		OffEvent *_offEvent;
+
 		static QWidget *_off_tick_widget;
-		static QSpinBox *_off_tick_box;
 		static QLabel *_off_tick_label;
 
 };

@@ -70,6 +70,8 @@ class MatrixWidget : public PaintWidget {
 		void timeMsChanged(int ms);
 		void registerRelayout();
 		void calcSizes();
+		void takeKeyPressEvent(QKeyEvent *event);
+		void takeKeyReleaseEvent(QKeyEvent *event);
 
 	signals:
 		void sizeChanged(int maxScrollTime, int maxScrollLine, int valueX,
@@ -102,7 +104,7 @@ class MatrixWidget : public PaintWidget {
 		int msOfTick(int tick);
 		int xPosOfMs(int ms);
 		QRectF ToolArea, PianoArea, TimeLineArea;
-		bool screen_locked;
+		bool screen_locked, alt_pressed;
 
 		// pixmap is the painted widget (without tools and cursorLines).
 		// it will be zero if it needs to be repainted

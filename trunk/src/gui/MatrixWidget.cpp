@@ -40,7 +40,7 @@
 MatrixWidget::MatrixWidget(QWidget *parent) : PaintWidget(parent) {
 
 	screen_locked = false;
-
+	alt_pressed = false;
 	startTimeX = 0;
 	startLineY = 0;
 	endTimeX = 0;
@@ -709,7 +709,7 @@ void MatrixWidget::mouseReleaseEvent(QMouseEvent *event){
 	}
 }
 
-void MatrixWidget::keyPressEvent(QKeyEvent *event){
+void MatrixWidget::takeKeyPressEvent(QKeyEvent *event){
 	// Undo, redo
 	if(event->matches(QKeySequence::Undo)){
 		file->protocol()->undo();
@@ -725,7 +725,7 @@ void MatrixWidget::keyPressEvent(QKeyEvent *event){
 		EventTool::shiftPressed = true;
 	} else if(event->key() == Qt::Key_Control){
 		EventTool::strPressed = true;
-	}  else if(event->matches(QKeySequence::SelectAll)){
+	} else if(event->matches(QKeySequence::SelectAll)){
 		if(file){
 			// Select all
 			foreach(MidiEvent *event,
@@ -735,6 +735,8 @@ void MatrixWidget::keyPressEvent(QKeyEvent *event){
 			}
 			repaint();
 		}
+	} else if(event->key() == Qt::Key_Alt){
+		alt_pressed = true;
 	} else if(Tool::currentTool()){
 		// an das Werkzeug weitergeben
 		if(Tool::currentTool()->pressKey(event->key())){
@@ -743,11 +745,13 @@ void MatrixWidget::keyPressEvent(QKeyEvent *event){
 	}
 }
 
-void MatrixWidget::keyReleaseEvent(QKeyEvent *event){
+void MatrixWidget::takeKeyReleaseEvent(QKeyEvent *event){
 	if(event->key() == Qt::Key_Shift){
 		EventTool::shiftPressed = false;
 	} else if(event->key() == Qt::Key_Control){
 		EventTool::strPressed = false;
+	} else if(event->key() == Qt::Key_Alt){
+		alt_pressed = false;
 	} else if(Tool::currentTool()){
 		if(Tool::currentTool()->releaseKey(event->key())){
 			repaint();
@@ -870,10 +874,30 @@ void MatrixWidget::wheelEvent(QWheelEvent *event){
 	int maxTimeInFile = file->maxTime();
 	int widgetRange = endTimeX-startTimeX;
 
-	int scroll = -1*event->delta()*widgetRange/1000; // test
+	if(alt_pressed){
 
-	int newStartTime = startTimeX+scroll;
+		int scroll = -1*event->delta()*widgetRange/1000; // test
 
-	scrollXChanged(newStartTime);
-	emit scrollChanged(startTimeX, maxTimeInFile-widgetRange, startLineY, NUM_LINES-(endLineY-startLineY));
+		int newStartTime = startTimeX+scroll;
+
+		scrollXChanged(newStartTime);
+		emit scrollChanged(startTimeX, maxTimeInFile-widgetRange, startLineY, NUM_LINES-(endLineY-startLineY));
+	} else {
+		int newStartLineY = startLineY-event->delta()/100;
+		if(newStartLineY < 0){
+			newStartLineY = 0;
+		}
+		// endline too large handled in scrollYchanged()
+		scrollYChanged(newStartLineY);
+		emit scrollChanged(startTimeX, maxTimeInFile-widgetRange, startLineY, NUM_LINES-(endLineY-startLineY));
+	}
+}
+
+
+void MatrixWidget::keyPressEvent(QKeyEvent *event){
+	takeKeyPressEvent(event);
+}
+
+void MatrixWidget::keyReleaseEvent(QKeyEvent *event){
+	takeKeyReleaseEvent(event);
 }

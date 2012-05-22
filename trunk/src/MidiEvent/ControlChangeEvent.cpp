@@ -87,12 +87,18 @@ void ControlChangeEvent::setValue(int v){
 	ProtocolEntry *toCopy = copy();
 	_value = v;
 	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		_value_box->setValue(v);
+	}
 }
 
 void ControlChangeEvent::setControl(int c){
 	ProtocolEntry *toCopy = copy();
 	_control = c;
 	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		_control_combo->setCurrentIndex(c);
+	}
 }
 
 // Widgets for EventWidget

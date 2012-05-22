@@ -46,6 +46,8 @@ class OffEvent : public MidiEvent{
 		ProtocolEntry *copy();
 		void reloadState(ProtocolEntry *entry);
 
+		void setMidiTime(int t, bool toProtocol=true);
+
 	protected:
 		OnEvent *_onEvent;
 

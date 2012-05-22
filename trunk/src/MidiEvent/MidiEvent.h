@@ -29,6 +29,7 @@ class MidiFile;
 class QSpinBox;
 class QLabel;
 class QWidget;
+class EventWidget;
 
 class MidiEvent : public ProtocolEntry, public GraphicObject{
 
@@ -39,6 +40,9 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		static MidiEvent *loadMidiEvent(QDataStream *content,
 				bool *ok, bool *endEvent, quint8 startByte = 0,
 				quint8 secondByte = 0);
+
+		static EventWidget *eventWidget();
+		static void setEventWidget(EventWidget *widget);
 
 		enum {
 			TEMPO_CHANGE_EVENT_LINE = 129,
@@ -53,10 +57,11 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		int track();
 		void setChannel(int channel, bool toProtocol=true);
 		int channel();
-		void setMidiTime(int t, bool toProtocol = true);
+		virtual void setMidiTime(int t, bool toProtocol = true);
 		int midiTime();
 		void setFile(MidiFile *f);
 		MidiFile *file();
+		bool shownInEventWidget();
 
 		virtual int line();
 		virtual QString toMessage();
@@ -78,6 +83,7 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		static QWidget *_channel_widget, *_track_widget, *_timePos_widget;
 		MidiFile *midiFile;
 		static quint8 _startByte;
+		static EventWidget *_eventWidget;
 
 };
 
