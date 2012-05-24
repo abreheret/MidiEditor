@@ -23,6 +23,7 @@
 #include "VelocityWidget.h"
 #include "../midi/MidiFile.h"
 #include "ChannelListWidget.h"
+#include "TrackListWidget.h"
 #include "../tool/Tool.h"
 #include "../tool/SelectTool.h"
 #include "../tool/SizeChangeTool.h"
@@ -172,6 +173,14 @@ MainWindow::MainWindow() : QMainWindow() {
 	channelScroll->setWidget(channelWidget);
 	channelScroll->setWidgetResizable(true);
 	upperTabWidget->addTab(channelScroll, "Channels");
+
+	// Tracks
+	QScrollArea *trackScroll = new QScrollArea(upperTabWidget);
+	_trackWidget = new TrackListWidget(trackScroll);
+	trackScroll->setWidget(_trackWidget);
+	trackScroll->setWidgetResizable(true);
+	upperTabWidget->addTab(trackScroll, "Tracks");
+
 
 	// terminal
 	Terminal::initTerminal(_settings->value("start_cmd", "").toString(),
@@ -606,6 +615,7 @@ void MainWindow::setFile(MidiFile *file){
 
 	protocolWidget->setFile(file);
 	channelWidget->setFile(file);
+	_trackWidget->setFile(file);
 	Tool::setFile(file);
 	this->file = file;
 	setWindowTitle("MidiEditor - " +file->path());
@@ -628,10 +638,14 @@ void MainWindow::matrixSizeChanged(int maxScrollTime, int maxScrollLine,
 
 void MainWindow::play(){
 	if(file && !MidiInput::recording() && !MidiPlayer::isPlaying()){
+
+		mw_matrixWidget->timeMsChanged(file->msOfTick(file->cursorTick()), true);
+
 		mw_velocityWidget->setEnabled(false);
 		channelWidget->setEnabled(false);
 		protocolWidget->setEnabled(false);
 		mw_matrixWidget->setEnabled(false);
+		_trackWidget->setEnabled(false);
 
 	    MidiPlayer::play(file);
 		connect(MidiPlayer::playerThread(),
@@ -644,6 +658,7 @@ void MainWindow::stop(){
 		MidiPlayer::stop();
 		mw_velocityWidget->setEnabled(true);
 		channelWidget->setEnabled(true);
+		_trackWidget->setEnabled(true);
 		protocolWidget->setEnabled(true);
 		mw_matrixWidget->setEnabled(true);
 		panic();
@@ -932,10 +947,14 @@ void MainWindow::record(){
 	if(!MidiInput::recording() && !MidiPlayer::isPlaying()){
 		// play current file
 		if(file){
+
+			mw_matrixWidget->timeMsChanged(file->msOfTick(file->cursorTick()), true);
+
 			mw_velocityWidget->setEnabled(false);
 			channelWidget->setEnabled(false);
 			protocolWidget->setEnabled(false);
 			mw_matrixWidget->setEnabled(false);
+			_trackWidget->setEnabled(false);
 
 			MidiPlayer::play(file);
 			MidiInput::startInput();

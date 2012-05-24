@@ -24,12 +24,14 @@
 #include <QDataStream>
 #include <QMultiMap>
 #include <QObject>
+#include <QList>
 
 class MidiEvent;
 class TimeSignatureEvent;
 class TempoChangeEvent;
 class Protocol;
 class MidiChannel;
+class MidiTrack;
 
 class MidiFile : public QObject, public ProtocolEntry {
 
@@ -75,6 +77,8 @@ class MidiFile : public QObject, public ProtocolEntry {
 		void setPath(QString path);
 		bool channelMuted(int ch);
 		int numTracks();
+		QList<MidiTrack*> *tracks();
+		void addTrack();
 		void setNumTracks(int tracks);
 		void setMaxLengthMs(int ms);
 
@@ -99,6 +103,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 		Protocol *prot;
 		QMultiMap<int, MidiEvent*> *playerMap;
 		bool _saved;
+		QList<MidiTrack*> *_tracks;
 };
 
 #endif

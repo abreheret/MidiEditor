@@ -32,7 +32,7 @@
 #include "../midi/PlayerThread.h"
 #include "../midi/MidiInput.h"
 
-#define NUM_LINES 136
+#define NUM_LINES 137
 #define PIXEL_PER_S 100
 #define PIXEL_PER_LINE 12
 #define PIXEL_PER_EVENT 15
@@ -78,13 +78,13 @@ bool MatrixWidget::screenLocked() {
 	return screen_locked;
 }
 
-void MatrixWidget::timeMsChanged(int ms){
+void MatrixWidget::timeMsChanged(int ms, bool ignoreLocked){
 
 	if(!file) return;
 
 	int x = xPosOfMs(ms);
 
-	if(!screen_locked && (ms<startTimeX || x>width()-100)) {
+	if((!screen_locked || ignoreLocked) && (ms<startTimeX || x>width()-100)) {
 
 		// return if the last tick is already shown
 		if(file->maxTime() <= endTimeX)
@@ -348,6 +348,10 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 				}
 				case MidiEvent::CHANNEL_PRESSURE_LINE: {
 					text = "ch. pressure";
+					break;
+				}
+				case MidiEvent::TEXT_EVENT_LINE: {
+					text = "text event";
 					break;
 				}
 				case MidiEvent::UNKNOWN_LINE: {
@@ -676,6 +680,9 @@ double MatrixWidget::lineHeight(){
 
 void MatrixWidget::enterEvent(QEvent *event){
 	PaintWidget::enterEvent(event);
+	alt_pressed = false;
+	EventTool::strPressed = false;
+	EventTool::shiftPressed = false;
 	if(Tool::currentTool()){
 		Tool::currentTool()->enter();
 		repaint();
@@ -683,6 +690,9 @@ void MatrixWidget::enterEvent(QEvent *event){
 }
 void MatrixWidget::leaveEvent(QEvent *event){
 	PaintWidget::leaveEvent(event);
+	alt_pressed = false;
+	EventTool::strPressed = false;
+	EventTool::shiftPressed = false;
 	if(Tool::currentTool()){
 		Tool::currentTool()->exit();
 		repaint();

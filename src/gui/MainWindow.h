@@ -35,6 +35,7 @@ class ClickButton;
 class QStringList;
 class QTabWidget;
 class QMenu;
+class TrackListWidget;
 
 class MainWindow : public QMainWindow {
 
@@ -101,6 +102,7 @@ class MainWindow : public QMainWindow {
 		ChannelListWidget *channelWidget;
 		ProtocolWidget *protocolWidget;
 		VelocityWidget *mw_velocityWidget;
+		TrackListWidget *_trackWidget;
 		MidiFile *file;
 		QString startDirectory;
 		EventWidget *_eventWidget;
