@@ -28,9 +28,12 @@
 #include "../MidiEvent/TimeSignatureEvent.h"
 #include "../MidiEvent/TempoChangeEvent.h"
 #include "../MidiEvent/ControlChangeEvent.h"
+#include "../MidiEvent/UnknownEvent.h"
+#include "../MidiEvent/TextEvent.h"
 #include "math.h"
 #include "../protocol/Protocol.h"
 #include "MidiChannel.h"
+#include "MidiTrack.h"
 
 MidiFile::MidiFile(){
 	_saved = true;
@@ -46,6 +49,11 @@ MidiFile::MidiFile(){
 	channels[0]->setEdit(true);
 	timePerQuarter = 192;
 	_midiFormat = 1;
+
+	_tracks = new QList<MidiTrack*>();
+	MidiTrack *track = new MidiTrack(this);
+	track->setName("New Track");
+	_tracks->append(track);
 
 	// add timesig
 	TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8);
@@ -74,6 +82,7 @@ MidiFile::MidiFile(QString path, bool *ok) {
 	prot = new Protocol(this);
 	prot->addEmptyAction("File opened");
 	_path = path;
+	_tracks = new QList<MidiTrack*>();
 	QFile *f = new QFile(path);
 
 	if(!f->open(QIODevice::ReadOnly)){
@@ -200,6 +209,10 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 	bool endEvent = false;
 	int position = 0;
 
+	MidiTrack *track = new MidiTrack(this);
+	track->setNumber(num);
+	_tracks->append(track);
+
 	while(!endEvent){
 
 		position+=deltaTime(content);
@@ -208,6 +221,17 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 		if(!ok){
 			return false;
 		}
+
+		// check whether its the tracks name
+		if(event && event->line() == MidiEvent::TEXT_EVENT_LINE){
+			TextEvent *textEvent = dynamic_cast<TextEvent*>(event);
+			if(textEvent){
+				if(textEvent->type() == TextEvent::TRACKNAME){
+					track->setNameEvent(textEvent);
+				}
+			}
+		}
+
 		if(endEvent){
 			if(midiTicks<position){
 				midiTicks = position;
@@ -1022,6 +1046,7 @@ void MidiFile::setMaxLengthMs(int ms){
 
 ProtocolEntry *MidiFile::copy(){
 	MidiFile *file = new MidiFile(midiTicks, protocol());
+	file->_tracks = new QList<MidiTrack*>(*(_tracks));
 	return file;
 }
 
@@ -1029,10 +1054,23 @@ void MidiFile::reloadState(ProtocolEntry *entry){
 	MidiFile *file =dynamic_cast<MidiFile*>(entry);
 	if(file){
 		midiTicks=file->midiTicks;
+		_tracks = new QList<MidiTrack*>(*(file->_tracks));
 	}
 	calcMaxTime();
 }
 
 MidiFile *MidiFile::file(){
 	return this;
+}
+
+QList<MidiTrack*> *MidiFile::tracks(){
+	return _tracks;
+}
+
+void MidiFile::addTrack(){
+	ProtocolEntry *toCopy = copy();
+	MidiTrack *track = new MidiTrack(this);
+	track->setName("new Track");
+	_tracks->append(track);
+	ProtocolEntry::protocol(toCopy, this);
 }

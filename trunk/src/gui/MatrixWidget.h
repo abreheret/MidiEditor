@@ -67,7 +67,7 @@ class MatrixWidget : public PaintWidget {
 		void zoomHorOut();
 		void zoomVerIn();
 		void zoomVerOut();
-		void timeMsChanged(int ms);
+		void timeMsChanged(int ms, bool ignoreLocked=false);
 		void registerRelayout();
 		void calcSizes();
 		void takeKeyPressEvent(QKeyEvent *event);

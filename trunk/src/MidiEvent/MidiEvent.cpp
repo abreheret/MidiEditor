@@ -26,6 +26,7 @@
 #include "ControlChangeEvent.h"
 #include "ChannelPressureEvent.h"
 #include "KeyPressureEvent.h"
+#include "TextEvent.h"
 #include "../midi/MidiFile.h"
 #include "../gui/EventWidget.h"
 
@@ -39,6 +40,7 @@
 
 quint8 MidiEvent::_startByte = 0;
 EventWidget *MidiEvent::_eventWidget = 0;
+
 MidiEvent::MidiEvent(int channel) : GraphicObject(), ProtocolEntry(){
 	numTrack = 0;
 	numChannel = channel;
@@ -260,20 +262,40 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 							return 0;
 						}
 						default: {
-							// Laenge lesen und ueberspringen
-							QByteArray array;
-							array.append(0xFF);
-							array.append((char)tempByte);
-							(*content)>>tempByte;
-							array.append((char)tempByte);
-							int length = tempByte;
+							if(tempByte >= 0x01 && tempByte <=0x07){
 
-							for(int i = 0; i<length; i++){
+								// textevent
+								// read type
+								TextEvent *textEvent = new TextEvent(channel);
+								textEvent->setType(tempByte);
+								(*content)>>tempByte;
+								int length = tempByte;
+
+								QByteArray array;
+								for(int i = 0; i<length; i++){
+									(*content)>>tempByte;
+									array.append((char)tempByte);
+								}
+								textEvent->setText(QString(array));
+								*ok = true;
+								return textEvent;
+
+							} else {
+								// Laenge lesen und ueberspringen
+								QByteArray array;
+								array.append(0xFF);
+								array.append((char)tempByte);
 								(*content)>>tempByte;
 								array.append((char)tempByte);
+								int length = tempByte;
+
+								for(int i = 0; i<length; i++){
+									(*content)>>tempByte;
+									array.append((char)tempByte);
+								}
+								*ok = true;
+								return new UnknownEvent(channel, array);
 							}
-							*ok = true;
-							return new	UnknownEvent(channel, array);
 						}
 					}
 

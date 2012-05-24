@@ -16,34 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "UnknownEvent.h"
+#ifndef TRACKLISTWIDGET_H_
+#define TRACKLISTWIDGET_H_
 
-#include <QLabel>
-#include <QLayout>
+#include "PaintWidget.h"
+#include <QPaintEvent>
 
-UnknownEvent::UnknownEvent(int channel, QByteArray data) : MidiEvent(channel){
-	_data = data;
-}
+class MidiFile;
 
-QByteArray UnknownEvent::data(){
-	return _data;
-}
+class TrackListWidget : public PaintWidget {
 
-int UnknownEvent::line(){
-	return UNKNOWN_LINE;
-}
+	Q_OBJECT
 
-QByteArray UnknownEvent::save(){
-	return data();
-}
+	public:
+		TrackListWidget(QWidget *parent = 0);
+		void setFile(MidiFile *f);
 
-void UnknownEvent::generateWidget(QWidget *widget){
-	MidiEvent::generateWidget(widget);
-	QLayout *layout = widget->layout();
-	int i = 0;
-	foreach(unsigned char b,_data){
-		QLabel *l = new QLabel("0x"+QString::number(i, 16)+"   0x"+QString::number(b, 16));
-		layout->addWidget(l);
-		i++;
-	}
-}
+	private:
+		MidiFile *file;
+
+	protected:
+		void paintEvent(QPaintEvent *event);
+};
+
+#endif

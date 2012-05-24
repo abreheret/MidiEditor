@@ -16,34 +16,55 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "UnknownEvent.h"
+#ifndef TEXTEVENT_H_
+#define TEXTEVENT_H_
 
+#include "MidiEvent.h"
+#include <QByteArray>
+#include <QTextEdit>
 #include <QLabel>
-#include <QLayout>
+#include <QComboBox>
 
-UnknownEvent::UnknownEvent(int channel, QByteArray data) : MidiEvent(channel){
-	_data = data;
-}
+class QWdiget;
 
-QByteArray UnknownEvent::data(){
-	return _data;
-}
+class TextEvent : public MidiEvent {
 
-int UnknownEvent::line(){
-	return UNKNOWN_LINE;
-}
+	public:
 
-QByteArray UnknownEvent::save(){
-	return data();
-}
+		TextEvent(int channel);
 
-void UnknownEvent::generateWidget(QWidget *widget){
-	MidiEvent::generateWidget(widget);
-	QLayout *layout = widget->layout();
-	int i = 0;
-	foreach(unsigned char b,_data){
-		QLabel *l = new QLabel("0x"+QString::number(i, 16)+"   0x"+QString::number(b, 16));
-		layout->addWidget(l);
-		i++;
-	}
-}
+		QString text();
+		void setText(QString text);
+
+		int type();
+		void setType(int type);
+
+		int line();
+
+		QByteArray save();
+
+		enum {
+			TEXT = 0x01,
+			COPYRIGHT,
+			TRACKNAME,
+			INSTRUMENT_NAME,
+			LYRIK,
+			MARKER,
+			COMMENT
+		};
+
+		QString typeString();
+		void generateWidget(QWidget *widget);
+
+	private:
+
+		int _type;
+		QString _text;
+
+		static QTextEdit *_text_area;
+		static QLabel *_text_label;
+		static QComboBox *_type_combo;
+		static QLabel *_type_label;
+};
+
+#endif

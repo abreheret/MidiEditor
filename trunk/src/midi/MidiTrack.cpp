@@ -5,7 +5,7 @@
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * (at your option) any later version.+
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,34 +16,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "UnknownEvent.h"
+#include "MidiTrack.h"
+#include "../MidiEvent/TextEvent.h"
+#include "MidiFile.h"
 
-#include <QLabel>
-#include <QLayout>
-
-UnknownEvent::UnknownEvent(int channel, QByteArray data) : MidiEvent(channel){
-	_data = data;
+MidiTrack::MidiTrack(MidiFile *file) {
+	_name = "not named";
+	_number = 0;
+	_nameEvent = 0;
+	_file = file;
 }
 
-QByteArray UnknownEvent::data(){
-	return _data;
+QString MidiTrack::name(){
+	return _name;
 }
 
-int UnknownEvent::line(){
-	return UNKNOWN_LINE;
-}
-
-QByteArray UnknownEvent::save(){
-	return data();
-}
-
-void UnknownEvent::generateWidget(QWidget *widget){
-	MidiEvent::generateWidget(widget);
-	QLayout *layout = widget->layout();
-	int i = 0;
-	foreach(unsigned char b,_data){
-		QLabel *l = new QLabel("0x"+QString::number(i, 16)+"   0x"+QString::number(b, 16));
-		layout->addWidget(l);
-		i++;
+void MidiTrack::setName(QString name){
+	_name = name;
+	if(_nameEvent){
+		// set nameEVents data
+	} else {
+		// create one?
 	}
+}
+
+int MidiTrack::number(){
+	return _number;
+}
+
+void MidiTrack::setNumber(int number){
+	_number = number;
+}
+
+void MidiTrack::setNameEvent(TextEvent *nameEvent){
+	_nameEvent = nameEvent;
+
+	// geht the name
+	_name = nameEvent->text();
+}
+
+TextEvent *MidiTrack::nameEvent(){
+	return _nameEvent;
 }
