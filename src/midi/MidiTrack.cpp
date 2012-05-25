@@ -17,27 +17,47 @@
  */
 
 #include "MidiTrack.h"
+#include "MidiChannel.h"
 #include "../MidiEvent/TextEvent.h"
 #include "MidiFile.h"
 
-MidiTrack::MidiTrack(MidiFile *file) {
-	_name = "not named";
+MidiTrack::MidiTrack(MidiFile *file) : ProtocolEntry() {
 	_number = 0;
 	_nameEvent = 0;
 	_file = file;
 }
 
+MidiTrack::MidiTrack(MidiTrack &other) : ProtocolEntry(other) {
+	_number = other._number;
+	_nameEvent = other._nameEvent;
+	_file = other._file;
+}
+
+
+MidiFile *MidiTrack::file(){
+	return _file;
+}
+
 QString MidiTrack::name(){
-	return _name;
+	if(_nameEvent){
+		return _nameEvent->text();
+	}
+	return "untitled track";
 }
 
 void MidiTrack::setName(QString name){
-	_name = name;
-	if(_nameEvent){
-		// set nameEVents data
-	} else {
-		// create one?
+
+	if(!_nameEvent){
+		_nameEvent = new TextEvent(16);
+		_nameEvent->setFile(_file);
+		_nameEvent->setMidiTime(0, false);
+		_nameEvent->setType(TextEvent::TRACKNAME);
+		_nameEvent->setTrack(number(), true);
+		_file->channel(16)->insertEvent(_nameEvent, 0);
 	}
+
+	_nameEvent->setText(name);
+	emit trackChanged();
 }
 
 int MidiTrack::number(){
@@ -45,16 +65,33 @@ int MidiTrack::number(){
 }
 
 void MidiTrack::setNumber(int number){
+	ProtocolEntry *toCopy = copy();
 	_number = number;
+	protocol(toCopy, this);
 }
 
 void MidiTrack::setNameEvent(TextEvent *nameEvent){
+	ProtocolEntry *toCopy = copy();
 	_nameEvent = nameEvent;
-
-	// geht the name
-	_name = nameEvent->text();
+	protocol(toCopy, this);
+	emit trackChanged();
 }
 
 TextEvent *MidiTrack::nameEvent(){
 	return _nameEvent;
 }
+
+ProtocolEntry *MidiTrack::copy(){
+	return new MidiTrack(*this);
+}
+
+void MidiTrack::reloadState(ProtocolEntry *entry){
+	MidiTrack *other = dynamic_cast<MidiTrack*>(entry);
+	if(!other){
+		return;
+	}
+	_number = other->_number;
+	_nameEvent = other->_nameEvent;
+	_file = other->_file;
+}
+

@@ -315,19 +315,16 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 
 void MidiEvent::setTrack(int num, bool toProtocol){
 	ProtocolEntry *toCopy = copy();
-	numTrack = num;
-	if(toProtocol){
-		protocol(toCopy, this);
-	} else {
-		delete toCopy;
-	}
-	if(file()){
-		if(numTrack>file()->numTracks()){
-			file()->setNumTracks(numTrack);
+	if(num < file()->numTracks()){
+		numTrack = num;
+		if(toProtocol){
+			protocol(toCopy, this);
+		} else {
+			delete toCopy;
 		}
 	}
 	if(shownInEventWidget()){
-		_track_spinBox->setValue(num);
+		_track_spinBox->setValue(numTrack);
 	}
 }
 
@@ -483,13 +480,14 @@ void MidiEvent::generateWidget(QWidget *widget){
 	_title_label->setHidden(false);
 
 	// edit channelSpinBox
-	_channel_spinBox->setMaximum(16);
+	_channel_spinBox->setMaximum(15);
 	_channel_spinBox->setMinimum(0);
 	_channel_spinBox->setValue(channel());
 	_channel_label->setText("Channel:");
 
 	// edit TrackSpinBox
 	_track_spinBox->setMinimum(0);
+	_track_spinBox->setMaximum(file()->numTracks()-1);
 	_track_spinBox->setValue(track());
 	_track_label->setText("Track:");
 
@@ -530,7 +528,7 @@ void MidiEvent::generateWidget(QWidget *widget){
 		channelL->addWidget(_channel_spinBox);
 		_channel_spinBox->setVisible(true);
 	} else {
-		_channel_label->setText("Channel: General Channel ("+QString::number(channel())+")");
+		_channel_label->setText("Channel: General Channel");
 		_channel_spinBox->hide();
 	}
 	layout->addWidget(_channel_widget);

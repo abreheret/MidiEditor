@@ -22,6 +22,7 @@
 #include "MatrixWidget.h"
 #include "VelocityWidget.h"
 #include "../midi/MidiFile.h"
+#include "../midi/MidiTrack.h"
 #include "ChannelListWidget.h"
 #include "TrackListWidget.h"
 #include "../tool/Tool.h"
@@ -174,13 +175,24 @@ MainWindow::MainWindow() : QMainWindow() {
 	channelScroll->setWidgetResizable(true);
 	upperTabWidget->addTab(channelScroll, "Channels");
 
-	// Tracks
-	QScrollArea *trackScroll = new QScrollArea(upperTabWidget);
-	_trackWidget = new TrackListWidget(trackScroll);
-	trackScroll->setWidget(_trackWidget);
-	trackScroll->setWidgetResizable(true);
-	upperTabWidget->addTab(trackScroll, "Tracks");
+	// Track
+	QWidget *trackWidget = new QWidget(upperTabWidget);
+	QGridLayout *trackLayout = new QGridLayout(trackWidget);
+	trackWidget->setLayout(trackLayout);
 
+	QScrollArea *trackScroll = new QScrollArea(trackWidget);
+	_trackWidget = new TrackListWidget(trackScroll);
+	connect(_trackWidget, SIGNAL(trackRenameClicked(int)), this, SLOT(renameTrack(int)));
+	connect(_trackWidget, SIGNAL(trackRemoveClicked(int)), this, SLOT(removeTrack(int)));
+	trackScroll->setWidget(_trackWidget);
+	trackLayout->addWidget(trackScroll, 0, 0, 1, 2);
+
+	QPushButton *addTrackButton = new QPushButton("Add Track", trackWidget);
+	connect(addTrackButton, SIGNAL(clicked()), this, SLOT(addTrack()));
+	trackLayout->addWidget(addTrackButton, 1, 1, 1, 1);
+
+	trackScroll->setWidgetResizable(true);
+	upperTabWidget->addTab(trackWidget, "Tracks");
 
 	// terminal
 	Terminal::initTerminal(_settings->value("start_cmd", "").toString(),
@@ -347,6 +359,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	QMenu *fileMB = menuBar()->addMenu("File");
 	QMenu *editMB = menuBar()->addMenu("Edit");
 	QMenu *channelsMB = menuBar()->addMenu("Channels");
+	QMenu *tracksMB = menuBar()->addMenu("Tracks");
 	QMenu *timingMB = menuBar()->addMenu("Timing");
 	QMenu *viewMB = menuBar()->addMenu("View");
 	QMenu *playbackMB = menuBar()->addMenu("Playback");
@@ -412,7 +425,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	editMB->addSeparator();
 
-	QMenu *moveToChannelMenu = new QMenu("Move selected Events to channel...", editMB);
+	QMenu *moveToChannelMenu = new QMenu("Move selected Events to Channel...", editMB);
 	editMB->addMenu(moveToChannelMenu);
 	connect(moveToChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT(moveSelectedEventsToChannel(QAction*)));
 
@@ -422,6 +435,10 @@ MainWindow::MainWindow() : QMainWindow() {
 		moveToChannelAction->setData(variant);
 		moveToChannelMenu->addAction(moveToChannelAction);
 	}
+
+	_moveSelectedEventsToTrackMenu = new QMenu("Move selected Events to Track...", editMB);
+	editMB->addMenu(_moveSelectedEventsToTrackMenu);
+	connect(_moveSelectedEventsToTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(moveSelectedEventsToTrack(QAction*)));
 
 	editMB->addSeparator();
 
@@ -493,7 +510,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	channelsMB->addMenu(_channelVisibilityMenu);
 	connect(_channelVisibilityMenu, SIGNAL(triggered(QAction*)), this, SLOT(viewChannel(QAction*)));
 
-	for(int i = 0; i<16; i++){
+	for(int i = 0; i<17; i++){
 		QVariant variant(i);
 		QAction *viewChannelAction = new QAction(QString::number(i), this);
 		viewChannelAction->setCheckable(true);
@@ -524,6 +541,20 @@ MainWindow::MainWindow() : QMainWindow() {
 		soloChannelAction->setData(variant);
 		_channelSoloMenu->addAction(soloChannelAction);
 	}
+
+	// Tracks
+	QAction *addTrackAction = new QAction("Add Track", tracksMB);
+	tracksMB->addAction(addTrackAction);
+	connect(addTrackAction, SIGNAL(triggered()), this, SLOT(addTrack()));
+
+	_renameTrackMenu = new QMenu("Rename Track...", tracksMB);
+	tracksMB->addMenu(_renameTrackMenu);
+	connect(_renameTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(renameTrackMenuClicked(QAction*)));
+
+	_removeTrackMenu = new QMenu("Remove Track...", tracksMB);
+	tracksMB->addMenu(_removeTrackMenu);
+	connect(_removeTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(removeTrackMenuClicked(QAction*)));
+
 	// Timing
 	QAction *setFileLengthMs = new QAction("Set File Length (ms)", this);
 	connect(setFileLengthMs, SIGNAL(triggered()), this,SLOT(setFileLengthMs()));
@@ -618,12 +649,14 @@ void MainWindow::setFile(MidiFile *file){
 	_trackWidget->setFile(file);
 	Tool::setFile(file);
 	this->file = file;
+	connect(file, SIGNAL(trackChanged()), this, SLOT(updateTrackMenu()));
 	setWindowTitle("MidiEditor - " +file->path());
 	connect(file,SIGNAL(cursorPositionChanged()),channelWidget,SLOT(update()));
 	connect(file,SIGNAL(recalcWidgetSize()),mw_matrixWidget,SLOT(calcSizes()));
 
 	mw_matrixWidget->setFile(file);
 	updateChannelMenu();
+	updateTrackMenu();
 }
 
 void MainWindow::matrixSizeChanged(int maxScrollTime, int maxScrollLine,
@@ -1188,6 +1221,30 @@ void MainWindow::moveSelectedEventsToChannel(QAction *action){
     }
 }
 
+void MainWindow::moveSelectedEventsToTrack(QAction *action){
+
+	if(!file){
+		return;
+	}
+
+	int num = action->data().toInt();
+	MidiChannel *channel = file->channel(num);
+
+    if (EventTool::selectedEventList()->size()>0){
+    	file->protocol()->startNewAction("Move selected events to track "+QString::number(num));
+		foreach(MidiEvent *ev, *EventTool::selectedEventList()){
+			ev->setTrack(num, true);
+			OnEvent *onevent = dynamic_cast<OnEvent*>(ev);
+			if(onevent){
+				onevent->offEvent()->setTrack(num);
+			}
+			channel->insertEvent(ev, ev->midiTime());
+		}
+
+    	file->protocol()->endAction();
+    }
+}
+
 void MainWindow::updateRecentPathsList(){
 
 	// if file opened put it at the top of the list
@@ -1230,9 +1287,7 @@ void MainWindow::openRecent(QAction *action){
 
 	if(file){
 		QString oldPath = file->path();
-		if(oldPath == path){
-			return;
-		}
+
 		if(!file->saved()){
 			switch(QMessageBox::question(this, "Save file?", "save file "+
 					file->path()+
@@ -1306,6 +1361,38 @@ void MainWindow::updateChannelMenu() {
 	}
 }
 
+void MainWindow::updateTrackMenu() {
+
+	_renameTrackMenu->clear();
+	_removeTrackMenu->clear();
+	_moveSelectedEventsToTrackMenu->clear();
+
+	if(!file){
+		return;
+	}
+
+	for(int i = 0; i<file->numTracks(); i++){
+		QVariant variant(i);
+		QAction *renameTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
+		renameTrackAction->setData(variant);
+		_renameTrackMenu->addAction(renameTrackAction);
+	}
+
+	for(int i = 0; i<file->numTracks(); i++){
+		QVariant variant(i);
+		QAction *removeTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
+		removeTrackAction->setData(variant);
+		_removeTrackMenu->addAction(removeTrackAction);
+	}
+
+	for(int i = 0; i<file->numTracks(); i++){
+		QVariant variant(i);
+		QAction *moveToTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
+		moveToTrackAction->setData(variant);
+		_moveSelectedEventsToTrackMenu->addAction(moveToTrackAction);
+	}
+}
+
 void MainWindow::editChannel(QAction *action){
 	int channel = action->data().toInt();
 	if(file){
@@ -1365,5 +1452,59 @@ void MainWindow::showEventWidget(MidiEvent *event){
 		lowerTabWidget->setCurrentIndex(1);
 	} else {
 		lowerTabWidget->setCurrentIndex(0);
+	}
+}
+
+void MainWindow::renameTrackMenuClicked(QAction *action){
+	int track = action->data().toInt();
+	renameTrack(track);
+}
+
+void MainWindow::renameTrack(int tracknumber){
+
+	if(!file){
+		return;
+	}
+
+	file->protocol()->startNewAction("Edit Track Name");
+
+    bool ok;
+    QString text = QInputDialog::getText(this, "Set Track Name",
+         "Track Name (Track "+QString::number(tracknumber)+")", QLineEdit::Normal,
+         file->tracks()->at(tracknumber)->name(), &ok);
+    if (ok && !text.isEmpty()){
+    	file->tracks()->at(tracknumber)->setName(text);
+    }
+
+	file->protocol()->endAction();
+	updateTrackMenu();
+}
+
+void MainWindow::removeTrackMenuClicked(QAction *action){
+	int track = action->data().toInt();
+	removeTrack(track);
+}
+
+void MainWindow::removeTrack(int tracknumber){
+
+	if(!file){
+		return;
+	}
+
+	file->protocol()->startNewAction("Remove Track");
+	file->removeTrack(tracknumber);
+	file->protocol()->endAction();
+	updateTrackMenu();
+}
+
+void MainWindow::addTrack(){
+	if(file){
+		file->protocol()->startNewAction("Add Track");
+		file->addTrack();
+		file->protocol()->endAction();
+	}
+	updateTrackMenu();
+	if(file){
+		renameTrack(file->numTracks()-1);
 	}
 }

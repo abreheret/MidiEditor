@@ -32,6 +32,10 @@ class TrackListWidget : public PaintWidget {
 		TrackListWidget(QWidget *parent = 0);
 		void setFile(MidiFile *f);
 
+	signals:
+		void trackRenameClicked(int tracknumber);
+		void trackRemoveClicked(int tracknumber);
+
 	private:
 		MidiFile *file;
 

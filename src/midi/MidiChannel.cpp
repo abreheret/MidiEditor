@@ -28,6 +28,8 @@
 #include <QColor>
 
 #include "MidiFile.h"
+#include "MidiTrack.h"
+#include "../gui/EventWidget.h"
 #include "../MidiEvent/MidiEvent.h"
 #include "../MidiEvent/NoteOnEvent.h"
 #include "../MidiEvent/OffEvent.h"
@@ -114,6 +116,9 @@ MidiFile *MidiChannel::file(){
 }
 
 bool MidiChannel::visible(){
+	if(_num > 16){
+		return _midiFile->channel(16)->visible();
+	}
 	return _visible;
 }
 
@@ -175,6 +180,11 @@ void MidiChannel::removeEvent(MidiEvent *event){
 		}
 	}
 
+	// remove from track if its the trackname
+	if(number() == 16 && (MidiEvent*)(file()->tracks()->at(event->track())->nameEvent()) == event){
+		file()->tracks()->at(event->track())->setNameEvent(0);
+	}
+
 	ProtocolEntry *toCopy = copy();
 	_events->remove(event->midiTime(), event);
 	OnEvent *on = dynamic_cast<OnEvent*>(event);
@@ -182,6 +192,10 @@ void MidiChannel::removeEvent(MidiEvent *event){
 		_events->remove(on->offEvent()->midiTime(), on->offEvent());
 	}
 	protocol(toCopy, this);
+
+	if(MidiEvent::eventWidget()->event()==event){
+		MidiEvent::eventWidget()->setEvent(0);
+	}
 }
 
 void MidiChannel::setEdit(bool b){

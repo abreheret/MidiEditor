@@ -82,14 +82,23 @@ class MainWindow : public QMainWindow {
 		void deleteSelectedEvents();
 		void deleteChannel(QAction *action);
 		void moveSelectedEventsToChannel(QAction *action);
+		void moveSelectedEventsToTrack(QAction *action);
 		void updateRecentPathsList();
 		void openRecent(QAction *action);
 		void updateChannelMenu();
+		void updateTrackMenu();
 		void editChannel(QAction *action);
 		void muteChannel(QAction *action);
 		void soloChannel(QAction *action);
 		void viewChannel(QAction *action);
+		void renameTrackMenuClicked(QAction *action);
+		void removeTrackMenuClicked(QAction *action);
 		void showEventWidget(MidiEvent *event);
+
+		void renameTrack(int tracknumber);
+		void removeTrack(int tracknumber);
+
+		void addTrack();
 
 	protected:
 		void closeEvent(QCloseEvent *event);
@@ -110,7 +119,7 @@ class MainWindow : public QMainWindow {
 		ClickButton *_lockButton;
 		QStringList _recentFilePaths;
 		QMenu *_recentPathsMenu, *_editChannelMenu, *_channelVisibilityMenu, *_channelMuteMenu,
-			*_channelSoloMenu;
+			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu;
 		QTabWidget *lowerTabWidget;
 };
 

@@ -26,6 +26,8 @@
 #include <QPainter>
 #include <QLinearGradient>
 #include <QFont>
+#include <QLineEdit>
+#include <QInputDialog>
 
 #define LINE_HEIGHT 50
 #define BORDER 5
@@ -93,7 +95,7 @@ void TrackListWidget::paintEvent(QPaintEvent *event){
 			painter->fillRect(6, y+35, 12, 12, QColor(0,0,0, 100));
 			if(mouseReleased && enabled){
 				file->protocol()->startNewAction("remove track");
-				// TODO
+				emit trackRemoveClicked(i);
 				file->protocol()->endAction();
 			}
 		}
@@ -105,9 +107,8 @@ void TrackListWidget::paintEvent(QPaintEvent *event){
 			painter->fillRect(22, y+35, 12, 12, QColor(0,0,0, 100));
 			text = "rename track";
 			if(mouseReleased && enabled){
-				file->protocol()->startNewAction(text);
-				// TODO
-				file->protocol()->endAction();
+				mouseReleased = false;
+				emit trackRenameClicked(i);
 			}
 		}
 
@@ -121,6 +122,13 @@ void TrackListWidget::paintEvent(QPaintEvent *event){
 
 	if(!enabled){
 		painter->fillRect(0,0,width(), height(), QColor(110, 110, 110, 100));
+	}
+
+	if(mouseReleased && enabled){
+		mouseReleased = false;
+		delete painter;
+		update();
+		return;
 	}
 
 	delete painter;
