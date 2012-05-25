@@ -30,6 +30,7 @@
 #include "../MidiEvent/ChannelPressureEvent.h"
 #include "../MidiEvent/KeyPressureEvent.h"
 #include "../MidiEvent/ControlChangeEvent.h"
+#include "../MidiEvent/TextEvent.h"
 
 NewNoteTool::NewNoteTool() : EventTool() {
 	inDrag = false;
@@ -149,10 +150,21 @@ bool NewNoteTool::release(){
 				int startTick = file()->tick(startMs);
 				file()->channel(channel)->insertEvent(event, startTick);
 				currentProtocol()->endAction();
-			}   else if(line == MidiEvent::CHANNEL_PRESSURE_LINE){
+			}  else if(line == MidiEvent::CHANNEL_PRESSURE_LINE){
 				currentProtocol()->startNewAction(
 						"Create Channel Pressure Event", image());
 				event = new ChannelPressureEvent(channel, 100);
+				int startMs = matrixWidget->msOfXPos(xPos);
+				int startTick = file()->tick(startMs);
+				file()->channel(channel)->insertEvent(event, startTick);
+				currentProtocol()->endAction();
+			} else if(line == MidiEvent::TEXT_EVENT_LINE){
+				currentProtocol()->startNewAction(
+						"Create Text Event", image());
+				event = new TextEvent(16);
+				TextEvent *textEvent = (TextEvent*)event;
+				textEvent->setText("New Text Event");
+				textEvent->setType(TextEvent::TEXT);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(channel)->insertEvent(event, startTick);
