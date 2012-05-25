@@ -17,11 +17,22 @@
  */
 
 #include "TextEvent.h"
+
+#include "../midi/MidiFile.h"
+#include "../midi/MidiTrack.h"
+
 #include <QLayout>
+#include <QSpinBox>
+#include <QMessageBox>
 
 TextEvent::TextEvent(int channel) : MidiEvent(channel) {
 	_type = TEXT;
 	_text = "";
+}
+
+TextEvent::TextEvent(TextEvent &other) : MidiEvent(other) {
+	_type = other._type;
+	_text = other._text;
 }
 
 QString TextEvent::text(){
@@ -29,7 +40,12 @@ QString TextEvent::text(){
 }
 
 void TextEvent::setText(QString text){
+	ProtocolEntry *toCopy = copy();
 	_text = text;
+	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		_text_area->setText(_text);
+	}
 }
 
 int TextEvent::type(){
@@ -37,7 +53,12 @@ int TextEvent::type(){
 }
 
 void TextEvent::setType(int type){
+	ProtocolEntry *toCopy = copy();
 	_type = type;
+	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		_type_combo->setCurrentIndex(type-1);
+	}
 }
 
 int TextEvent::line(){
@@ -45,11 +66,36 @@ int TextEvent::line(){
 }
 
 QByteArray TextEvent::save(){
-	// TODO
+
+	QByteArray array = QByteArray();
+
+	array.append(0xFF);
+	array.append(_type);
+	array.append(_text.length());
+
+	for(int i = 0; i < _text.length(); i++){
+		array.append(_text.at(i));
+	}
+
+	return array;
 }
 
 QString TextEvent::typeString(){
 	return "Text Event";
+}
+
+ProtocolEntry *TextEvent::copy(){
+	return new TextEvent(*this);
+}
+
+void TextEvent::reloadState(ProtocolEntry *entry){
+	TextEvent *other = dynamic_cast<TextEvent*>(entry);
+	if(!other){
+		return;
+	}
+	MidiEvent::reloadState(entry);
+	_text = other->_text;
+	_type = other->_type;
 }
 
 // Widgets for EventWidget
@@ -105,4 +151,44 @@ void TextEvent::generateWidget(QWidget *widget){
 	layout->addWidget(_type_combo);
 	layout->addWidget(_text_label);
 	layout->addWidget(_text_area);
+}
+
+void TextEvent::editByWidget(){
+
+	int oldTrack = track();
+	int oldType = type();
+
+	// only one trackname event accepted per track
+	if(_type_combo->currentIndex() != _type-1|| _track_spinBox->value() != track()){
+		if(_type_combo->currentIndex() == TextEvent::TRACKNAME-1){
+			if(file()->tracks()->size()>_track_spinBox->value() && file()->tracks()->at(_track_spinBox->value())->nameEvent()){
+				QMessageBox::warning(0,	"Error", QString("The track "+
+								QString::number(_track_spinBox->value())+
+								" already has a trackname TextEvent! Abort!"));
+				_type_combo->setCurrentIndex(_type-1);
+				_track_spinBox->setValue(track());
+				return;
+			}
+		}
+	}
+
+	MidiEvent::editByWidget();
+
+	if(_text != _text_area->toPlainText()){
+		setText(_text_area->toPlainText());
+	}
+
+	if(_type != _type_combo->currentIndex()+1){
+		setType(_type_combo->currentIndex()+1);
+	}
+
+	// set this event to the new track
+	if(oldType == TextEvent::TRACKNAME && _type != TextEvent::TRACKNAME){
+		file()->tracks()->at(oldTrack)->setNameEvent(0);
+	} else if(oldType == TextEvent::TRACKNAME && oldTrack != track()){
+		file()->tracks()->at(oldTrack)->setNameEvent(0);
+		file()->tracks()->at(track())->setNameEvent(this);
+	} else if(_type == TextEvent::TRACKNAME){
+		file()->tracks()->at(track())->setNameEvent(this);
+	}
 }

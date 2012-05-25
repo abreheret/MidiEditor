@@ -79,16 +79,17 @@ class MidiFile : public QObject, public ProtocolEntry {
 		int numTracks();
 		QList<MidiTrack*> *tracks();
 		void addTrack();
-		void setNumTracks(int tracks);
 		void setMaxLengthMs(int ms);
 
 		ProtocolEntry *copy();
 		void reloadState(ProtocolEntry *entry);
 		MidiFile *file();
+		void removeTrack(int number);
 
 	signals:
 		void cursorPositionChanged();
 		void recalcWidgetSize();
+		void trackChanged();
 
 	private:
 		bool readMidiFile(QDataStream *content);
@@ -99,7 +100,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 		MidiChannel *channels[19];
 
 		QString errorString, _path;
-		int midiTicks, maxTimeMS, _cursorTick, _midiFormat, _numTracks;
+		int midiTicks, maxTimeMS, _cursorTick, _midiFormat;
 		Protocol *prot;
 		QMultiMap<int, MidiEvent*> *playerMap;
 		bool _saved;

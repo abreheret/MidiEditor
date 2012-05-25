@@ -111,69 +111,74 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 			}
 		}
 
-		if(!file->channel(i)->mute()){
-			painter->drawImage(22, y+35,
-					QImage("graphics/channelwidget/loud.png"));
-		} else {
-			painter->drawImage(22, y+35,
-					QImage("graphics/channelwidget/mute.png"));
-			painter->fillRect(22, y+35, 12, 12, QColor(0,0,0, 60));
-		}
-		if(mouseInRect(22, y+35, 12, 12)){
-			painter->fillRect(22, y+35, 12, 12, QColor(0,0,0, 100));
-			if(file->channel(i)->mute()){
-				text = "make audible";
+		if(i<16){
+			if(!file->channel(i)->mute()){
+				painter->drawImage(22, y+35,
+						QImage("graphics/channelwidget/loud.png"));
 			} else {
-				text = "mute channel";
+				painter->drawImage(22, y+35,
+						QImage("graphics/channelwidget/mute.png"));
+				painter->fillRect(22, y+35, 12, 12, QColor(0,0,0, 60));
 			}
-			if(mouseReleased && enabled){
-				file->protocol()->startNewAction(text);
-				file->channel(i)->setMute(!file->channel(i)->mute());
-				file->protocol()->endAction();
-			}
-		}
-		painter->drawImage(54, y+35, QImage("graphics/channelwidget/solo.png"));
-		if(!file->channel(i)->solo()){
-			painter->fillRect(54, y+35, 12, 12, QColor(0,0,0, 60));
-		}
-		if(enabled && mouseInRect(54, y+35, 12, 12)){
-			painter->fillRect(54, y+35, 12, 12, QColor(0,0,0, 100));
-			if(!file->channel(i)->solo()){
-				text = "enter solomode";
-			} else {
-				text = "exit solomode";
-			}
-			if(mouseReleased && enabled){
-				file->protocol()->startNewAction(text);
-				for(int c = 0; c<17; c++){
-					file->channel(c)->setSolo(c==i&&!file->channel(c)->solo());
+			if(mouseInRect(22, y+35, 12, 12)){
+				painter->fillRect(22, y+35, 12, 12, QColor(0,0,0, 100));
+				if(file->channel(i)->mute()){
+					text = "make audible";
+				} else {
+					text = "mute channel";
 				}
-				file->protocol()->endAction();
+				if(mouseReleased && enabled){
+					file->protocol()->startNewAction(text);
+					file->channel(i)->setMute(!file->channel(i)->mute());
+					file->protocol()->endAction();
+				}
 			}
-		}
-
-		if(file->channel(i)->edit()){
-			painter->drawImage(38, y+35,
-					QImage("graphics/channelwidget/edit.png"));
-		} else {
-			painter->drawImage(38, y+35,
-					QImage("graphics/channelwidget/noedit.png"));
-			painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 60));
-		}
-		if(enabled && mouseInRect(38, y+35, 12, 12)){
-			painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 100));
-			if(!file->channel(i)->edit()){
-				text = "enter editmode";
-				if(mouseReleased){
+			painter->drawImage(54, y+35, QImage("graphics/channelwidget/solo.png"));
+			if(!file->channel(i)->solo()){
+				painter->fillRect(54, y+35, 12, 12, QColor(0,0,0, 60));
+			}
+			if(enabled && mouseInRect(54, y+35, 12, 12)){
+				painter->fillRect(54, y+35, 12, 12, QColor(0,0,0, 100));
+				if(!file->channel(i)->solo()){
+					text = "enter solomode";
+				} else {
+					text = "exit solomode";
+				}
+				if(mouseReleased && enabled){
 					file->protocol()->startNewAction(text);
 					for(int c = 0; c<17; c++){
-						file->channel(c)->setEdit(c==i);
+						file->channel(c)->setSolo(c==i&&!file->channel(c)->solo());
 					}
 					file->protocol()->endAction();
 				}
 			}
+
+			if(file->channel(i)->edit()){
+				painter->drawImage(38, y+35,
+						QImage("graphics/channelwidget/edit.png"));
+			} else {
+				painter->drawImage(38, y+35,
+						QImage("graphics/channelwidget/noedit.png"));
+				painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 60));
+			}
+			if(enabled && mouseInRect(38, y+35, 12, 12)){
+				painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 100));
+				if(!file->channel(i)->edit()){
+					text = "enter editmode";
+					if(mouseReleased){
+						file->protocol()->startNewAction(text);
+						for(int c = 0; c<17; c++){
+							file->channel(c)->setEdit(c==i);
+						}
+						file->protocol()->endAction();
+					}
+				}
+			}
+			painter->drawText(70, y+46, text);
+		} else {
+			painter->drawText(22, y+46, text);
 		}
-		painter->drawText(70, y+46, text);
+
 	}
 	if(mouseReleased && enabled){
 		emit(channelStateChanged());

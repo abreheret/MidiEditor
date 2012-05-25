@@ -19,16 +19,22 @@
 #ifndef MIDITRACK_H_
 #define MIDITRACK_H_
 
+#include "../protocol/ProtocolEntry.h"
+
+#include <QObject>
 #include <QString>
 
 class TextEvent;
 class MidiFile;
 
-class MidiTrack {
+class MidiTrack : public QObject, public ProtocolEntry{
+
+	Q_OBJECT
 
 	public:
 
 		MidiTrack(MidiFile *file);
+		MidiTrack(MidiTrack &other);
 
 		QString name();
 		void setName(QString name);
@@ -39,8 +45,15 @@ class MidiTrack {
 		void setNameEvent(TextEvent *nameEvent);
 		TextEvent *nameEvent();
 
+		MidiFile *file();
+
+		virtual ProtocolEntry *copy();
+		virtual void reloadState(ProtocolEntry *entry);
+
+	signals:
+		void trackChanged();
+
 	private:
-		QString _name;
 		int _number;
 		TextEvent *_nameEvent;
 		MidiFile *_file;

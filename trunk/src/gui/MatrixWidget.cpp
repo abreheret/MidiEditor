@@ -893,7 +893,14 @@ void MatrixWidget::wheelEvent(QWheelEvent *event){
 		scrollXChanged(newStartTime);
 		emit scrollChanged(startTimeX, maxTimeInFile-widgetRange, startLineY, NUM_LINES-(endLineY-startLineY));
 	} else {
-		int newStartLineY = startLineY-event->delta()/100;
+		int newStartLineY = startLineY;
+
+		if(event->delta() > 0){
+			newStartLineY-=3;
+		} else {
+			newStartLineY+=3;
+		}
+
 		if(newStartLineY < 0){
 			newStartLineY = 0;
 		}

@@ -54,6 +54,7 @@ MidiFile::MidiFile(){
 	MidiTrack *track = new MidiTrack(this);
 	track->setName("New Track");
 	_tracks->append(track);
+	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 
 	// add timesig
 	TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8);
@@ -69,7 +70,6 @@ MidiFile::MidiFile(){
 
 	playerMap = new QMultiMap<int, MidiEvent*>;
 
-	_numTracks = 1;
 	midiTicks = 7680;
 	calcMaxTime();
 }
@@ -147,7 +147,7 @@ bool MidiFile::readMidiFile(QDataStream *content){
 
 	quint16 numTracks;
 	(*content)>>numTracks;
-	_numTracks = numTracks;
+	int _numTracks = numTracks;
 
 	quint16 basisVelocity;
 	(*content)>>basisVelocity;
@@ -212,6 +212,7 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 	MidiTrack *track = new MidiTrack(this);
 	track->setNumber(num);
 	_tracks->append(track);
+	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 
 	while(!endEvent){
 
@@ -464,10 +465,7 @@ int MidiFile::tick(int startms, int endms, QList<MidiEvent*> **eventList,
 }
 
 int MidiFile::numTracks(){
-	return _numTracks;
-}
-void MidiFile::setNumTracks(int tracks){
-	_numTracks = tracks;
+	return _tracks->size();
 }
 
 int MidiFile::measure(int startTick, int endTick,
@@ -914,14 +912,14 @@ bool MidiFile::save(QString path){
 	}
 
 	for(int i = 1; i >=0; i--){
-		data.append((qint8)((_numTracks & (0xFF << 8*i)) >>8*i));
+		data.append((qint8)((numTracks() & (0xFF << 8*i)) >>8*i));
 	}
 
 	for(int i = 1; i >=0; i--){
 		data.append((qint8)((timePerQuarter & (0xFF << 8*i)) >>8*i));
 	}
 
-	for(int num = 0; num<_numTracks; num++){
+	for(int num = 0; num<numTracks(); num++){
 
 		data.append('M');
 		data.append('T');
@@ -1070,7 +1068,44 @@ QList<MidiTrack*> *MidiFile::tracks(){
 void MidiFile::addTrack(){
 	ProtocolEntry *toCopy = copy();
 	MidiTrack *track = new MidiTrack(this);
-	track->setName("new Track");
+	track->setNumber(_tracks->size());
 	_tracks->append(track);
+	track->setName("New Track");
+	ProtocolEntry::protocol(toCopy, this);
+	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
+}
+
+void MidiFile::removeTrack(int number){
+
+	if(numTracks()<2){
+		return;
+	}
+
+	ProtocolEntry *toCopy = copy();
+
+	QMultiMap<int, MidiEvent*> allEvents = QMultiMap<int, MidiEvent*>();
+	for(int i = 0; i<19; i++){
+		QMultiMap<int, MidiEvent*>::iterator it=channels[i]->eventMap()->begin();
+		while(it!=channels[i]->eventMap()->end()){
+			allEvents.insert(it.key(), it.value());
+			it++;
+		}
+	}
+
+	QMultiMap<int, MidiEvent*>::iterator it=allEvents.begin();
+	while(it!=allEvents.end()){
+		MidiEvent *event = it.value();
+		if(event->track() == number){
+			channels[event->channel()]->removeEvent(event);
+		}
+		if(event->track() > number){
+			event->setTrack(event->track()-1, false);
+		}
+		it++;
+	}
+
+	MidiTrack *track = _tracks->at(number);
+	_tracks->removeAll(track);
+
 	ProtocolEntry::protocol(toCopy, this);
 }

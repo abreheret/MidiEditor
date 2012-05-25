@@ -71,10 +71,9 @@ void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 	} else if(strPressed && !ignoreStr){
 		selectedEvents->removeAll(event);
 	}
-	if(single){
+	if(selectedEvents->count() == 1){
 		_mainWindow->eventWidget()->setEvent(event);
-	}
-	if(selectedEvents->count()>1){
+	} else {
 		_mainWindow->eventWidget()->setEvent(0);
 	}
 }

@@ -32,6 +32,7 @@ class TextEvent : public MidiEvent {
 	public:
 
 		TextEvent(int channel);
+		TextEvent(TextEvent &other);
 
 		QString text();
 		void setText(QString text);
@@ -42,6 +43,9 @@ class TextEvent : public MidiEvent {
 		int line();
 
 		QByteArray save();
+
+		virtual ProtocolEntry *copy();
+		virtual void reloadState(ProtocolEntry *entry);
 
 		enum {
 			TEXT = 0x01,
@@ -55,6 +59,7 @@ class TextEvent : public MidiEvent {
 
 		QString typeString();
 		void generateWidget(QWidget *widget);
+		void editByWidget();
 
 	private:
 
