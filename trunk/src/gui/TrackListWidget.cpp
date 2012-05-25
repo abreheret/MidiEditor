@@ -21,6 +21,7 @@
 #include "../midi/MidiFile.h"
 #include "../midi/MidiTrack.h"
 #include "../protocol/Protocol.h"
+#include "../midi/MidiChannel.h"
 
 #include <QPainter>
 #include <QLinearGradient>
@@ -70,6 +71,9 @@ void TrackListWidget::paintEvent(QPaintEvent *event){
 
 		int y = LINE_HEIGHT*i;
 
+		QColor *color = MidiChannel::colorByChannelNumber(i-1);
+		painter->fillRect(5, y+5, 16, 16, *color);
+
 		painter->drawLine(5,y+5, 21, y+5);
 		painter->drawLine(5,y+5, 5, y+21);
 		painter->drawLine(21, y+21, 5, y+21);
@@ -80,6 +84,34 @@ void TrackListWidget::paintEvent(QPaintEvent *event){
 		text = file->tracks()->at(i)->name();
 		painter->drawText(25, y+30, text);
 
+		text = "";
+
+		painter->drawImage(6, y+35,
+				QImage("graphics/trackwidget/remove.png"));
+		if(enabled && mouseInRect(6, y+35, 12, 12)){
+			text = "remove track";
+			painter->fillRect(6, y+35, 12, 12, QColor(0,0,0, 100));
+			if(mouseReleased && enabled){
+				file->protocol()->startNewAction("remove track");
+				// TODO
+				file->protocol()->endAction();
+			}
+		}
+
+		painter->drawImage(22, y+35,
+				QImage("graphics/trackwidget/rename.png"));
+
+		if(mouseInRect(22, y+35, 12, 12)){
+			painter->fillRect(22, y+35, 12, 12, QColor(0,0,0, 100));
+			text = "rename track";
+			if(mouseReleased && enabled){
+				file->protocol()->startNewAction(text);
+				// TODO
+				file->protocol()->endAction();
+			}
+		}
+
+		painter->drawText(38, y+46, text);
 	}
 
 	painter->drawLine(0,0,width()-1,0);
