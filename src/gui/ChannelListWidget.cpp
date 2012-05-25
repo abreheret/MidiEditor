@@ -173,7 +173,7 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 				}
 			}
 		}
-		painter->drawText(68, y+46, text);
+		painter->drawText(70, y+46, text);
 	}
 	if(mouseReleased && enabled){
 		emit(channelStateChanged());
