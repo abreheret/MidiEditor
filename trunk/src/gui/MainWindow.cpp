@@ -701,11 +701,13 @@ void MainWindow::stop(){
 void MainWindow::forward(){
 	if(!file) return;
 	file->setCursorTick(file->endTick());
+	mw_matrixWidget->update();
 }
 
 void MainWindow::back(){
 	if(!file) return;
 	file->setCursorTick(0);
+	mw_matrixWidget->update();
 }
 
 void MainWindow::save(){
@@ -803,7 +805,9 @@ void MainWindow::load(){
 	QString newPath = QFileDialog::getOpenFileName(this, "Open file",
 			dir, "MIDI Files(*.mid *.midi);;All Files(*)");
 
-	openFile(newPath);
+	if(!newPath.isEmpty()){
+		openFile(newPath);
+	}
 }
 
 void MainWindow::openFile(QString filePath){
@@ -1492,7 +1496,9 @@ void MainWindow::removeTrack(int tracknumber){
 	}
 
 	file->protocol()->startNewAction("Remove Track");
-	file->removeTrack(tracknumber);
+	if(!file->removeTrack(tracknumber)){
+		QMessageBox::warning(this, "Error", QString("The selected Track can\'t be removed!\n It\'s the last Track of the File!"));
+	}
 	file->protocol()->endAction();
 	updateTrackMenu();
 }

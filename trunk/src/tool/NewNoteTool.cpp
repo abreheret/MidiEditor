@@ -58,12 +58,21 @@ void NewNoteTool::reloadState(ProtocolEntry *entry){
 
 void NewNoteTool::draw(QPainter *painter){
 	if(inDrag){
-		int y = matrixWidget->yPosOfLine(line);
-		painter->fillRect(xPos, y, mouseX-xPos, matrixWidget->lineHeight(), Qt::black);
-		painter->setPen(Qt::gray);
-		painter->drawLine(xPos, 0, xPos, matrixWidget->height());
-		painter->drawLine(mouseX, 0, mouseX, matrixWidget->height());
-		painter->setPen(Qt::black);
+		if(line<=128) {
+			int y = matrixWidget->yPosOfLine(line);
+			painter->fillRect(xPos, y, mouseX-xPos, matrixWidget->lineHeight(), Qt::black);
+			painter->setPen(Qt::gray);
+			painter->drawLine(xPos, 0, xPos, matrixWidget->height());
+			painter->drawLine(mouseX, 0, mouseX, matrixWidget->height());
+			painter->setPen(Qt::black);
+		} else {
+			int y = matrixWidget->yPosOfLine(line);
+			painter->fillRect(mouseX, y, 15, matrixWidget->lineHeight(), Qt::black);
+			painter->setPen(Qt::gray);
+			painter->drawLine(mouseX, 0, mouseX, matrixWidget->height());
+			painter->drawLine(mouseX+15, 0, mouseX+15, matrixWidget->height());
+			painter->setPen(Qt::black);
+		}
 	}
 }
 
@@ -76,12 +85,12 @@ bool NewNoteTool::press(){
 
 bool NewNoteTool::release(){
 	inDrag = false;
-	if(mouseX<xPos){
+	if(mouseX<xPos || line>128){
 		int temp = mouseX;
 		mouseX = xPos;
 		xPos = temp;
 	}
-	if(mouseX-xPos>2){
+	if(mouseX-xPos>2 || line>128){
 
 		int channel = file()->editedChannel();
 
