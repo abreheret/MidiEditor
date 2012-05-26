@@ -45,7 +45,7 @@ class RecordDialog : public QDialog {
 		QComboBox *_channelBox;
 		QComboBox *_trackBox;
 		QCheckBox *_notes, *_channelPressure, *_controlChange, *_keyPressure,
-			*_progChange, *_tempoChange, *_timeSig, *_unknown;
+			*_progChange, *_tempoChange, *_timeSig, *_text, *_unknown;
 
 };
 

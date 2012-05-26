@@ -1075,10 +1075,10 @@ void MidiFile::addTrack(){
 	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 }
 
-void MidiFile::removeTrack(int number){
+bool MidiFile::removeTrack(int number){
 
 	if(numTracks()<2){
-		return;
+		return false;
 	}
 
 	ProtocolEntry *toCopy = copy();
@@ -1108,4 +1108,6 @@ void MidiFile::removeTrack(int number){
 	_tracks->removeAll(track);
 
 	ProtocolEntry::protocol(toCopy, this);
+
+	return true;
 }

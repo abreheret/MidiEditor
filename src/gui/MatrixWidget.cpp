@@ -32,6 +32,8 @@
 #include "../midi/PlayerThread.h"
 #include "../midi/MidiInput.h"
 
+#include <QList>
+
 #define NUM_LINES 137
 #define PIXEL_PER_S 100
 #define PIXEL_PER_LINE 12
@@ -486,6 +488,14 @@ void MatrixWidget::paintChannel(QPainter *painter, int channel){
 			event->setHeight(height);
 
 			event->draw(painter, cC);
+
+			if(EventTool::selectedEventList()->contains(event)){
+				painter->setPen(Qt::gray);
+				painter->drawLine(lineNameWidth, y, this->width(), y);
+				painter->drawLine(lineNameWidth, y+height, this->width(), y+height);
+				painter->setPen(Qt::black);
+
+			}
 			objects->append(event);
 		}
 

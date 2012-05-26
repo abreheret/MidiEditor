@@ -37,6 +37,7 @@
 #include "../MidiEvent/TempoChangeEvent.h"
 #include "../MidiEvent/TimeSignatureEvent.h"
 #include "../MidiEvent/UnknownEvent.h"
+#include "../MidiEvent/TextEvent.h"
 #include "../protocol/Protocol.h"
 #include "../midi/MidiChannel.h"
 
@@ -94,17 +95,20 @@ RecordDialog::RecordDialog(MidiFile *file, QMultiMap<int, MidiEvent*> data,
 	_timeSig = new QCheckBox("TimeSignature", this);
 	_timeSig->setChecked(true);
 	layout->addWidget(_timeSig, 10, 0, 1, 3);
+	_text = new QCheckBox("TextEvents", this);
+	_text->setChecked(true);
+	layout->addWidget(_text, 11, 0, 1, 3);
 	_unknown = new QCheckBox("Unknown Events", this);
-	layout->addWidget(_unknown, 11, 0, 1, 3);
+	layout->addWidget(_unknown, 12, 0, 1, 3);
 	_unknown->setChecked(true);
 
 	// buttons
 	QPushButton *cancel = new QPushButton("Cancel", this);
-	layout->addWidget(cancel, 12, 0, 1, 2);
+	layout->addWidget(cancel, 13, 0, 1, 2);
 	connect(cancel, SIGNAL(clicked()), this, SLOT(cancel()));
 
 	QPushButton *ok = new QPushButton("Ok", this);
-	layout->addWidget(ok, 12, 2, 1, 1);
+	layout->addWidget(ok, 13, 2, 1, 1);
 	connect(ok, SIGNAL(clicked()), this, SLOT(enter()));
 }
 
@@ -182,6 +186,13 @@ void RecordDialog::enter(){
 					dynamic_cast<TimeSignatureEvent*>(toCheck);
 			if(time) {
 				ignoreEvent &= _timeSig->isChecked();
+				currentChannel = it.value()->channel();
+			}
+
+			TextEvent *text =
+					dynamic_cast<TextEvent*>(toCheck);
+			if(text) {
+				ignoreEvent &= _text->isChecked();
 				currentChannel = it.value()->channel();
 			}
 
