@@ -193,6 +193,7 @@ void RecordDialog::enter(){
 
 			if(!ignoreEvent){
 				MidiEvent *toAdd = it.value();
+				toAdd->setFile(_file);
 				toAdd->setChannel(currentChannel, false);
 				toAdd->setTrack(track, false);
 				_file->channel(toAdd->channel())->insertEvent(toAdd,
