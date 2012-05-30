@@ -143,6 +143,13 @@ bool StandardTool::press(){
 				protocol(toCopy, this);
 				file()->protocol()->endAction();
 
+				if(shiftPressed){
+					moveTool->setDirections(true, false);
+				} else if(strPressed){
+					moveTool->setDirections(false, true);
+				} else {
+					moveTool->setDirections(true, true);
+				}
 				Tool::setCurrentTool(moveTool);
 				moveTool->move(mouseX, mouseY);
 				moveTool->press();

@@ -93,7 +93,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	EditorTool::setMainWindow(this);
 
-	setWindowTitle("MidiEditor 1.0.2");
+	setWindowTitle("MidiEditor 2.0.0");
 	setWindowIcon(QIcon("graphics/icon.png"));
 
 	QWidget *central = new QWidget(this);
@@ -628,9 +628,9 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 	helpMB->addAction(aboutAction);
 
-	QAction *donateAction = new QAction("Donate", this);
-	connect(donateAction, SIGNAL(triggered()), this, SLOT(donate()));
-	helpMB->addAction(donateAction);
+//	QAction *donateAction = new QAction("Donate", this);
+//	connect(donateAction, SIGNAL(triggered()), this, SLOT(donate()));
+//	helpMB->addAction(donateAction);
 }
 
 void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
@@ -694,6 +694,7 @@ void MainWindow::stop(){
 		_trackWidget->setEnabled(true);
 		protocolWidget->setEnabled(true);
 		mw_matrixWidget->setEnabled(true);
+		mw_matrixWidget->timeMsChanged(MidiPlayer::timeMs(), true);
 		panic();
 	}
 }

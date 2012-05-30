@@ -571,6 +571,19 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 			case 11: { blackBeneath = true; break; }
 		}
 
+		if(128-number == startLineY){
+			blackOnTop = false;
+		}
+
+		bool selected = mouseY >= y && mouseY <= y+height && mouseX > lineNameWidth && mouseOver;
+		foreach(MidiEvent *event, *EventTool::selectedEventList()){
+			if(event->line() == 128-number){
+				selected = true;
+				break;
+			}
+		}
+
+		QPolygon keyPolygon;
 
 		bool inRect = false;
 		if(isBlack){
@@ -580,21 +593,57 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 			playerRect.setX(x);
 			playerRect.setY(y);
 			playerRect.setWidth(width*scaleWidthBlack);
-			playerRect.setHeight(height*scaleHeightBlack);
+			playerRect.setHeight(height*scaleHeightBlack+0.5);
 			QColor c = Qt::black;
 			if(mouseInRect(playerRect)){
 				c = QColor(200,200,200);
 				inRect = true;
 			}
 			painter->fillRect(playerRect, c);
+
+			keyPolygon.append(QPoint(x, y));
+			keyPolygon.append(QPoint(x, y+height*scaleHeightBlack));
+			keyPolygon.append(QPoint(x+width*scaleWidthBlack, y+height*scaleHeightBlack));
+			keyPolygon.append(QPoint(x+width*scaleWidthBlack, y));
+
+			if(selected){
+				painter->setBrush(QBrush(QColor(194,230,255), Qt::SolidPattern));
+				painter->drawPolygon(keyPolygon, Qt::OddEvenFill);
+			}
+
 		} else {
+
+			if(!blackOnTop){
+				keyPolygon.append(QPoint(x, y));
+				keyPolygon.append(QPoint(x+width, y));
+			} else {
+				keyPolygon.append(QPoint(x, y-height*scaleHeightBlack/2));
+				keyPolygon.append(QPoint(x+width*scaleWidthBlack, y-height*scaleHeightBlack/2));
+				keyPolygon.append(QPoint(x+width*scaleWidthBlack, y-height*scaleHeightBlack));
+				keyPolygon.append(QPoint(x+width, y-height*scaleHeightBlack));
+			}
 			if(!blackBeneath){
 				painter->drawLine(x, y+height, x+width, y+height);
+				keyPolygon.append(QPoint(x+width, y+height));
+				keyPolygon.append(QPoint(x, y+height));
+			} else {
+				keyPolygon.append(QPoint(x+width, y+height+height*scaleHeightBlack));
+				keyPolygon.append(QPoint(x+width*scaleWidthBlack, y+height+height*scaleHeightBlack));
+				keyPolygon.append(QPoint(x+width*scaleWidthBlack, y+height+height*scaleHeightBlack/2));
+				keyPolygon.append(QPoint(x, y+height+height*scaleHeightBlack/2));
 			}
 			inRect = mouseInRect(x,y,width, height);
-			if(inRect){
-				painter->fillRect(x, y, width, height, QColor(200,200,200));
+
+			if(selected){
+				painter->setBrush(QBrush(QColor(194,230,255), Qt::SolidPattern));
+				painter->drawPolygon(keyPolygon, Qt::OddEvenFill);
 			}
+
+			if(inRect){
+				painter->setBrush(QBrush(QColor(200,200,200), Qt::SolidPattern));
+				painter->drawPolygon(keyPolygon, Qt::OddEvenFill);
+			}
+
 		}
 		if(name!=""){
 			int textlength = QFontMetrics(painter->font()).width(name);
