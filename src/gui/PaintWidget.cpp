@@ -60,7 +60,7 @@ void PaintWidget::mouseMoveEvent(QMouseEvent *event){
 	}
 
 	if(this->repaintOnMouseMove){
-		this->repaint();
+		this->update();
 	}
 }
 
@@ -72,7 +72,7 @@ void PaintWidget::enterEvent(QEvent *event){
 		return;
 	}
 
-	repaint();
+	update();
 }
 
 void PaintWidget::leaveEvent(QEvent *event){
@@ -82,7 +82,7 @@ void PaintWidget::leaveEvent(QEvent *event){
 		return;
 	}
 
-	repaint();
+	update();
 }
 
 void PaintWidget::mousePressEvent(QMouseEvent *event){
@@ -95,7 +95,7 @@ void PaintWidget::mousePressEvent(QMouseEvent *event){
 	}
 
 	if(this->repaintOnMousePress){
-		this->repaint();
+		this->update();
 	}
 }
 
@@ -110,7 +110,7 @@ void PaintWidget::mouseReleaseEvent(QMouseEvent *event){
 	}
 
 	if(this->repaintOnMouseRelease){
-		this->repaint();
+		this->update();
 	}
 }
 
@@ -171,5 +171,5 @@ void PaintWidget::setRepaintOnMouseRelease(bool b){
 void PaintWidget::setEnabled(bool b){
 	enabled = b;
 	setMouseTracking(enabled);
-	repaint();
+	update();
 }
