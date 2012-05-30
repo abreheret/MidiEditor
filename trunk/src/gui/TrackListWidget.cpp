@@ -107,7 +107,6 @@ void TrackListWidget::paintEvent(QPaintEvent *event){
 			painter->fillRect(22, y+35, 12, 12, QColor(0,0,0, 100));
 			text = "rename track";
 			if(mouseReleased && enabled){
-				mouseReleased = false;
 				emit trackRenameClicked(i);
 			}
 		}
