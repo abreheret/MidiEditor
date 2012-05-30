@@ -742,6 +742,9 @@ void MatrixWidget::enterEvent(QEvent *event){
 	alt_pressed = false;
 	EventTool::strPressed = false;
 	EventTool::shiftPressed = false;
+	EventTool::altPressed = false;
+	EventTool::altGrPressed = false;
+	EventTool::spacePressed = false;
 	if(Tool::currentTool()){
 		Tool::currentTool()->enter();
 		repaint();
@@ -752,6 +755,9 @@ void MatrixWidget::leaveEvent(QEvent *event){
 	alt_pressed = false;
 	EventTool::strPressed = false;
 	EventTool::shiftPressed = false;
+	EventTool::altPressed = false;
+	EventTool::altGrPressed = false;
+	EventTool::spacePressed = false;
 	if(Tool::currentTool()){
 		Tool::currentTool()->exit();
 		repaint();
@@ -806,6 +812,11 @@ void MatrixWidget::takeKeyPressEvent(QKeyEvent *event){
 		}
 	} else if(event->key() == Qt::Key_Alt){
 		alt_pressed = true;
+		EventTool::altPressed = true;
+	} else if(event->key() == Qt::Key_AltGr){
+		EventTool::altGrPressed = true;
+	} else if(event->key() == Qt::Key_Space){
+		EventTool::spacePressed = true;
 	} else if(Tool::currentTool()){
 		// an das Werkzeug weitergeben
 		if(Tool::currentTool()->pressKey(event->key())){
@@ -821,7 +832,12 @@ void MatrixWidget::takeKeyReleaseEvent(QKeyEvent *event){
 		EventTool::strPressed = false;
 	} else if(event->key() == Qt::Key_Alt){
 		alt_pressed = false;
-	} else if(Tool::currentTool()){
+		EventTool::altPressed = false;
+	} else if(event->key() == Qt::Key_AltGr){
+		EventTool::altGrPressed = false;
+	}  else if(event->key() == Qt::Key_Space){
+		EventTool::spacePressed = false;
+	}  else if(Tool::currentTool()){
 		if(Tool::currentTool()->releaseKey(event->key())){
 			repaint();
 		}
