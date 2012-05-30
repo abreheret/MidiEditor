@@ -187,3 +187,8 @@ bool EventMoveTool::releaseOnly(){
 	startY = 0;
 	return true;
 }
+
+void EventMoveTool::setDirections(bool upDown, bool leftRight){
+	moveUpDown = upDown;
+	moveLeftRight = leftRight;
+}

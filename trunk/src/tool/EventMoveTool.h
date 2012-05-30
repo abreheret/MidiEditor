@@ -32,6 +32,8 @@ class EventMoveTool : public EventTool {
 		ProtocolEntry *copy();
 		void reloadState(ProtocolEntry *entry);
 
+		void setDirections(bool upDown, bool leftRight);
+
 		void draw(QPainter *painter);
 		bool press();
 		bool release();
