@@ -34,6 +34,9 @@ QList<MidiEvent*> *EventTool::selectedEvents = new QList<MidiEvent*>;
 QList<MidiEvent*> *EventTool::copiedEvents = new QList<MidiEvent*>;
 bool EventTool::shiftPressed = false;
 bool EventTool::strPressed = false;
+bool EventTool::altPressed = false;
+bool EventTool::altGrPressed = false;
+bool EventTool::spacePressed = false;
 
 EventTool::EventTool() : EditorTool() {
 	ownSelectedEvents = 0;
