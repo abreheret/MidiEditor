@@ -29,7 +29,7 @@
 
 PlayerThread::PlayerThread() : QThread() {
 	file = 0;
-	timer = new QTimer();
+	timer = 0;
 	timeoutSinceLastSignal = 0;
 }
 
@@ -46,6 +46,11 @@ void PlayerThread::setInterval(int i){
 }
 
 void PlayerThread::run(){
+
+	if(timer){
+		delete timer;
+	}
+	timer = new QTimer();
 
 	events = file->playerData();
 
@@ -78,6 +83,7 @@ void PlayerThread::run(){
 	stopped = false;
 
 	if(exec() == 0){
+		timer->stop();
 		emit playerStopped();
 	}
 }
@@ -85,7 +91,6 @@ void PlayerThread::run(){
 void PlayerThread::timeout(){
 	disconnect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
 	if(stopped){
-		timer->stop();
 		disconnect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
 
 		// AllNotesOff // All SoundsOff
