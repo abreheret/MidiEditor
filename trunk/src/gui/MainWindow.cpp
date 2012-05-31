@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include "MainWindow.h"
 
 #include <QGridLayout>
@@ -683,6 +682,11 @@ void MainWindow::play(){
 	    MidiPlayer::play(file);
 		connect(MidiPlayer::playerThread(),
 				SIGNAL(playerStopped()), this,	SLOT(stop()));
+
+		#ifdef __WINDOWS_MM__
+		connect(MidiPlayer::playerThread(),
+				SIGNAL(timeMsChanged(int)), mw_matrixWidget, SLOT(timeMsChanged(int)));
+		#endif
 	}
 }
 
@@ -998,6 +1002,10 @@ void MainWindow::record(){
 			MidiInput::startInput();
 			connect(MidiPlayer::playerThread(),
 					SIGNAL(playerStopped()), this,	SLOT(stop()));
+			#ifdef __WINDOWS_MM__
+			connect(MidiPlayer::playerThread(),
+					SIGNAL(timeMsChanged(int)), mw_matrixWidget, SLOT(timeMsChanged(int)));
+			#endif
 		}
 	}
 }

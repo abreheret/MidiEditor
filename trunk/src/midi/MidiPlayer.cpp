@@ -34,6 +34,11 @@ void MidiPlayer::play(MidiFile *file){
 		stop();
 	}
 
+#ifdef __WINDOWS_MM__
+	delete filePlayer;
+	filePlayer = new PlayerThread();
+#endif
+
 	file->preparePlayerData();
 	filePlayer->setFile(file);
 	filePlayer->start(QThread::TimeCriticalPriority);
