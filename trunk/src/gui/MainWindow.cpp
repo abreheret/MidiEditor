@@ -181,8 +181,8 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	QScrollArea *trackScroll = new QScrollArea(trackWidget);
 	_trackWidget = new TrackListWidget(trackScroll);
-	connect(_trackWidget, SIGNAL(trackRenameClicked(int)), this, SLOT(renameTrack(int)));
-	connect(_trackWidget, SIGNAL(trackRemoveClicked(int)), this, SLOT(removeTrack(int)));
+	connect(_trackWidget, SIGNAL(trackRenameClicked(int)), this, SLOT(renameTrack(int)), Qt::QueuedConnection);
+	connect(_trackWidget, SIGNAL(trackRemoveClicked(int)), this, SLOT(removeTrack(int)), Qt::QueuedConnection);
 	trackScroll->setWidget(_trackWidget);
 	trackLayout->addWidget(trackScroll, 0, 0, 1, 2);
 

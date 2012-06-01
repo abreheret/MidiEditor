@@ -709,6 +709,10 @@ MidiFile *MatrixWidget::midiFile(){
 void MatrixWidget::mouseMoveEvent(QMouseEvent *event){
 	PaintWidget::mouseMoveEvent(event);
 
+	if(!enabled){
+		return;
+	}
+
 	if(!MidiPlayer::isPlaying() && Tool::currentTool()){
 		Tool::currentTool()->move(event->x(), event->y());
 	}
@@ -747,7 +751,9 @@ void MatrixWidget::enterEvent(QEvent *event){
 	EventTool::spacePressed = false;
 	if(Tool::currentTool()){
 		Tool::currentTool()->enter();
-		repaint();
+		if(enabled){
+			update();
+		}
 	}
 }
 void MatrixWidget::leaveEvent(QEvent *event){
@@ -760,14 +766,18 @@ void MatrixWidget::leaveEvent(QEvent *event){
 	EventTool::spacePressed = false;
 	if(Tool::currentTool()){
 		Tool::currentTool()->exit();
-		repaint();
+		if(enabled){
+			update();
+		}
 	}
 }
 void MatrixWidget::mousePressEvent(QMouseEvent *event){
 	PaintWidget::mousePressEvent(event);
 	if(!MidiPlayer::isPlaying()&&Tool::currentTool() && mouseInRect(ToolArea)){
 		if(Tool::currentTool()->press()){
-			repaint();
+			if(enabled){
+				update();
+			}
 		}
 	}
 }
@@ -775,11 +785,15 @@ void MatrixWidget::mouseReleaseEvent(QMouseEvent *event){
 	PaintWidget::mouseReleaseEvent(event);
 	if(!MidiPlayer::isPlaying()&&Tool::currentTool()&&mouseInRect(ToolArea)){
 		if(Tool::currentTool()->release()){
-			repaint();
+			if(enabled){
+				update();
+			}
 		}
 	} else if(Tool::currentTool()){
 		if(Tool::currentTool()->releaseOnly()){
-			repaint();
+			if(enabled){
+				update();
+			}
 		}
 	}
 }
