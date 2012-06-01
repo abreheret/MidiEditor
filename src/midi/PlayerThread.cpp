@@ -23,6 +23,7 @@
 #include "../MidiEvent/NoteOnEvent.h"
 #include "../MidiEvent/OffEvent.h"
 #include "MidiInput.h"
+#include <QTime>
 
 #define INTERVAL_TIME 15
 #define TIMEOUTS_PER_SIGNAL 1
@@ -31,6 +32,7 @@ PlayerThread::PlayerThread() : QThread() {
 	file = 0;
 	timer = 0;
 	timeoutSinceLastSignal = 0;
+	time = 0;
 }
 
 void PlayerThread::setFile(MidiFile *f){
@@ -49,6 +51,10 @@ void PlayerThread::run(){
 
 	if(timer){
 		delete timer;
+	}
+	if(time){
+		delete time;
+		time = 0;
 	}
 	timer = new QTimer();
 
@@ -89,6 +95,12 @@ void PlayerThread::run(){
 }
 
 void PlayerThread::timeout(){
+
+	if(!time){
+		time = new QTime();
+		time->start();
+	}
+
 	disconnect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
 	if(stopped){
 		disconnect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
@@ -107,8 +119,10 @@ void PlayerThread::timeout(){
 
 	} else {
 
+		int newPos = position + time->elapsed();
+		time->restart();
 		QMultiMap<int, MidiEvent*>::iterator it = events->lowerBound(position);
-		while(it!=events->end() && it.key()<position+interval){
+		while(it!=events->end() && it.key()<newPos){
 			MidiOutput::sendCommand(it.value());
 			it++;
 		}
@@ -117,7 +131,7 @@ void PlayerThread::timeout(){
 		if(it == events->end() && !MidiInput::recording()){
 			stop();
 		}
-		position += interval;
+		position = newPos;
 		timeoutSinceLastSignal++;
 		MidiInput::setTime(position);
 		if(timeoutSinceLastSignal==TIMEOUTS_PER_SIGNAL){
