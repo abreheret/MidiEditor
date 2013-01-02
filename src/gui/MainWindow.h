@@ -63,6 +63,10 @@ class MainWindow : public QMainWindow {
 		void unmuteAllChannels();
 		void allChannelsVisible();
 		void allChannelsInvisible();
+		void muteAllTracks();
+		void unmuteAllTracks();
+		void allTracksVisible();
+		void allTracksInvisible();
 		void donate();
 		void about();
 		void setFileLengthMs();
@@ -94,6 +98,8 @@ class MainWindow : public QMainWindow {
 		void renameTrackMenuClicked(QAction *action);
 		void removeTrackMenuClicked(QAction *action);
 		void showEventWidget(MidiEvent *event);
+		void showTrackMenuClicked(QAction *action);
+		void muteTrackMenuClicked(QAction *action);
 
 		void renameTrack(int tracknumber);
 		void removeTrack(int tracknumber);
@@ -119,7 +125,8 @@ class MainWindow : public QMainWindow {
 		ClickButton *_lockButton;
 		QStringList _recentFilePaths;
 		QMenu *_recentPathsMenu, *_editChannelMenu, *_channelVisibilityMenu, *_channelMuteMenu,
-			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu;
+			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu,
+			*_trackVisibilityMenu, *_trackMuteMenu;
 		QTabWidget *lowerTabWidget;
 };
 
