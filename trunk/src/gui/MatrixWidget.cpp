@@ -31,6 +31,7 @@
 #include "../midi/MidiPlayer.h"
 #include "../midi/PlayerThread.h"
 #include "../midi/MidiInput.h"
+#include "../midi/MidiTrack.h"
 
 #include <QList>
 
@@ -487,7 +488,9 @@ void MatrixWidget::paintChannel(QPainter *painter, int channel){
 			event->setWidth(width);
 			event->setHeight(height);
 
-			event->draw(painter, cC);
+			if(!event->file()->track(event->track())->hidden()){
+				event->draw(painter, cC);
+			}
 
 			if(EventTool::selectedEventList()->contains(event)){
 				painter->setPen(Qt::gray);

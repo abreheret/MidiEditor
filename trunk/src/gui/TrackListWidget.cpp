@@ -111,7 +111,54 @@ void TrackListWidget::paintEvent(QPaintEvent *event){
 			}
 		}
 
-		painter->drawText(38, y+46, text);
+
+		MidiTrack *track = file->track(i);
+
+		if(track->hidden()){
+			painter->drawImage(38, y+35,
+					QImage("graphics/trackwidget/hidden.png"));
+			painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 60));
+		} else {
+			painter->drawImage(38, y+35,
+					QImage("graphics/trackwidget/visible.png"));
+		}
+		if(enabled && mouseInRect(38, y+35, 12, 12)){
+			if(track->hidden()){
+				text = "make track visible";
+			} else {
+				text = "hide track";
+			}
+			painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 100));
+			if(mouseReleased && enabled){
+				file->protocol()->startNewAction("toggle track visibility");
+				track->setHidden(!track->hidden());
+				file->protocol()->endAction();
+			}
+		}
+
+		if(track->muted()){
+			painter->drawImage(54, y+35,
+					QImage("graphics/trackwidget/mute.png"));
+			painter->fillRect(54, y+35, 12, 12, QColor(0,0,0, 60));
+		} else {
+			painter->drawImage(54, y+35,
+					QImage("graphics/trackwidget/loud.png"));
+		}
+		if(enabled && mouseInRect(54, y+35, 12, 12)){
+			if(track->muted()){
+				text = "make track audible";
+			} else {
+				text = "mute track";
+			}
+			painter->fillRect(54, y+35, 12, 12, QColor(0,0,0, 100));
+			if(mouseReleased && enabled){
+				file->protocol()->startNewAction("toggle track audibility");
+				track->setMuted(!track->muted());
+				file->protocol()->endAction();
+			}
+		}
+
+		painter->drawText(70, y+46, text);
 	}
 
 	painter->drawLine(0,0,width()-1,0);

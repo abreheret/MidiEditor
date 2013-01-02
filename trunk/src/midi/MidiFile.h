@@ -85,6 +85,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 		void reloadState(ProtocolEntry *entry);
 		MidiFile *file();
 		bool removeTrack(int number);
+		MidiTrack *track(int number);
 
 	signals:
 		void cursorPositionChanged();

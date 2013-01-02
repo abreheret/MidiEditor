@@ -546,6 +546,44 @@ MainWindow::MainWindow() : QMainWindow() {
 	tracksMB->addAction(addTrackAction);
 	connect(addTrackAction, SIGNAL(triggered()), this, SLOT(addTrack()));
 
+	tracksMB->addSeparator();
+
+	QAction *allTracksVisible = new QAction("All Tracks visible", this);
+	allTracksVisible->setIcon(QIcon("graphics/trackwidget/visible.png"));
+	connect(allTracksVisible, SIGNAL(triggered()), this,
+			SLOT(allTracksVisible()));
+	tracksMB->addAction(allTracksVisible);
+
+	QAction *allTracksInvisible = new QAction("All Tracks invisible", this);
+	allTracksInvisible->setIcon(QIcon("graphics/trackwidget/hidden.png"));
+	connect(allTracksInvisible, SIGNAL(triggered()), this,
+			SLOT(allTracksInvisible()));
+	tracksMB->addAction(allTracksInvisible);
+
+	_trackVisibilityMenu = new QMenu("Show Track...", tracksMB);
+	tracksMB->addMenu(_trackVisibilityMenu);
+	connect(_trackVisibilityMenu, SIGNAL(triggered(QAction*)), this, SLOT(showTrackMenuClicked(QAction*)));
+
+	tracksMB->addSeparator();
+
+	QAction *muteAllTracks = new QAction("Mute all Tracks", this);
+	muteAllTracks->setIcon(QIcon("graphics/trackwidget/mute.png"));
+	connect(muteAllTracks, SIGNAL(triggered()), this,
+			SLOT(muteAllTracks()));
+	tracksMB->addAction(muteAllTracks);
+
+	QAction *unmuteAllTracks = new QAction("Unmute all Tracks", this);
+	unmuteAllTracks->setIcon(QIcon("graphics/trackwidget/loud.png"));
+	connect(unmuteAllTracks, SIGNAL(triggered()), this,
+			SLOT(unmuteAllTracks()));
+	tracksMB->addAction(unmuteAllTracks);
+
+	_trackMuteMenu = new QMenu("Mute Track...", tracksMB);
+	tracksMB->addMenu(_trackMuteMenu);
+	connect(_trackMuteMenu, SIGNAL(triggered(QAction*)), this, SLOT(muteTrackMenuClicked(QAction*)));
+
+	tracksMB->addSeparator();
+
 	_renameTrackMenu = new QMenu("Rename Track...", tracksMB);
 	tracksMB->addMenu(_renameTrackMenu);
 	connect(_renameTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(renameTrackMenuClicked(QAction*)));
@@ -627,9 +665,9 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 	helpMB->addAction(aboutAction);
 
-//	QAction *donateAction = new QAction("Donate", this);
-//	connect(donateAction, SIGNAL(triggered()), this, SLOT(donate()));
-//	helpMB->addAction(donateAction);
+	QAction *donateAction = new QAction("Donate", this);
+	connect(donateAction, SIGNAL(triggered()), this, SLOT(donate()));
+	helpMB->addAction(donateAction);
 }
 
 void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
@@ -725,14 +763,19 @@ void MainWindow::save(){
 
 		for(int i = 0; i<16; i++){
 			MidiChannel *ch = file->channel(i);
-			if(ch->mute()){
+			if(ch->mute() || !ch->visible()){
+				printMuteWarning = true;
+			}
+		}
+		foreach(MidiTrack *track , *(file->tracks())){
+			if(track->muted() || track->hidden()){
 				printMuteWarning = true;
 			}
 		}
 
 		if(printMuteWarning){
-			QMessageBox::information(this, "Channels mute or invisible",
-					"One or more channels are mute or invisible. They will be audible in the saved file!",
+			QMessageBox::information(this, "Channels/Tracks mute or invisible",
+					"One or more channels/tracks are mute or invisible. They will be audible in the saved file!",
 					"Save file", 0, 0);
 		}
 
@@ -764,6 +807,27 @@ void MainWindow::saveas(){
 	}
 
 	if(file->save(newPath)){
+
+		bool printMuteWarning = false;
+
+		for(int i = 0; i<16; i++){
+			MidiChannel *ch = file->channel(i);
+			if(ch->mute() || !ch->visible()){
+				printMuteWarning = true;
+			}
+		}
+		foreach(MidiTrack *track , *(file->tracks())){
+			if(track->muted() || track->hidden()){
+				printMuteWarning = true;
+			}
+		}
+
+		if(printMuteWarning){
+			QMessageBox::information(this, "Channels/Tracks mute or invisible",
+					"One or more channels/tracks are mute or invisible. They will be audible in the saved file!",
+					"Save file", 0, 0);
+		}
+
 		file->setPath(newPath);
 		setWindowTitle("MidiEditor - " +file->path());
 		updateRecentPathsList();
@@ -985,6 +1049,10 @@ void MainWindow::midiSettings(){
 }
 
 void MainWindow::record(){
+
+	if(!file){
+		newFile();
+	}
 
 	if(!MidiInput::recording() && !MidiPlayer::isPlaying()){
 		// play current file
@@ -1379,6 +1447,8 @@ void MainWindow::updateTrackMenu() {
 	_renameTrackMenu->clear();
 	_removeTrackMenu->clear();
 	_moveSelectedEventsToTrackMenu->clear();
+	_trackMuteMenu->clear();
+	_trackVisibilityMenu->clear();
 
 	if(!file){
 		return;
@@ -1403,6 +1473,24 @@ void MainWindow::updateTrackMenu() {
 		QAction *moveToTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
 		moveToTrackAction->setData(variant);
 		_moveSelectedEventsToTrackMenu->addAction(moveToTrackAction);
+	}
+
+	for(int i = 0; i<file->numTracks(); i++){
+		QVariant variant(i);
+		QAction *muteTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
+		muteTrackAction->setData(variant);
+		_trackMuteMenu->addAction(muteTrackAction);
+		muteTrackAction->setCheckable(true);
+		muteTrackAction->setChecked(file->track(i)->muted());
+	}
+
+	for(int i = 0; i<file->numTracks(); i++){
+		QVariant variant(i);
+		QAction *showTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
+		showTrackAction->setData(variant);
+		_trackVisibilityMenu->addAction(showTrackAction);
+		showTrackAction->setCheckable(true);
+		showTrackAction->setChecked(!(file->track(i)->hidden()));
 	}
 }
 
@@ -1521,5 +1609,67 @@ void MainWindow::addTrack(){
 	updateTrackMenu();
 	if(file){
 		renameTrack(file->numTracks()-1);
+	}
+}
+
+void MainWindow::muteAllTracks(){
+	if(!file) return;
+	file->protocol()->startNewAction("Mute all Tracks");
+	foreach(MidiTrack *track, *(file->tracks())){
+		track->setMuted(true);
+	}
+	file->protocol()->endAction();
+	_trackWidget->update();
+}
+
+void MainWindow::unmuteAllTracks(){
+	if(!file) return;
+	file->protocol()->startNewAction("Unmute all Tracks");
+	foreach(MidiTrack *track, *(file->tracks())){
+		track->setMuted(false);
+	}
+	file->protocol()->endAction();
+	_trackWidget->update();
+}
+
+void MainWindow::allTracksVisible(){
+	if(!file) return;
+	file->protocol()->startNewAction("Show all Tracks");
+	foreach(MidiTrack *track, *(file->tracks())){
+		track->setHidden(false);
+	}
+	file->protocol()->endAction();
+	_trackWidget->update();
+}
+
+void MainWindow::allTracksInvisible(){
+	if(!file) return;
+	file->protocol()->startNewAction("Hide all Tracks");
+	foreach(MidiTrack *track, *(file->tracks())){
+		track->setHidden(true);
+	}
+	file->protocol()->endAction();
+	_trackWidget->update();
+}
+
+void MainWindow::showTrackMenuClicked(QAction *action){
+	int track = action->data().toInt();
+	if(file){
+		file->protocol()->startNewAction("Show Track");
+		file->track(track)->setHidden(!(action->isChecked()));
+		updateTrackMenu();
+		_trackWidget->update();
+		file->protocol()->endAction();
+	}
+}
+
+void MainWindow::muteTrackMenuClicked(QAction *action){
+	int track = action->data().toInt();
+	if(file){
+		file->protocol()->startNewAction("Mute Track");
+		file->track(track)->setMuted(action->isChecked());
+		updateTrackMenu();
+		_trackWidget->update();
+		file->protocol()->endAction();
 	}
 }

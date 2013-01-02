@@ -180,7 +180,7 @@ bool MidiFile::readMidiFile(QDataStream *content){
 
 	// find corrupted OnEvents (without OffEvent)
 	foreach(OnEvent *onevent, OffEvent::corruptedOnEvents()){
-		qWarning("mid error: found OnEvent without OffEvent - removing...");
+		qWarning("mid error: found OnEvent without OffEvent (line %d) - removing...", onevent->line());
 		channel(onevent->channel())->removeEvent(onevent);
 	}
 
@@ -223,6 +223,11 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 			return false;
 		}
 
+		OffEvent *offEvent = dynamic_cast<OffEvent*>(event);
+		if(offEvent && !offEvent->onEvent()){
+			qWarning("skipping offEvent without onEvent!");
+			continue;
+		}
 		// check whether its the tracks name
 		if(event && event->line() == MidiEvent::TEXT_EVENT_LINE){
 			TextEvent *textEvent = dynamic_cast<TextEvent*>(event);
@@ -832,7 +837,9 @@ void MidiFile::preparePlayerData(){
 			if(tick>=cursorTick()){
 				// all Events after cursorTick are added
 				int ms = msOfTick(tick);
-				playerMap->insert(ms, event);
+				if(!track(event->track())->muted()){
+					playerMap->insert(ms, event);
+				}
 			} else {
 				ProgChangeEvent *prg = dynamic_cast<ProgChangeEvent*>(event);
 				if(prg){
@@ -1110,4 +1117,8 @@ bool MidiFile::removeTrack(int number){
 	ProtocolEntry::protocol(toCopy, this);
 
 	return true;
+}
+
+MidiTrack *MidiFile::track(int number){
+	return _tracks->at(number);
 }

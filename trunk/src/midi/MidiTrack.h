@@ -47,6 +47,12 @@ class MidiTrack : public QObject, public ProtocolEntry{
 
 		MidiFile *file();
 
+		void setHidden(bool hidden);
+		bool hidden();
+
+		void setMuted(bool muted);
+		bool muted();
+
 		virtual ProtocolEntry *copy();
 		virtual void reloadState(ProtocolEntry *entry);
 
@@ -57,6 +63,7 @@ class MidiTrack : public QObject, public ProtocolEntry{
 		int _number;
 		TextEvent *_nameEvent;
 		MidiFile *_file;
+		bool _hidden, _muted;
 };
 
 #endif

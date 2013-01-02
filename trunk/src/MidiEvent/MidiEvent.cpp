@@ -95,7 +95,7 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 			int velocity = tempByte;
 
 			OffEvent *event = new OffEvent(channel, 128-note);
-			*ok = event->onEvent();
+			*ok = true;
 			return event;
 		}
 

@@ -23,6 +23,7 @@
 #include "../MidiEvent/NoteOnEvent.h"
 #include "../MidiEvent/OffEvent.h"
 #include "../midi/MidiFile.h"
+#include "../midi/MidiTrack.h"
 #include "../midi/MidiChannel.h"
 #include "../gui/MatrixWidget.h"
 #include "../protocol/Protocol.h"
@@ -54,6 +55,10 @@ ProtocolEntry *EventTool::copy(){
 void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 
 	if(!event->file()->channel(event->channel())->visible()){
+		return;
+	}
+
+	if(event->file()->track(event->track())->hidden()){
 		return;
 	}
 
@@ -121,6 +126,7 @@ bool EventTool::pressKey(int key){
 
 void EventTool::paintSelectedEvents(QPainter *painter){
 	foreach(MidiEvent *event, *selectedEvents){
+
 		bool show = event->shown();
 		if(!show){
 			OnEvent *ev = dynamic_cast<OnEvent*>(event);

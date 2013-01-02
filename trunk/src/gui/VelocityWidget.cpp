@@ -21,6 +21,7 @@
 #include "../midi/MidiFile.h"
 #include "../MidiEvent/MidiEvent.h"
 #include "../midi/MidiChannel.h"
+#include "../midi/MidiTrack.h"
 #include "../MidiEvent/NoteOnEvent.h"
 #include "../tool/EventTool.h"
 #include "../protocol/Protocol.h"
@@ -189,6 +190,15 @@ void VelocityWidget::paintEvent(QPaintEvent *event){
 		painter->drawLine(LEFT_BORDER, (i*height())/8, width(), (i*height())/8);
 	}
 	foreach(MidiEvent* event, *list){
+
+		if(!event->file()->channel(event->channel())->visible()){
+			continue;
+		}
+
+		if(event->file()->track(event->track())->hidden()){
+			continue;
+		}
+
 		QColor *c=matrixWidget->midiFile()->channel(event->channel())->color();
 		int velocity = 0;
 		NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);

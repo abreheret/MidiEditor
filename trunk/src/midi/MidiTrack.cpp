@@ -25,12 +25,16 @@ MidiTrack::MidiTrack(MidiFile *file) : ProtocolEntry() {
 	_number = 0;
 	_nameEvent = 0;
 	_file = file;
+	_hidden = false;
+	_muted = false;
 }
 
 MidiTrack::MidiTrack(MidiTrack &other) : ProtocolEntry(other) {
 	_number = other._number;
 	_nameEvent = other._nameEvent;
 	_file = other._file;
+	_hidden = other._hidden;
+	_muted = other._muted;
 }
 
 
@@ -93,5 +97,29 @@ void MidiTrack::reloadState(ProtocolEntry *entry){
 	_number = other->_number;
 	_nameEvent = other->_nameEvent;
 	_file = other->_file;
+	_hidden = other->_hidden;
+	_muted = other->_muted;
 }
 
+
+void MidiTrack::setHidden(bool hidden){
+	ProtocolEntry *toCopy = copy();
+	_hidden = hidden;
+	protocol(toCopy, this);
+	emit trackChanged();
+}
+
+bool MidiTrack::hidden(){
+	return _hidden;
+}
+
+void MidiTrack::setMuted(bool muted){
+	ProtocolEntry *toCopy = copy();
+	_muted = muted;
+	protocol(toCopy, this);
+	emit trackChanged();
+}
+
+bool MidiTrack::muted(){
+	return _muted;
+}
