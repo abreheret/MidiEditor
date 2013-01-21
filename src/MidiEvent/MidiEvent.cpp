@@ -571,3 +571,7 @@ bool MidiEvent::shownInEventWidget(){
 	}
 	return _eventWidget->event() == this;
 }
+
+bool MidiEvent::isOnEvent(){
+	return true;
+}

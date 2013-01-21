@@ -24,7 +24,7 @@
 #include <QLabel>
 #include <QSpinBox>
 
-class NoteOffEvent;
+class OffEvent;
 
 class NoteOnEvent : public OnEvent{
 

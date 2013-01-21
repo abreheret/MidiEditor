@@ -76,6 +76,8 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		virtual void generateWidget(QWidget *widget);
 		virtual void editByWidget();
 
+		virtual bool isOnEvent();
+
 	protected:
 		int numTrack, numChannel, timePos;
 		static QSpinBox *_channel_spinBox, *_track_spinBox, *_timePos_spinBox;

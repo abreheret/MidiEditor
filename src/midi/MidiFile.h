@@ -63,7 +63,6 @@ class MidiFile : public QObject, public ProtocolEntry {
 
 		Protocol *protocol();
 		MidiChannel *channel(int i);
-		int editedChannel();
 		void preparePlayerData();
 		QMultiMap<int, MidiEvent*> *playerData();
 

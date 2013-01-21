@@ -489,6 +489,9 @@ void MatrixWidget::paintChannel(QPainter *painter, int channel){
 			event->setHeight(height);
 
 			if(!event->file()->track(event->track())->hidden()){
+				if(!_colorsByChannels){
+					cC = *file->track(event->track())->color();
+				}
 				event->draw(painter, cC);
 			}
 
@@ -681,6 +684,32 @@ void MatrixWidget::setFile(MidiFile *f){
 	connect(file->protocol(), SIGNAL(protocolChanged()), this,
 			SLOT(registerRelayout()));
 	connect(file->protocol(), SIGNAL(protocolChanged()), this, SLOT(update()));
+
+
+
+	calcSizes();
+
+		// scroll down to see events
+	int maxNote = -1;
+	for(int channel = 0; channel<16; channel++){
+
+		QMultiMap<int, MidiEvent*> *map = file->channelEvents(channel);
+
+		QMap<int, MidiEvent*>::iterator it = map->lowerBound(0);
+		while(it != map->end()){
+			NoteOnEvent *onev = dynamic_cast<NoteOnEvent*>(it.value());
+			if(onev && eventInWidget(onev)){
+				if(onev->line() < maxNote || maxNote<0){
+					maxNote = onev->line();
+				}
+			}
+			it++;
+		}
+	}
+
+	if(maxNote-5 > 0){
+		startLineY = maxNote-5;
+	}
 
 	calcSizes();
 }
@@ -1009,4 +1038,15 @@ void MatrixWidget::keyPressEvent(QKeyEvent *event){
 
 void MatrixWidget::keyReleaseEvent(QKeyEvent *event){
 	takeKeyReleaseEvent(event);
+}
+
+void MatrixWidget::setColorsByChannel(){
+	_colorsByChannels = true;
+}
+void MatrixWidget::setColorsByTracks(){
+	_colorsByChannels = false;
+}
+
+bool MatrixWidget::colorsByChannel(){
+	return _colorsByChannels;
 }

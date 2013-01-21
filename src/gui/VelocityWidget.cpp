@@ -200,6 +200,9 @@ void VelocityWidget::paintEvent(QPaintEvent *event){
 		}
 
 		QColor *c=matrixWidget->midiFile()->channel(event->channel())->color();
+		if(!matrixWidget->colorsByChannel()){
+			c = matrixWidget->midiFile()->track(event->track())->color();
+		}
 		int velocity = 0;
 		NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
 		if(noteOn){

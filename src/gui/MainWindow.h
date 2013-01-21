@@ -36,6 +36,7 @@ class QStringList;
 class QTabWidget;
 class QMenu;
 class TrackListWidget;
+class QComboBox;
 
 class MainWindow : public QMainWindow {
 
@@ -75,7 +76,6 @@ class MainWindow : public QMainWindow {
 		void setStartupCmd();
 		void midiSettings();
 		void record();
-		void stopRecord();
 		void newFile();
 		void panic();
 		void toggleScreenLock();
@@ -91,10 +91,11 @@ class MainWindow : public QMainWindow {
 		void openRecent(QAction *action);
 		void updateChannelMenu();
 		void updateTrackMenu();
-		void editChannel(QAction *action);
 		void muteChannel(QAction *action);
 		void soloChannel(QAction *action);
 		void viewChannel(QAction *action);
+		void instrumentChannel(QAction *action);
+
 		void renameTrackMenuClicked(QAction *action);
 		void removeTrackMenuClicked(QAction *action);
 		void showEventWidget(MidiEvent *event);
@@ -104,8 +105,24 @@ class MainWindow : public QMainWindow {
 		void renameTrack(int tracknumber);
 		void removeTrack(int tracknumber);
 
+		void setInstrumentForChannel(int i);
+
+		void copy();
+		void paste();
+
 		void addTrack();
 
+		void selectAll();
+
+		void transposeNSemitones();
+
+		void markEdited();
+
+		void colorsByChannel();
+		void colorsByTrack();
+
+		void editChannel(int i);
+		void editTrack(int i);
 	protected:
 		void closeEvent(QCloseEvent *event);
 		void keyPressEvent(QKeyEvent* e);
@@ -124,10 +141,13 @@ class MainWindow : public QMainWindow {
 		QSettings *_settings;
 		ClickButton *_lockButton;
 		QStringList _recentFilePaths;
-		QMenu *_recentPathsMenu, *_editChannelMenu, *_channelVisibilityMenu, *_channelMuteMenu,
+		QMenu *_recentPathsMenu, *_channelVisibilityMenu, *_channelMuteMenu, *_channelIntrumentMenu,
 			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu,
 			*_trackVisibilityMenu, *_trackMuteMenu;
 		QTabWidget *lowerTabWidget;
+		QAction *_colorsByChannel, *_colorsByTracks;
+
+		QComboBox *_chooseEditTrack, *_chooseEditChannel;
 };
 
 #endif

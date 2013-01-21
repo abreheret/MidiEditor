@@ -48,6 +48,7 @@ class OffEvent : public MidiEvent{
 
 		void setMidiTime(int t, bool toProtocol=true);
 
+		virtual bool isOnEvent();
 	protected:
 		OnEvent *_onEvent;
 

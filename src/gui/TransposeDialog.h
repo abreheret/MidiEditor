@@ -16,35 +16,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NEWNOTETOOL_H_
-#define NEWNOTETOOL_H_
 
-#include "EventTool.h"
+#ifndef TRANSPOSEDIALOG_H_
+#define TRANSPOSEDIALOG_H_
 
-class NewNoteTool : public EventTool {
+#include <QDialog>
+#include <QList>
+#include <QSpinBox>
+#include <QRadioButton>
+
+class NoteOnEvent;
+class MidiFile;
+
+class TransposeDialog : public QDialog {
 
 	public:
-		NewNoteTool();
-		NewNoteTool(NewNoteTool &other);
+		TransposeDialog(QList<NoteOnEvent*> toTranspose, MidiFile *file, QWidget *parent=0);
 
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
+	public slots:
+		void accept();
 
-		void draw(QPainter *painter);
-		bool press();
-		bool release();
-		bool move(int mouseX, int mouseY);
-		bool releaseOnly();
-
-		static int editTrack();
-		static int editChannel();
-		static void setEditTrack(int i);
-		static void setEditChannel(int i);
 	private:
-		bool inDrag;
-		int line;
-		int xPos;
-		static int _channel, _track;
+		QList<NoteOnEvent*> _toTranspose;
+		QSpinBox *_valueBox;
+		QRadioButton *_up, *_down;
+		MidiFile *_file;
 };
 
 #endif

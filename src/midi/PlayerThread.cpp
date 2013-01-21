@@ -122,9 +122,32 @@ void PlayerThread::timeout(){
 		int newPos = position + time->elapsed();
 		time->restart();
 		QMultiMap<int, MidiEvent*>::iterator it = events->lowerBound(position);
+
 		while(it!=events->end() && it.key()<newPos){
-			MidiOutput::sendCommand(it.value());
-			it++;
+
+
+			// save events for the given tick
+			QList<MidiEvent*> onEv, offEv;
+			int sendPosition = it.key();
+
+			do {
+				if(it.value()->isOnEvent()){
+					onEv.append(it.value());
+				} else {
+					offEv.append(it.value());
+				}
+				it++;
+			} while(it.key() == sendPosition);
+
+			foreach(MidiEvent *ev, offEv){
+				MidiOutput::sendCommand(ev);
+			}
+			foreach(MidiEvent *ev, onEv){
+				MidiOutput::sendCommand(ev);
+			}
+
+			//MidiOutput::sendCommand(it.value());
+			//it++;
 		}
 
 		// end if it was last event, but only if not recording

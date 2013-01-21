@@ -95,7 +95,7 @@ class MidiChannel : public ProtocolEntry {
 		/**
 		 * \brief inserts a note to this channel.
 		 */
-		void insertNote(int note, int startTick, int endTick, int velocity);
+		void insertNote(int note, int startTick, int endTick, int velocity, int track=0);
 
 		/**
 		 * \brief inserts event into the channels map.
@@ -144,15 +144,6 @@ class MidiChannel : public ProtocolEntry {
 		 */
 		void setSolo(bool b);
 
-		/**
-		 * \brief returns whether this channel is the currently edited channel.
-		 */
-		bool edit();
-
-		/**
-		 * \brief sets the channels edited state to b.
-		 */
-		void setEdit(bool b);
 
 		/**
 		 * \brief removes all events of the channel.
@@ -180,9 +171,9 @@ class MidiChannel : public ProtocolEntry {
 		MidiFile *_midiFile;
 
 		/**
-		 * \brief the flags solo, edited, mute and visible.
+		 * \brief the flags solo, mute and visible.
 		 */
-		bool _visible, _mute, _solo, _edit;
+		bool _visible, _mute, _solo;
 
 		/**
 		 * \brief contains all MidiEvents of the channel sorted by their tick.

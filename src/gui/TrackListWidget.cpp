@@ -73,7 +73,7 @@ void TrackListWidget::paintEvent(QPaintEvent *event){
 
 		int y = LINE_HEIGHT*i;
 
-		QColor *color = MidiChannel::colorByChannelNumber(i-1);
+		QColor *color = file->track(i)->color();
 		painter->fillRect(5, y+5, 16, 16, *color);
 
 		painter->drawLine(5,y+5, 21, y+5);

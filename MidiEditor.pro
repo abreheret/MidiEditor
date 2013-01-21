@@ -1,7 +1,9 @@
 TEMPLATE = app
 TARGET = MidiEditor
 QT += core
-HEADERS += src/MidiEvent/TextEvent.h \
+HEADERS += src/gui/InstrumentChooser.h \
+    src/gui/TransposeDialog.h \
+    src/MidiEvent/TextEvent.h \
     src/gui/TrackListWidget.h \
     src/midi/MidiTrack.h \
     src/midi/SenderThread.h \
@@ -55,7 +57,9 @@ HEADERS += src/MidiEvent/TextEvent.h \
     src/MidiEvent/UnknownEvent.h \
     src/MidiEvent/NoteOnEvent.h \
     src/MidiEvent/MidiEvent.h
-SOURCES += src/MidiEvent/TextEvent.cpp \
+SOURCES += src/gui/InstrumentChooser.cpp \
+    src/gui/TransposeDialog.cpp \
+    src/MidiEvent/TextEvent.cpp \
     src/gui/TrackListWidget.cpp \
     src/midi/MidiTrack.cpp \
     src/midi/SenderThread.cpp \

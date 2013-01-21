@@ -22,11 +22,13 @@
 #include "MidiFile.h"
 
 MidiTrack::MidiTrack(MidiFile *file) : ProtocolEntry() {
+
 	_number = 0;
 	_nameEvent = 0;
 	_file = file;
 	_hidden = false;
 	_muted = false;
+	_color = new QColor(Qt::red);
 }
 
 MidiTrack::MidiTrack(MidiTrack &other) : ProtocolEntry(other) {
@@ -35,6 +37,7 @@ MidiTrack::MidiTrack(MidiTrack &other) : ProtocolEntry(other) {
 	_file = other._file;
 	_hidden = other._hidden;
 	_muted = other._muted;
+	_color = other._color;
 }
 
 
@@ -71,6 +74,27 @@ int MidiTrack::number(){
 void MidiTrack::setNumber(int number){
 	ProtocolEntry *toCopy = copy();
 	_number = number;
+
+	switch((number-1)%16){
+		case 0: { _color = new QColor(241, 214, 107, 255);break; }
+		case 1: { _color =  new QColor(205, 241, 142, 255);break; }
+		case 2: { _color = new QColor(107, 241, 142, 255);break; }
+		case 3: { _color = new QColor(107, 241, 231, 255);break; }
+		case 4: { _color =  new QColor(200, 236, 255, 255);break; }
+		case 5: { _color = new QColor(241, 107, 200, 255);break; }
+		case 6: { _color = new QColor(170, 212, 170, 255);break; }
+		case 7: { _color =  new QColor(212, 204, 170, 255);break; }
+		case 8: { _color = new QColor(238, 233, 138, 255);break; }
+		case 9: { _color = new QColor(243, 94, 54, 255);break; }
+		case 10: { _color = new QColor(255, 145, 26, 255);break; }
+		case 11: { _color = new QColor(181, 132, 80, 255);break; }
+		case 12: { _color =  new QColor(102, 162, 37, 255);break; }
+		case 13: { _color = new QColor(241, 164, 107, 255);break; }
+		case 14: { _color = new QColor(222, 213, 66, 255);break; }
+		case 15: { _color = new QColor(202, 222, 66, 255);break; }
+		default: { _color = new QColor(50, 50, 255, 255); break; }
+	}
+
 	protocol(toCopy, this);
 }
 
@@ -122,4 +146,8 @@ void MidiTrack::setMuted(bool muted){
 
 bool MidiTrack::muted(){
 	return _muted;
+}
+
+QColor *MidiTrack::color(){
+	return _color;
 }

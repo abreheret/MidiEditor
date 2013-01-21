@@ -16,35 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NEWNOTETOOL_H_
-#define NEWNOTETOOL_H_
 
-#include "EventTool.h"
+#ifndef INSTRUMENTCHOOSER_H_
+#define INSTRUMENTCHOOSER_H_
 
-class NewNoteTool : public EventTool {
+#include <QDialog>
+
+class MidiFile;
+class QComboBox;
+class QCheckBox;
+
+class InstrumentChooser : public QDialog {
 
 	public:
-		NewNoteTool();
-		NewNoteTool(NewNoteTool &other);
+		InstrumentChooser(MidiFile *f, int channel, QWidget *parent=0);
 
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
+	public slots:
+		void accept();
 
-		void draw(QPainter *painter);
-		bool press();
-		bool release();
-		bool move(int mouseX, int mouseY);
-		bool releaseOnly();
-
-		static int editTrack();
-		static int editChannel();
-		static void setEditTrack(int i);
-		static void setEditChannel(int i);
 	private:
-		bool inDrag;
-		int line;
-		int xPos;
-		static int _channel, _track;
+		MidiFile *_file;
+		QComboBox *_box;
+		QCheckBox *_removeOthers;
+		int _channel;
 };
 
 #endif

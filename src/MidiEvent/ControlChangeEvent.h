@@ -48,6 +48,7 @@ class ControlChangeEvent : public MidiEvent {
 		void generateWidget(QWidget *widget);
 		void editByWidget();
 
+		virtual bool isOnEvent();
 	private:
 		int _control, _value;
 		static QComboBox *_control_combo;

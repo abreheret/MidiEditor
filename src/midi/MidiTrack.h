@@ -26,6 +26,7 @@
 
 class TextEvent;
 class MidiFile;
+class QColor;
 
 class MidiTrack : public QObject, public ProtocolEntry{
 
@@ -56,6 +57,13 @@ class MidiTrack : public QObject, public ProtocolEntry{
 		virtual ProtocolEntry *copy();
 		virtual void reloadState(ProtocolEntry *entry);
 
+		/**
+		 * \brief returns the channels color.
+		 *
+		 * The color only depends on the track number.
+		 */
+		QColor *color();
+
 	signals:
 		void trackChanged();
 
@@ -64,6 +72,7 @@ class MidiTrack : public QObject, public ProtocolEntry{
 		TextEvent *_nameEvent;
 		MidiFile *_file;
 		bool _hidden, _muted;
+		QColor *_color;
 };
 
 #endif
