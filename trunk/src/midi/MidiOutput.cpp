@@ -118,8 +118,9 @@ void MidiOutput::sendEnqueuedCommand(QByteArray array) {
 
 		foreach(char byte, array){
 			message.push_back(byte);
+			qWarning(QString::number(byte, 16).toAscii()+" ");
 		}
-
+		qWarning("--");
 		_midiOut->sendMessage(&message);
 	}
 }

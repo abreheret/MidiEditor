@@ -60,6 +60,10 @@ class MatrixWidget : public PaintWidget {
 		int minVisibleMidiTime();
 		int maxVisibleMidiTime();
 
+		void setColorsByChannel();
+		void setColorsByTracks();
+		bool colorsByChannel();
+
 	public slots:
 		void scrollXChanged(int scrollPositionX);
 		void scrollYChanged(int scrollPositionY);
@@ -120,6 +124,8 @@ class MatrixWidget : public PaintWidget {
 
 		// To play the pianokeys, there is one NoteOnEvent
 		NoteOnEvent *pianoEvent;
+
+		bool _colorsByChannels;
 };
 
 #endif

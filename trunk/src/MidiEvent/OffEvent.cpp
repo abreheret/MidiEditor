@@ -118,3 +118,7 @@ int OffEvent::line(){
 	}
 	return _line;
 }
+
+bool OffEvent::isOnEvent(){
+	return false;
+}

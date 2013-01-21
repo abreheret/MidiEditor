@@ -32,10 +32,15 @@
 #include "../MidiEvent/ControlChangeEvent.h"
 #include "../MidiEvent/TextEvent.h"
 
+int NewNoteTool::_channel = 0;
+int NewNoteTool::_track = 0;
+
 NewNoteTool::NewNoteTool() : EventTool() {
 	inDrag = false;
 	line = 0;
 	xPos = 0;
+	_channel = 0;
+	_track = 0;
 	setImage("newnote.png");
 	setToolTipText("Create new Events (Adds the Events to the edited Channel)");
 }
@@ -92,10 +97,8 @@ bool NewNoteTool::release(){
 	}
 	if(mouseX-xPos>2 || line>128){
 
-		int channel = file()->editedChannel();
-
 		// note
-		if(line>=0 && line<128){
+		if(line>=0 && line<=128){
 			currentProtocol()->startNewAction("Create Note", image());
 
 
@@ -105,8 +108,8 @@ bool NewNoteTool::release(){
 			int endMs = matrixWidget->msOfXPos(mouseX);
 			int endTick = file()->tick(endMs);
 
-			file()->channel(channel)->insertNote(128-line,
-					startTick, endTick, 100);
+			file()->channel(_channel)->insertNote(128-line,
+					startTick, endTick, 100, _track);
 			currentProtocol()->endAction();
 
 			return true;
@@ -118,10 +121,11 @@ bool NewNoteTool::release(){
 
 				currentProtocol()->startNewAction("Create Program Change Event",
 						image());
-				event = new ProgChangeEvent(channel, 0);
+				event = new ProgChangeEvent(_channel, 0);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
-				file()->channel(channel)->insertEvent(event, startTick);
+				file()->channel(_channel)->insertEvent(event, startTick);
+				event->setTrack(_track, false);
 				currentProtocol()->endAction();
 
 			} else if(line == MidiEvent::TIME_SIGNATURE_EVENT_LINE){
@@ -133,6 +137,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(18)->insertEvent(event, startTick);
+				event->setTrack(0);
 				currentProtocol()->endAction();
 			} else if(line == MidiEvent::TEMPO_CHANGE_EVENT_LINE){
 				currentProtocol()->startNewAction("Create Tempo Change Event",
@@ -142,30 +147,34 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(17)->insertEvent(event, startTick);
+				event->setTrack(0);
 				currentProtocol()->endAction();
 			}  else if(line == MidiEvent::CONTROLLER_LINE){
 				currentProtocol()->startNewAction("Create Control Change Event",
 						image());
-				event = new ControlChangeEvent(channel, 0, 0);
+				event = new ControlChangeEvent(_channel, 0, 0);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
-				file()->channel(channel)->insertEvent(event, startTick);
+				file()->channel(_channel)->insertEvent(event, startTick);
+				event->setTrack(_track, false);
 				currentProtocol()->endAction();
 			}  else if(line == MidiEvent::KEY_PRESSURE_LINE){
 				currentProtocol()->startNewAction("Create Key Pressure Event",
 						image());
-				event = new KeyPressureEvent(channel, 127, 100);
+				event = new KeyPressureEvent(_channel, 127, 100);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
-				file()->channel(channel)->insertEvent(event, startTick);
+				file()->channel(_channel)->insertEvent(event, startTick);
+				event->setTrack(_track, false);
 				currentProtocol()->endAction();
 			}  else if(line == MidiEvent::CHANNEL_PRESSURE_LINE){
 				currentProtocol()->startNewAction(
 						"Create Channel Pressure Event", image());
-				event = new ChannelPressureEvent(channel, 100);
+				event = new ChannelPressureEvent(_channel, 100);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
-				file()->channel(channel)->insertEvent(event, startTick);
+				file()->channel(_channel)->insertEvent(event, startTick);
+				event->setTrack(_track, false);
 				currentProtocol()->endAction();
 			} else if(line == MidiEvent::TEXT_EVENT_LINE){
 				currentProtocol()->startNewAction(
@@ -176,7 +185,8 @@ bool NewNoteTool::release(){
 				textEvent->setType(TextEvent::TEXT);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
-				file()->channel(channel)->insertEvent(event, startTick);
+				file()->channel(_channel)->insertEvent(event, startTick);
+				event->setTrack(_track, false);
 				currentProtocol()->endAction();
 			} else {
 				return true;
@@ -195,4 +205,20 @@ bool NewNoteTool::releaseOnly(){
 	inDrag = false;
 	xPos = 0;
 	return true;
+}
+
+int NewNoteTool::editTrack(){
+	return _track;
+}
+
+int NewNoteTool::editChannel(){
+	return _channel;
+}
+
+void NewNoteTool::setEditTrack(int i){
+	_track = i;
+}
+
+void NewNoteTool::setEditChannel(int i){
+	_channel = i;
 }

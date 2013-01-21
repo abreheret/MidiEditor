@@ -34,6 +34,7 @@ class ChannelListWidget : public PaintWidget {
 
 	signals:
 		void channelStateChanged();
+		void selectInstrumentClicked(int channel);
 
 	private:
 		MidiFile *file;

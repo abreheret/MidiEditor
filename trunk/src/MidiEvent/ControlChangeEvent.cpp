@@ -177,3 +177,8 @@ void ControlChangeEvent::editByWidget(){
 	}
 	MidiEvent::editByWidget();
 }
+
+bool ControlChangeEvent::isOnEvent(){
+//	return (_control < 64 && _control> 69) || _value > 64;
+	return false;
+}

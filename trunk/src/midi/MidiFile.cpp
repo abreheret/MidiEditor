@@ -46,13 +46,14 @@ MidiFile::MidiFile(){
 	for(int i = 0; i<19; i++){
 		channels[i] = new MidiChannel(this, i);
 	}
-	channels[0]->setEdit(true);
+
 	timePerQuarter = 192;
 	_midiFormat = 1;
 
 	_tracks = new QList<MidiTrack*>();
 	MidiTrack *track = new MidiTrack(this);
 	track->setName("New Track");
+	track->setNumber(0);
 	_tracks->append(track);
 	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 
@@ -94,7 +95,7 @@ MidiFile::MidiFile(QString path, bool *ok) {
 	for(int i = 0; i<19; i++){
 		channels[i] = new MidiChannel(this, i);
 	}
-	channels[0]->setEdit(true);
+
 	QDataStream *stream = new QDataStream(f);
 	stream->setByteOrder(QDataStream::BigEndian);
 	if(!readMidiFile(stream)){
@@ -769,15 +770,6 @@ QString MidiFile::controlChangeName(int control){
 	}
 
 	return "undefined";
-}
-
-int MidiFile::editedChannel(){
-	for(int i = 0; i<17; i++){
-		if(channel(i)->edit()){
-			return i;
-		}
-	}
-	return 0;
 }
 
 QList<MidiEvent*> *MidiFile::eventsBetween(int start, int end){

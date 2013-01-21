@@ -72,7 +72,6 @@ MidiChannel::MidiChannel(MidiFile *f, int num){
 	_visible = true;
 	_mute = false;
 	_solo = false;
-	_edit = false;
 
 	_events = new QMultiMap<int, MidiEvent*>;
 
@@ -88,7 +87,6 @@ MidiChannel::MidiChannel(MidiChannel &other){
 	_events = new QMultiMap<int, MidiEvent*>(*(other._events));
 	_color = other._color;
 	_num = other._num;
-	_edit = other._edit;
 }
 
 ProtocolEntry *MidiChannel::copy(){
@@ -107,7 +105,6 @@ void MidiChannel::reloadState(ProtocolEntry *entry){
 	_events = other->_events;
 	_color = other->_color;
 	_num = other->_num;
-	_edit = other->_edit;
 
 }
 
@@ -160,14 +157,20 @@ QColor *MidiChannel::color(){
 	return _color;
 }
 
-void MidiChannel::insertNote(int note, int startTick, int endTick,int velocity){
+void MidiChannel::insertNote(int note, int startTick, int endTick,int velocity, int track){
 	ProtocolEntry *toCopy = copy();
 	NoteOnEvent *onEvent = new NoteOnEvent(note, velocity, number());
+
 	OffEvent *off = new OffEvent(number(), 128-note);
+
 	off->setFile(file());
 	off->setMidiTime(endTick, false);
 	onEvent->setFile(file());
 	onEvent->setMidiTime(startTick, false);
+
+	onEvent->setTrack(track, false);
+	off->setTrack(track, false);
+
 	protocol(toCopy, this);
 }
 
@@ -196,16 +199,6 @@ void MidiChannel::removeEvent(MidiEvent *event){
 	if(MidiEvent::eventWidget()->event()==event){
 		MidiEvent::eventWidget()->setEvent(0);
 	}
-}
-
-void MidiChannel::setEdit(bool b){
-	ProtocolEntry *toCopy = copy();
-	_edit = b;
-	protocol(toCopy, this);
-}
-
-bool MidiChannel::edit(){
-	return _edit;
 }
 
 void MidiChannel::insertEvent(MidiEvent *event, int tick){

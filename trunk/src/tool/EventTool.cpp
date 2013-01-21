@@ -203,7 +203,10 @@ void EventTool::pasteAction(){
 		foreach(MidiEvent *event, *copiedEvents){
 			currentFile()->channel(event->channel())->insertEvent(event,
 					event->midiTime()+diff);
-			selectedEvents->append(event);
+			NoteOnEvent *ev = dynamic_cast<NoteOnEvent*>(event);
+			if(ev){
+				selectedEvents->append(ev);
+			}
 		}
 		currentFile()->protocol()->endAction();
 

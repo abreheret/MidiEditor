@@ -65,6 +65,11 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 			painter->fillRect(0, LINE_HEIGHT*i, width(), LINE_HEIGHT,
 					QColor(194,230,255));
 		}
+
+		if(file->channel(i)->eventMap()->isEmpty()){
+			painter->fillRect(0, LINE_HEIGHT*i, width(), LINE_HEIGHT,
+					QColor(200,200,200));
+		}
 		painter->drawLine(0,LINE_HEIGHT*i, width(), LINE_HEIGHT*i);
 
 		int y = LINE_HEIGHT*i;
@@ -153,27 +158,17 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 				}
 			}
 
-			if(file->channel(i)->edit()){
-				painter->drawImage(38, y+35,
-						QImage("graphics/channelwidget/edit.png"));
-			} else {
-				painter->drawImage(38, y+35,
-						QImage("graphics/channelwidget/noedit.png"));
-				painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 60));
-			}
+
+			painter->drawImage(38, y+35,
+				QImage("graphics/channelwidget/instrument.png"));
 			if(enabled && mouseInRect(38, y+35, 12, 12)){
 				painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 100));
-				if(!file->channel(i)->edit()){
-					text = "enter editmode";
-					if(mouseReleased){
-						file->protocol()->startNewAction(text);
-						for(int c = 0; c<17; c++){
-							file->channel(c)->setEdit(c==i);
-						}
-						file->protocol()->endAction();
-					}
+				text = "select instrument";
+				if(mouseReleased){
+					emit selectInstrumentClicked(i);
 				}
 			}
+
 			painter->drawText(70, y+46, text);
 		} else {
 			painter->drawText(22, y+46, text);
