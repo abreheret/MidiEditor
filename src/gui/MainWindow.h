@@ -106,7 +106,7 @@ class MainWindow : public QMainWindow {
 		void removeTrack(int tracknumber);
 
 		void setInstrumentForChannel(int i);
-
+		void spreadSelection();
 		void copy();
 		void paste();
 

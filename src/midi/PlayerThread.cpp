@@ -137,7 +137,7 @@ void PlayerThread::timeout(){
 					offEv.append(it.value());
 				}
 				it++;
-			} while(it.key() == sendPosition);
+			} while(it!=events->end() && it.key() == sendPosition);
 
 			foreach(MidiEvent *ev, offEv){
 				MidiOutput::sendCommand(ev);

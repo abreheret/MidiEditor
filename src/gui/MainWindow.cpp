@@ -223,6 +223,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	// below add two rows for choosing track/channel new events shall be assigned to
 	QWidget *chooser = new QWidget(rightSplitter);
+	chooser->setMinimumWidth(350);
 	rightSplitter->addWidget(chooser);
 	QGridLayout *chooserLayout = new QGridLayout(chooser);
 	QLabel *trackchannelLabel = new QLabel("Choose Track and Channel for new Events");
@@ -317,20 +318,20 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	ClickButton *alignLeft = new ClickButton("align_left.png");
 	alignLeft->setToolTip("Align to leftmost");
-	buttons->addWidget(alignLeft);
+	//buttons->addWidget(alignLeft);
 	connect(alignLeft, SIGNAL(clicked()), this, SLOT(alignLeft()));
 
 	ClickButton *alignRight = new ClickButton("align_right.png");
 	alignLeft->setToolTip("Align to rightmost");
-	buttons->addWidget(alignRight);
+	//buttons->addWidget(alignRight);
 	connect(alignRight, SIGNAL(clicked()), this, SLOT(alignRight()));
 
 	ClickButton *equalize = new ClickButton("equalize.png");
 	equalize->setToolTip("Equalize selection");
-	buttons->addWidget(equalize);
+	//buttons->addWidget(equalize);
 	connect(equalize, SIGNAL(clicked()), this, SLOT(equalize()));
 
-	buttons->addSeparator();
+	//buttons->addSeparator();
 
 	buttons->addWidget(new ToolButton(new NewNoteTool()));
 	buttons->addWidget(new ToolButton(new EraserTool()));
@@ -492,6 +493,12 @@ MainWindow::MainWindow() : QMainWindow() {
 	equalizeAction->setIcon(QIcon("graphics/tool/equalize.png"));
 	connect(equalizeAction, SIGNAL(triggered()), this, SLOT(equalize()));
 	editMB->addAction(equalizeAction);
+
+	editMB->addSeparator();
+
+	QAction *spreadAction = new QAction("Spread selection", this);
+	connect(spreadAction, SIGNAL(triggered()), this, SLOT(spreadSelection()));
+	editMB->addAction(spreadAction);
 
 	editMB->addSeparator();
 
@@ -1099,21 +1106,12 @@ void MainWindow::closeEvent(QCloseEvent *event){
 		}
 	}
 
-	// save the ports
-	QString inPort =  MidiInput::inputPort().section(':', 0, 0);
-	// perhaps it has brackets with port
-	if(inPort.contains('(')){
-		inPort = inPort.section('(', 0, 0);
+	if(MidiOutput::outputPort() != ""){
+		_settings->setValue("out_port", MidiOutput::outputPort());
 	}
-	_settings->setValue("in_port", inPort);
-
-	QString outPort =  MidiOutput::outputPort().section(':', 0, 0);
-	// perhaps it has brackets with port
-	if(outPort.contains('(')){
-		outPort = outPort.section('(', 0, 0);
+	if(MidiInput::inputPort() != ""){
+		_settings->setValue("in_port", MidiInput::inputPort());
 	}
-	_settings->setValue("out_port", outPort);
-
 	// save the current Path
 	_settings->setValue("open_path", startDirectory);
 }
@@ -1841,4 +1839,79 @@ void MainWindow::instrumentChannel(QAction *action){
 	if(file){
 		setInstrumentForChannel(action->data().toInt());
 	}
+}
+
+void MainWindow::spreadSelection(){
+
+	if(!file){
+		return;
+	}
+
+	bool ok;
+	float numMs = QInputDialog::getDouble(this, "Set spread-time",
+		"Spread time [ms]", 10,
+		5,500, 2, &ok);
+
+	if(!ok){
+		numMs = 1;
+	}
+
+	QMultiMap<int, int> spreadChannel[19];
+
+	foreach(MidiEvent *event, *EventTool::selectedEventList()){
+		if(!spreadChannel[event->channel()].values(event->line()).contains(event->midiTime())){
+			spreadChannel[event->channel()].insert(event->line(), event->midiTime());
+		}
+	}
+
+	file->protocol()->startNewAction("Spread Events");
+	int numSpreads = 0;
+	for(int i = 0; i<19;i++){
+
+		MidiChannel *channel = file->channel(i);
+
+		QList<int> seenBefore;
+
+		foreach(int line, spreadChannel[i].keys()){
+
+			if(seenBefore.contains(line)){
+				continue;
+			}
+
+			seenBefore.append(line);
+
+			foreach(int position, spreadChannel[i].values(line)){
+
+				QList<MidiEvent*> eventsWithAllLines = channel->eventMap()->values(position);
+
+				QList<MidiEvent*> events;
+				foreach(MidiEvent *event, eventsWithAllLines){
+					if(event->line() == line){
+						events.append(event);
+					}
+				}
+
+				//spread events for the channel at the given position
+				int num = events.count();
+				if(num>1){
+
+					float timeToInsert = file->msOfTick(position)+numMs*num/2;
+
+
+					for(int y = 0; y<num; y++){
+
+						MidiEvent *toMove = events.at(y);
+
+						toMove->setMidiTime(file->tick(timeToInsert), true);
+						numSpreads++;
+
+						timeToInsert -= numMs;
+					}
+				}
+			}
+		}
+	}
+	file->protocol()->endAction();
+
+	QMessageBox::information(this, "Spreading done", QString("Spreaded "+QString::number(numSpreads)+" Events"));
 }

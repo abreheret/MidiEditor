@@ -159,7 +159,6 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(){
 					emptyOffEvents.lowerBound(it.key());
 			while(emptyIt != emptyOffEvents.end() && emptyIt.key()==it.key()){
 				if(emptyIt.value()->line() == on->line()){
-					qWarning("found entry");
 					emptyIt.value()->setOnEvent(on);
 					OffEvent::removeOnEvent(on);
 					emptyOffEvents.remove(emptyIt.key(), emptyIt.value());
@@ -176,7 +175,6 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(){
 	while(it2!=eventList.end()){
 		OnEvent *on = dynamic_cast<OnEvent*>(it2.value());
 		if(on && !on->offEvent()){
-			qWarning("unexpected OnEvent found");
 			eventList.remove(it2.key(), it2.value());
 		}
 		it2++;
@@ -184,6 +182,7 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(){
 	_messages->clear();
 
 	_currentTime = 0;
+
 
 	return eventList;
 }
