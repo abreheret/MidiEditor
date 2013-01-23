@@ -81,24 +81,62 @@ void Terminal::execute(QString startString, QString inPort,
 
 void Terminal::processStarted(){
 	writeString("Started process");
+
+	QStringList inputVariants;
+	QString inPort = _inPort;
+	inputVariants.append(inPort);
+	if(inPort.contains(':')){
+		inPort =  inPort.section(':', 0, 0);
+	}
+	inputVariants.append(inPort);
+	if(inPort.contains('(')){
+		inPort = inPort.section('(', 0, 0);
+	}
+	inputVariants.append(inPort);
+
+	QStringList outputVariants;
+	QString outPort = _outPort;
+	outputVariants.append(outPort);
+	if(outPort.contains(':')){
+		outPort =  outPort.section(':', 0, 0);
+	}
+	outputVariants.append(outPort);
+	if(outPort.contains('(')){
+		outPort = outPort.section('(', 0, 0);
+	}
+	outputVariants.append(outPort);
+
 	if(MidiInput::inputPort() == "" && _inPort != ""){
 		writeString("Trying to set Input Port to "+_inPort);
-		foreach(QString port, MidiInput::inputPorts()){
-			if(port.startsWith(_inPort)){
-				writeString("Found port "+port);
-				MidiInput::setInputPort(port);
-				_inPort = "";
+
+		foreach(QString portVariant, inputVariants){
+			foreach(QString port, MidiInput::inputPorts()){
+				if(port.startsWith(portVariant)){
+					writeString("Found port "+port);
+					MidiInput::setInputPort(port);
+					_inPort = "";
+					break;
+				}
+			}
+			if(_inPort == ""){
 				break;
 			}
 		}
 	}
+
 	if(MidiOutput::outputPort()== "" && _outPort != ""){
 		writeString("Trying to set Output Port to "+_outPort);
-		foreach(QString port, MidiOutput::outputPorts()){
-			if(port.startsWith(_outPort)){
-				writeString("Found port "+port);
-				MidiOutput::setOutputPort(port);
-				_outPort = "";
+
+		foreach(QString portVariant, outputVariants){
+			foreach(QString port, MidiOutput::outputPorts()){
+				if(port.startsWith(portVariant)){
+					writeString("Found port "+port);
+					MidiOutput::setOutputPort(port);
+					_outPort = "";
+					break;
+				}
+			}
+			if(_outPort == ""){
 				break;
 			}
 		}
