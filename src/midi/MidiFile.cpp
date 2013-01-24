@@ -148,7 +148,6 @@ bool MidiFile::readMidiFile(QDataStream *content){
 
 	quint16 numTracks;
 	(*content)>>numTracks;
-	int _numTracks = numTracks;
 
 	quint16 basisVelocity;
 	(*content)>>basisVelocity;
@@ -161,22 +160,6 @@ bool MidiFile::readMidiFile(QDataStream *content){
 			errorString = "Error in Track "+QString::number(num);
 			return false;
 		}
-	}
-
-	// check whether TimeSignature at tick 0 is given. If not, create one.
-	if(!channel(18)->eventMap()->contains(0)){
-		TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8);
-		timeSig->setFile(this);
-		timeSig->setTrack(0, false);
-		channel(18)->eventMap()->insert(0, timeSig);
-	}
-
-	// check whether TempoChangeEvent at tick 0 is given. If not, create one.
-	if(!channel(17)->eventMap()->contains(0)){
-		TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000);
-		tempoEv->setFile(this);
-		tempoEv->setTrack(0, false);
-		channel(17)->eventMap()->insert(0, tempoEv);
 	}
 
 	// find corrupted OnEvents (without OffEvent)
@@ -212,6 +195,7 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 
 	MidiTrack *track = new MidiTrack(this);
 	track->setNumber(num);
+
 	_tracks->append(track);
 	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 
@@ -258,6 +242,24 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 	// end of track
 	(*content)>>tempByte;
 	if(tempByte != 0x00){ return false; }
+
+	// check whether TimeSignature at tick 0 is given. If not, create one.
+	// this will be done after reading the first track
+	if(!channel(18)->eventMap()->contains(0)){
+		TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8);
+		timeSig->setFile(this);
+		timeSig->setTrack(0, false);
+		channel(18)->eventMap()->insert(0, timeSig);
+	}
+
+	// check whether TempoChangeEvent at tick 0 is given. If not, create one.
+	if(!channel(17)->eventMap()->contains(0)){
+		TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000);
+		tempoEv->setFile(this);
+		tempoEv->setTrack(0, false);
+		channel(17)->eventMap()->insert(0, tempoEv);
+	}
+
 	return true;
 }
 
@@ -343,6 +345,11 @@ int MidiFile::tick(int ms){
 			break;
 		}
 	}
+
+	if(!event){
+		return 0;
+	}
+
 	int startTick = (ms-time)/event->msPerTick()+event->midiTime();
 	return startTick;
 }
@@ -381,6 +388,10 @@ int MidiFile::msOfTick(int tick, QList<MidiEvent*> *events, int
 			// end: ev is later than the endTick
 			break;
 		}
+	}
+
+	if(!event){
+		return 0;
 	}
 
 	timeMs += event->msPerTick()*(tick-event->midiTime());
@@ -465,8 +476,12 @@ int MidiFile::tick(int startms, int endms, QList<MidiEvent*> **eventList,
 			break;
 		}
 	}
-	*endTick = (endms-time)/event->msPerTick()+event->midiTime();
 
+	if(!event){
+		return 0;
+	}
+
+	*endTick = (endms-time)/event->msPerTick()+event->midiTime();
 	return startTick;
 }
 
