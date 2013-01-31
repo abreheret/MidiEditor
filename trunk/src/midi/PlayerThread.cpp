@@ -22,6 +22,8 @@
 #include "MidiFile.h"
 #include "../MidiEvent/NoteOnEvent.h"
 #include "../MidiEvent/OffEvent.h"
+#include "../MidiEvent/TimeSignatureEvent.h"
+#include "../MidiEvent/KeySignatureEvent.h"
 #include "MidiInput.h"
 #include <QTime>
 
@@ -62,6 +64,10 @@ void PlayerThread::run(){
 
 	position = file->msOfTick(file->cursorTick());
 
+	if(file->pauseTick() >= 0){
+		position = file->msOfTick(file->pauseTick());
+	}
+
 	// Reset all Controllers
 	for(int i = 0; i<16; i++){
 		QByteArray array;
@@ -87,6 +93,10 @@ void PlayerThread::run(){
 	timer->start(INTERVAL_TIME);
 
 	stopped = false;
+
+	QList<TimeSignatureEvent*> *list = 0;
+	measure = file->measure(file->cursorTick(), file->cursorTick(), &list);
+	emit(measureChanged(measure));
 
 	if(exec() == 0){
 		timer->stop();
@@ -120,6 +130,13 @@ void PlayerThread::timeout(){
 	} else {
 
 		int newPos = position + time->elapsed();
+		int tick = file->tick(newPos);
+		QList<TimeSignatureEvent*> *list = 0;
+		int new_measure = file->measure(tick, tick, &list);
+		if(new_measure > measure){
+			emit measureChanged(new_measure);
+			measure = new_measure;
+		}
 		time->restart();
 		QMultiMap<int, MidiEvent*>::iterator it = events->lowerBound(position);
 
@@ -143,6 +160,20 @@ void PlayerThread::timeout(){
 				MidiOutput::sendCommand(ev);
 			}
 			foreach(MidiEvent *ev, onEv){
+				if(ev->line() == MidiEvent::KEY_SIGNATURE_EVENT_LINE){
+					KeySignatureEvent *keySig = dynamic_cast<KeySignatureEvent*>(ev);
+					if(keySig){
+						emit tonalityChanged(keySig->tonality());
+						qWarning("tonality");
+					}
+				}
+				if(ev->line() == MidiEvent::TIME_SIGNATURE_EVENT_LINE){
+					TimeSignatureEvent *timeSig = dynamic_cast<TimeSignatureEvent*>(ev);
+					if(timeSig){
+						emit meterChanged(timeSig->num(), timeSig->denom());
+						qWarning("meter");
+					}
+				}
 				MidiOutput::sendCommand(ev);
 			}
 

@@ -63,8 +63,11 @@ int TimeSignatureEvent::ticksPerMeasure(){
 	return (4*numerator*file()->ticksPerQuarter())/pow(2, denominator);
 }
 
-int TimeSignatureEvent::measures(int ticks){
+int TimeSignatureEvent::measures(int ticks, int *ticksLeft){
 	//int numTicks = tick-midiTime();
+	if(ticksLeft){
+		*ticksLeft = ticks % ticksPerMeasure();
+	}
 	return ticks/ticksPerMeasure();
 }
 

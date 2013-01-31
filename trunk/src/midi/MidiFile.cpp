@@ -30,6 +30,7 @@
 #include "../MidiEvent/ControlChangeEvent.h"
 #include "../MidiEvent/UnknownEvent.h"
 #include "../MidiEvent/TextEvent.h"
+#include "../MidiEvent/KeySignatureEvent.h"
 #include "math.h"
 #include "../protocol/Protocol.h"
 #include "MidiChannel.h"
@@ -42,7 +43,7 @@ MidiFile::MidiFile(){
 	prot = new Protocol(this);
 	prot->addEmptyAction("File created");
 	_path = "";
-
+	_pauseTick = -1;
 	for(int i = 0; i<19; i++){
 		channels[i] = new MidiChannel(this, i);
 	}
@@ -76,7 +77,7 @@ MidiFile::MidiFile(){
 }
 
 MidiFile::MidiFile(QString path, bool *ok) {
-
+	_pauseTick = -1;
 	_saved = true;
 	midiTicks = 0;
 	_cursorTick = 0;
@@ -490,7 +491,7 @@ int MidiFile::numTracks(){
 }
 
 int MidiFile::measure(int startTick, int endTick,
-		QList<TimeSignatureEvent*> **eventList)
+		QList<TimeSignatureEvent*> **eventList, int *ticksLeft)
 {
 
 	if((*eventList)){
@@ -525,7 +526,7 @@ int MidiFile::measure(int startTick, int endTick,
 		}
 	}
 	int ticks = startTick-event->midiTime();
-	measure+=event->measures(ticks);
+	measure+=event->measures(ticks, ticksLeft);
 	(*eventList)->append(event);
 
 	// find the endEvent, save all events between start and end in the list and
@@ -820,12 +821,12 @@ bool MidiFile::channelMuted(int ch){
 	return channel(ch)->mute();
 }
 
-void MidiFile::preparePlayerData(){
+void MidiFile::preparePlayerData(int tickFrom){
 
 	playerMap->clear();
 	QList<MidiEvent*> *prgList;
 
-	for(int i = 0; i<17; i++){
+	for(int i = 0; i<19; i++){
 
 		if(channelMuted(i)){
 			continue;
@@ -841,7 +842,7 @@ void MidiFile::preparePlayerData(){
 		while(it!=channelEvents->end()){
 			int tick = it.key();
 			MidiEvent *event = it.value();
-			if(tick>=cursorTick()){
+			if(tick>=tickFrom){
 				// all Events after cursorTick are added
 				int ms = msOfTick(tick);
 				if(!track(event->track())->muted()){
@@ -866,7 +867,7 @@ void MidiFile::preparePlayerData(){
 
 		if(prgList->count()>0){
 			// set the program of the channel
-			playerMap->insert(msOfTick(cursorTick())-1, prgList->last());
+			playerMap->insert(msOfTick(tickFrom)-1, prgList->last());
 		}
 
 		delete prgList;
@@ -885,6 +886,14 @@ int MidiFile::cursorTick(){
 void MidiFile::setCursorTick(int tick){
 	_cursorTick = tick;
 	emit cursorPositionChanged();
+}
+
+int MidiFile::pauseTick(){
+	return _pauseTick;
+}
+
+void MidiFile::setPauseTick(int tick){
+	_pauseTick = tick;
 }
 
 bool MidiFile::save(QString path){
@@ -1128,4 +1137,53 @@ bool MidiFile::removeTrack(int number){
 
 MidiTrack *MidiFile::track(int number){
 	return _tracks->at(number);
+}
+
+int MidiFile::tonalityAt(int tick){
+	QMultiMap<int, MidiEvent*> *events = channels[16]->eventMap();
+
+	QMultiMap<int, MidiEvent*>::iterator it = events->begin();
+	KeySignatureEvent *event = 0;
+	while(it != events->end()){
+		KeySignatureEvent *keySig = dynamic_cast<KeySignatureEvent*>(it.value());
+		if(keySig && keySig->midiTime() <= tick){
+			event = keySig;
+		} else if(keySig){
+			break;
+		}
+		it++;
+	}
+
+	if(!event){
+		return 0;
+	}
+
+	else {
+		return event->tonality();
+	}
+}
+
+void MidiFile::meterAt(int tick, int *num, int *denum){
+	QMap<int, MidiEvent*> *meterEvents = timeSignatureEvents();
+	QMap<int, MidiEvent*>::iterator it = meterEvents->begin();
+	TimeSignatureEvent *event = 0;
+	while(it != meterEvents->end()){
+		TimeSignatureEvent *timeSig = dynamic_cast<TimeSignatureEvent*>(it.value());
+		if(timeSig && timeSig->midiTime() <= tick){
+			event = timeSig;
+		} else if(timeSig){
+			break;
+		}
+		it++;
+	}
+
+	if(!event){
+		*num = 4;
+		*denum = 4;
+	}
+
+	else {
+		*num = event->num();
+		*denum = event->denom();
+	}
 }

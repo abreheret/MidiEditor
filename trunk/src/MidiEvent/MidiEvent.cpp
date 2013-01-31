@@ -29,6 +29,7 @@
 #include "TextEvent.h"
 #include "../midi/MidiFile.h"
 #include "../gui/EventWidget.h"
+#include "KeySignatureEvent.h"
 
 #include <QByteArray>
 #include <QSpinBox>
@@ -255,6 +256,23 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 							int num32 = (int)tempByte;
 							return new TimeSignatureEvent(18, num, denom, metronome, num32);
 						}
+						case 0x59: {
+							// keysignature
+							(*content)>>tempByte;
+							if(tempByte!=2){
+								*ok = false;
+								return 0;
+							}
+							qint8 t;
+							(*content)>>t;
+							int tonality = (int)t;
+							(*content)>>tempByte;
+							bool minor = true;
+							if(tempByte == 0){
+								minor = false;
+							}
+							return new KeySignatureEvent(channel, tonality, minor);
+						}
 						case 0x2F: {
 							// end Event
 							*endEvent = true;
@@ -384,6 +402,7 @@ void MidiEvent::setMidiTime(int t, bool toProtocol){
 		delete toCopy;
 	}
 	file()->channelEvents(numChannel)->insert(timePos, this);
+
 	if(shownInEventWidget()){
 		_timePos_spinBox->setValue(timePos);
 	}

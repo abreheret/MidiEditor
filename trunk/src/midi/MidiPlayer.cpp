@@ -39,7 +39,11 @@ void MidiPlayer::play(MidiFile *file){
 	filePlayer = new PlayerThread();
 #endif
 
-	file->preparePlayerData();
+	int tickFrom = file->cursorTick();
+	if(file->pauseTick() >= 0){
+		tickFrom = file->pauseTick();
+	}
+	file->preparePlayerData(tickFrom);
 	filePlayer->setFile(file);
 	filePlayer->start(QThread::TimeCriticalPriority);
 	playing = true;

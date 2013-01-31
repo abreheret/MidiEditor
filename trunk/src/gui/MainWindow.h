@@ -37,6 +37,8 @@ class QTabWidget;
 class QMenu;
 class TrackListWidget;
 class QComboBox;
+class RemoteServer;
+class RemoteDialog;
 
 class MainWindow : public QMainWindow {
 
@@ -51,7 +53,8 @@ class MainWindow : public QMainWindow {
 	public slots:
 		void matrixSizeChanged(int maxScrollTime, int maxScrollLine, int vX, int vY);
 		void play();
-		void stop();
+		void stop(bool autoConfirmRecord = false, bool addEvents = true, bool resetPause = true);
+		void pause();
 		void forward();
 		void back();
 		void load();
@@ -70,6 +73,7 @@ class MainWindow : public QMainWindow {
 		void allTracksInvisible();
 		void donate();
 		void about();
+		void showRemoteDialog();
 		void setFileLengthMs();
 		void scrollPositionsChanged(int startMs, int maxMs, int startLine,
 				int maxLine);
@@ -148,6 +152,7 @@ class MainWindow : public QMainWindow {
 		QAction *_colorsByChannel, *_colorsByTracks;
 
 		QComboBox *_chooseEditTrack, *_chooseEditChannel;
+		RemoteServer *_remoteServer;
 };
 
 #endif
