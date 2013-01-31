@@ -67,6 +67,7 @@
 #include "../midi/MidiInput.h"
 #include <QMultiMap>
 #include "../MidiEvent/MidiEvent.h"
+#include "../MidiEvent/TimeSignatureEvent.h"
 #include "../MidiEvent/OffEvent.h"
 #include "RecordDialog.h"
 #include <QSettings>
@@ -77,12 +78,41 @@
 #include "../MidiEvent/OnEvent.h"
 #include "TransposeDialog.h"
 #include "../MidiEvent/NoteOnEvent.h"
+#include "../remote/RemoteServer.h"
+#include "RemoteDialog.h"
 
 MainWindow::MainWindow() : QMainWindow() {
 
 	file = 0;
-
 	_settings = new QSettings(QString("MidiEditor"), QString("NONE"));
+
+	bool ok;
+	int port = _settings->value("udp_client_port", -1).toInt(&ok);
+	QString ip = _settings->value("udp_client_ip", "").toString();
+
+
+	 _remoteServer = new RemoteServer();
+	 _remoteServer->setIp(ip);
+	 _remoteServer->setPort(port);
+	 _remoteServer->tryConnect();
+
+
+	connect(_remoteServer, SIGNAL(playRequest()), this, SLOT(play()));
+	connect(_remoteServer, SIGNAL(stopRequest(bool, bool)), this, SLOT(stop(bool, bool)));
+	connect(_remoteServer, SIGNAL(recordRequest()), this, SLOT(record()));
+	connect(_remoteServer, SIGNAL(backRequest()), this, SLOT(back()));
+	connect(_remoteServer, SIGNAL(forwardRequest()), this, SLOT(forward()));
+	connect(_remoteServer, SIGNAL(pauseRequest()), this, SLOT(pause()));
+
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(timeMsChanged(int)), _remoteServer, SLOT(setTime(int)));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(meterChanged(int, int)), _remoteServer, SLOT(setMeter(int, int)));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(tonalityChanged(int)), _remoteServer, SLOT(setTonality(int)));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(measureChanged(int)), _remoteServer, SLOT(setMeasure(int)));
+
 
 	startDirectory = QDir::homePath();
 
@@ -97,7 +127,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	EditorTool::setMainWindow(this);
 
-	setWindowTitle("MidiEditor 2.0.0");
+	setWindowTitle("MidiEditor 2.5.0");
 	setWindowIcon(QIcon("graphics/icon.png"));
 
 	QWidget *central = new QWidget(this);
@@ -357,17 +387,20 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	buttons->addSeparator();
 
+	ClickButton *back = new ClickButton("back.png");
+	buttons->addWidget(back);
+	back->setToolTip("Back (one measure)");
+	connect(back, SIGNAL(clicked()), this, SLOT(back()));
+
+	ClickButton *pause = new ClickButton("pause.png");
+	buttons->addWidget(pause);
+	pause->setToolTip("Pause");
+	connect(pause, SIGNAL(clicked()), this, SLOT(pause()));
+
 	ClickButton *record = new ClickButton("record.png");
 	buttons->addWidget(record);
 	record->setToolTip("Record from the selected Midi-input");
 	connect(record, SIGNAL(clicked()), this, SLOT(record()));
-
-	buttons->addSeparator();
-
-	ClickButton *back = new ClickButton("back.png");
-	buttons->addWidget(back);
-	back->setToolTip("Set the cursor to the beginning of this File");
-	connect(back, SIGNAL(clicked()), this, SLOT(back()));
 
 	ClickButton *play = new ClickButton("play.png");
 	buttons->addWidget(play);
@@ -378,6 +411,11 @@ MainWindow::MainWindow() : QMainWindow() {
 	stop->setToolTip("Stop Playback/Record");
 	buttons->addWidget(stop);
 	connect(stop, SIGNAL(clicked()), this, SLOT(stop()));
+
+	ClickButton *forward = new ClickButton("forward.png");
+	buttons->addWidget(forward);
+	forward->setToolTip("Forward (one measure)");
+	connect(forward, SIGNAL(clicked()), this, SLOT(forward()));
 
 	buttons->addSeparator();
 
@@ -404,6 +442,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	QMenu *timingMB = menuBar()->addMenu("Timing");
 	QMenu *viewMB = menuBar()->addMenu("View");
 	QMenu *playbackMB = menuBar()->addMenu("Playback");
+	QMenu *remoteMB = menuBar()->addMenu("Remote");
 	QMenu *midiMB = menuBar()->addMenu("Midi");
 	QMenu *helpMB = menuBar()->addMenu("Help");
 
@@ -750,6 +789,11 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(panicAction, SIGNAL(triggered()), this, SLOT(panic()));
 	midiMB->addAction(panicAction);
 
+	// Remote
+	QAction *remoteDAction = new QAction("Show Remote Dialog", this);
+	connect(remoteDAction, SIGNAL(triggered()), this, SLOT(showRemoteDialog()));
+	remoteMB->addAction(remoteDAction);
+
 	// Help
 	QAction *aboutAction = new QAction("About", this);
 	connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
@@ -777,6 +821,7 @@ void MainWindow::setFile(MidiFile *file){
 	protocolWidget->setFile(file);
 	channelWidget->setFile(file);
 	_trackWidget->setFile(file);
+	_remoteServer->setFile(file);
 	Tool::setFile(file);
 	this->file = file;
 	connect(file, SIGNAL(trackChanged()), this, SLOT(updateTrackMenu()));
@@ -801,6 +846,7 @@ void MainWindow::matrixSizeChanged(int maxScrollTime, int maxScrollLine,
 }
 
 void MainWindow::play(){
+
 	if(file && !MidiInput::recording() && !MidiPlayer::isPlaying()){
 
 		mw_matrixWidget->timeMsChanged(file->msOfTick(file->cursorTick()), true);
@@ -819,10 +865,72 @@ void MainWindow::play(){
 		connect(MidiPlayer::playerThread(),
 				SIGNAL(timeMsChanged(int)), mw_matrixWidget, SLOT(timeMsChanged(int)));
 		#endif
+
+		_remoteServer->play();
 	}
 }
 
-void MainWindow::stop(){
+
+void MainWindow::record(){
+
+	if(!file){
+		newFile();
+	}
+
+	if(!MidiInput::recording() && !MidiPlayer::isPlaying()){
+		// play current file
+		if(file){
+
+			if(file->pauseTick() >= 0){
+				file->setCursorTick(file->pauseTick());
+				file->setPauseTick(-1);
+			}
+
+			mw_matrixWidget->timeMsChanged(file->msOfTick(file->cursorTick()), true);
+
+			mw_velocityWidget->setEnabled(false);
+			channelWidget->setEnabled(false);
+			protocolWidget->setEnabled(false);
+			mw_matrixWidget->setEnabled(false);
+			_trackWidget->setEnabled(false);
+
+			_remoteServer->record();
+
+			MidiPlayer::play(file);
+			MidiInput::startInput();
+			connect(MidiPlayer::playerThread(),
+					SIGNAL(playerStopped()), this,	SLOT(stop()));
+			#ifdef __WINDOWS_MM__
+			connect(MidiPlayer::playerThread(),
+					SIGNAL(timeMsChanged(int)), mw_matrixWidget, SLOT(timeMsChanged(int)));
+			#endif
+		}
+	}
+}
+
+
+void MainWindow::pause(){
+	if(file){
+		if(MidiPlayer::isPlaying()){
+			file->setPauseTick(file->tick(MidiPlayer::timeMs()));
+			stop(false, false, false);
+		}
+	}
+}
+
+void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
+
+	if(!file){
+		return;
+	}
+
+	disconnect(MidiPlayer::playerThread(),
+			SIGNAL(playerStopped()), this,	SLOT(stop()));
+
+	if(resetPause){
+		file->setPauseTick(-1);
+		mw_matrixWidget->update();
+	}
 	if(!MidiInput::recording() && MidiPlayer::isPlaying()){
 		MidiPlayer::stop();
 		mw_velocityWidget->setEnabled(true);
@@ -832,6 +940,8 @@ void MainWindow::stop(){
 		mw_matrixWidget->setEnabled(true);
 		mw_matrixWidget->timeMsChanged(MidiPlayer::timeMs(), true);
 		_trackWidget->setEnabled(true);
+		_remoteServer->stop();
+
 		panic();
 	}
 
@@ -843,24 +953,74 @@ void MainWindow::stop(){
 		protocolWidget->setEnabled(true);
 		mw_matrixWidget->setEnabled(true);
 		_trackWidget->setEnabled(true);
-
+		_remoteServer->stop();
 		QMultiMap<int, MidiEvent*> events = MidiInput::endInput();
 
 		RecordDialog *dialog = new RecordDialog(file, events, this);
 		dialog->setModal(true);
-		dialog->show();
+		if(!autoConfirmRecord){
+			dialog->show();
+		} else {
+			if(addEvents){
+				dialog->enter();
+			}
+		}
 	}
 }
 
 void MainWindow::forward(){
 	if(!file) return;
-	file->setCursorTick(file->endTick());
+
+	QList<TimeSignatureEvent*> *eventlist = new QList<TimeSignatureEvent*>;
+	int ticksleft;
+	int oldTick = file->cursorTick();
+	if(file->pauseTick() >= 0){
+		oldTick = file->pauseTick();
+	}
+	if(MidiPlayer::isPlaying() && !MidiInput::recording()){
+		oldTick = file->tick(MidiPlayer::timeMs());
+		stop(true);
+	}
+	int measure = file->measure(oldTick, oldTick, &eventlist, &ticksleft);
+
+	int newTick = oldTick - ticksleft + eventlist->last()->ticksPerMeasure();
+	file->setPauseTick(-1);
+	if(newTick <= file->endTick()){
+		file->setCursorTick(newTick);
+		mw_matrixWidget->timeMsChanged(file->msOfTick(newTick), true);
+	}
 	mw_matrixWidget->update();
 }
 
 void MainWindow::back(){
 	if(!file) return;
-	file->setCursorTick(0);
+
+	QList<TimeSignatureEvent*> *eventlist = new QList<TimeSignatureEvent*>;
+	int ticksleft;
+	int oldTick = file->cursorTick();
+	if(file->pauseTick() >= 0){
+		oldTick = file->pauseTick();
+	}
+	if(MidiPlayer::isPlaying() && !MidiInput::recording()){
+		oldTick = file->tick(MidiPlayer::timeMs());
+		stop(true);
+	}
+	int measure = file->measure(oldTick, oldTick, &eventlist, &ticksleft);
+	int newTick = oldTick;
+	if(ticksleft > 0){
+		newTick -= ticksleft;
+	} else {
+		newTick -= eventlist->last()->ticksPerMeasure();
+	}
+	measure = file->measure(newTick, newTick, &eventlist, &ticksleft);
+	if(ticksleft > 0){
+		newTick -= ticksleft;
+	}
+	file->setPauseTick(-1);
+	if(newTick >= 0){
+		file->setCursorTick(newTick);
+		mw_matrixWidget->timeMsChanged(file->msOfTick(newTick), true);
+	}
 	mw_matrixWidget->update();
 }
 
@@ -1112,6 +1272,18 @@ void MainWindow::closeEvent(QCloseEvent *event){
 	if(MidiInput::inputPort() != ""){
 		_settings->setValue("in_port", MidiInput::inputPort());
 	}
+	if(_remoteServer->clientIp() != ""){
+		_settings->setValue("udp_client_ip", _remoteServer->clientIp());
+	}
+	if(_remoteServer->clientPort() > 0){
+		_settings->setValue("udp_client_port", _remoteServer->clientPort());
+	}
+	_remoteServer->stopServer();
+
+	bool ok;
+	int numStart = _settings->value("numStart", -1).toInt(&ok);
+	_settings->setValue("numStart", numStart+1);
+
 	// save the current Path
 	_settings->setValue("open_path", startDirectory);
 }
@@ -1157,36 +1329,6 @@ void MainWindow::midiSettings(){
 	d->show();
 }
 
-void MainWindow::record(){
-
-	if(!file){
-		newFile();
-	}
-
-	if(!MidiInput::recording() && !MidiPlayer::isPlaying()){
-		// play current file
-		if(file){
-
-			mw_matrixWidget->timeMsChanged(file->msOfTick(file->cursorTick()), true);
-
-			mw_velocityWidget->setEnabled(false);
-			channelWidget->setEnabled(false);
-			protocolWidget->setEnabled(false);
-			mw_matrixWidget->setEnabled(false);
-			_trackWidget->setEnabled(false);
-
-			MidiPlayer::play(file);
-			MidiInput::startInput();
-			connect(MidiPlayer::playerThread(),
-					SIGNAL(playerStopped()), this,	SLOT(stop()));
-			#ifdef __WINDOWS_MM__
-			connect(MidiPlayer::playerThread(),
-					SIGNAL(timeMsChanged(int)), mw_matrixWidget, SLOT(timeMsChanged(int)));
-			#endif
-		}
-	}
-}
-
 void MainWindow::newFile(){
 	if(file){
 		if(!file->saved()){
@@ -1219,6 +1361,12 @@ void MainWindow::newFile(){
 	MidiFile *f = new MidiFile();
 	setFile(f);
 	setWindowTitle("MidiEditor - Untitled Document[*]");
+
+	bool ok;
+	int numStart = _settings->value("numStart", -1).toInt(&ok);
+	if(numStart == 15){
+		donate();
+	}
 }
 
 void MainWindow::panic(){
@@ -1914,4 +2062,10 @@ void MainWindow::spreadSelection(){
 	file->protocol()->endAction();
 
 	QMessageBox::information(this, "Spreading done", QString("Spreaded "+QString::number(numSpreads)+" Events"));
+}
+
+void MainWindow::showRemoteDialog(){
+	RemoteDialog *remoteDialog = new RemoteDialog(_remoteServer, this);
+	remoteDialog->setModal(true);
+	remoteDialog->show();
 }

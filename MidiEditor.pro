@@ -1,7 +1,11 @@
 TEMPLATE = app
 TARGET = MidiEditor
-QT += core
-HEADERS += src/gui/InstrumentChooser.h \
+QT += core \
+    network
+HEADERS += src/gui/RemoteDialog.h \
+    src/MidiEvent/KeySignatureEvent.h \
+    src/remote/RemoteServer.h \
+    src/gui/InstrumentChooser.h \
     src/gui/TransposeDialog.h \
     src/MidiEvent/TextEvent.h \
     src/gui/TrackListWidget.h \
@@ -57,7 +61,10 @@ HEADERS += src/gui/InstrumentChooser.h \
     src/MidiEvent/UnknownEvent.h \
     src/MidiEvent/NoteOnEvent.h \
     src/MidiEvent/MidiEvent.h
-SOURCES += src/gui/InstrumentChooser.cpp \
+SOURCES += src/gui/RemoteDialog.cpp \
+    src/MidiEvent/KeySignatureEvent.cpp \
+    src/remote/RemoteServer.cpp \
+    src/gui/InstrumentChooser.cpp \
     src/gui/TransposeDialog.cpp \
     src/MidiEvent/TextEvent.cpp \
     src/gui/TrackListWidget.cpp \

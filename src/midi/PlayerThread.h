@@ -47,6 +47,10 @@ class PlayerThread : public QThread {
 		void timeMsChanged(int ms);
 		void playerStopped();
 
+		void tonalityChanged(int tonality);
+		void measureChanged(int measure);
+		void meterChanged(int num, int denum);
+
 	private:
 		MidiFile *file;
 		QMultiMap<int, MidiEvent*> *events;
@@ -54,6 +58,9 @@ class PlayerThread : public QThread {
 		volatile bool stopped;
 		QTimer *timer;
 		QTime *time;
+
+		int measure, posInMeasure;
+
 };
 
 #endif

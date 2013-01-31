@@ -54,7 +54,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 		void calcMaxTime();
 		int tick(int ms);
 		int tick(int startms, int endms, QList<MidiEvent*> **events, int *endTick, int *msOfFirstEvent);
-		int measure(int startTick, int endTick, QList<TimeSignatureEvent*> **eventList);
+		int measure(int startTick, int endTick, QList<TimeSignatureEvent*> **eventList, int *ticksLeft = 0);
 		int msOfTick(int tick, QList<MidiEvent*> *events = 0, int msOfFirstEventInList = 0);
 
 		QList<MidiEvent*> *eventsBetween(int start, int end);
@@ -63,13 +63,15 @@ class MidiFile : public QObject, public ProtocolEntry {
 
 		Protocol *protocol();
 		MidiChannel *channel(int i);
-		void preparePlayerData();
+		void preparePlayerData(int tickFrom);
 		QMultiMap<int, MidiEvent*> *playerData();
 
 		static QString instrumentName(int prog);
 		static QString controlChangeName(int control);
 		int cursorTick();
+		int pauseTick();
 		void setCursorTick(int tick);
+		void setPauseTick(int tick);
 		QString path();
 		bool saved();
 		void setSaved(bool b);
@@ -86,6 +88,9 @@ class MidiFile : public QObject, public ProtocolEntry {
 		bool removeTrack(int number);
 		MidiTrack *track(int number);
 
+		int tonalityAt(int tick);
+		void meterAt(int tick, int *num, int *denum);
+
 	signals:
 		void cursorPositionChanged();
 		void recalcWidgetSize();
@@ -100,7 +105,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 		MidiChannel *channels[19];
 
 		QString errorString, _path;
-		int midiTicks, maxTimeMS, _cursorTick, _midiFormat;
+		int midiTicks, maxTimeMS, _cursorTick, _pauseTick, _midiFormat;
 		Protocol *prot;
 		QMultiMap<int, MidiEvent*> *playerMap;
 		bool _saved;

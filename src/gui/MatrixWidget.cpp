@@ -87,10 +87,10 @@ void MatrixWidget::timeMsChanged(int ms, bool ignoreLocked){
 
 	int x = xPosOfMs(ms);
 
-	if((!screen_locked || ignoreLocked) && (ms<startTimeX || x>width()-100)) {
+	if((!screen_locked || ignoreLocked) && (x < lineNameWidth || ms<startTimeX || ms > endTimeX || x>width()-100)) {
 
 		// return if the last tick is already shown
-		if(file->maxTime() <= endTimeX)
+		if(file->maxTime() <= endTimeX && ms >= startTimeX)
 		{
 			repaint();
 			return;
@@ -341,6 +341,10 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 					text = "time-sig.";
 					break;
 				}
+				case MidiEvent::KEY_SIGNATURE_EVENT_LINE: {
+					text = "key-sig.";
+					break;
+				}
 				case MidiEvent::PROG_CHANGE_LINE: {
 					text = "prog.ch.";
 					break;
@@ -415,6 +419,23 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 		painter->setPen(Qt::gray);
 		painter->drawLine(x, 0, x, height());
 
+	}
+
+	// paint the pauseTick of file if >= 0
+	if(!MidiPlayer::isPlaying() && midiFile()->pauseTick()>=startTick &&
+			midiFile()->pauseTick()<=endTick)
+	{
+		int x = xPosOfMs(msOfTick(midiFile()->pauseTick()));
+
+		 QPointF points[3] = {
+			 QPointF(x-8, timeHeight/2+2),
+			 QPointF(x+8, timeHeight/2+2),
+			 QPointF(x, timeHeight-2),
+		 };
+
+		 painter->setBrush(QBrush(Qt::gray, Qt::SolidPattern));
+
+		painter->drawPolygon(points, 3);
 	}
 
 	// border
@@ -982,7 +1003,7 @@ void MatrixWidget::mouseDoubleClickEvent(QMouseEvent *event){
 	if(mouseInRect(TimeLineArea)){
 		int tick = file->tick(msOfXPos(mouseX));
 		file->setCursorTick(tick);
-
+		update();
 	}
 }
 

@@ -30,6 +30,7 @@
 #include "../MidiEvent/ChannelPressureEvent.h"
 #include "../MidiEvent/KeyPressureEvent.h"
 #include "../MidiEvent/ControlChangeEvent.h"
+#include "../MidiEvent/KeySignatureEvent.h"
 #include "../MidiEvent/TextEvent.h"
 
 int NewNoteTool::_channel = 0;
@@ -149,7 +150,17 @@ bool NewNoteTool::release(){
 				file()->channel(17)->insertEvent(event, startTick);
 				event->setTrack(0);
 				currentProtocol()->endAction();
-			}  else if(line == MidiEvent::CONTROLLER_LINE){
+			}  else if(line == MidiEvent::KEY_SIGNATURE_EVENT_LINE){
+				currentProtocol()->startNewAction("Create Key Signature Event",
+						image());
+				event = new KeySignatureEvent(16, 0, true);
+
+				int startMs = matrixWidget->msOfXPos(xPos);
+				int startTick = file()->tick(startMs);
+				file()->channel(16)->insertEvent(event, startTick);
+				event->setTrack(0);
+				currentProtocol()->endAction();
+			} else if(line == MidiEvent::CONTROLLER_LINE){
 				currentProtocol()->startNewAction("Create Control Change Event",
 						image());
 				event = new ControlChangeEvent(_channel, 0, 0);
