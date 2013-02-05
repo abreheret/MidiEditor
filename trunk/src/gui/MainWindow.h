@@ -145,8 +145,8 @@ class MainWindow : public QMainWindow {
 		QSettings *_settings;
 		ClickButton *_lockButton;
 		QStringList _recentFilePaths;
-		QMenu *_recentPathsMenu, *_channelVisibilityMenu, *_channelMuteMenu, *_channelIntrumentMenu,
-			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu,
+		QMenu *_recentPathsMenu, *_channelVisibilityMenu, *_channelMuteMenu, *_channelInstrumentMenu, *_deleteChannelMenu,
+			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu, *_moveSelectedEventsToChannelMenu,
 			*_trackVisibilityMenu, *_trackMuteMenu;
 		QTabWidget *lowerTabWidget;
 		QAction *_colorsByChannel, *_colorsByTracks;

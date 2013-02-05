@@ -42,7 +42,7 @@ MidiSettingsDialog::MidiSettingsDialog(QWidget *parent) : QDialog(parent) {
 			SLOT(outputChanged(QListWidgetItem*)));
 
 	layout->addWidget(_outList, 1, 0, 1, 3);
-	QPushButton *reloadOutputList = new QPushButton("reload");
+	QPushButton *reloadOutputList = new QPushButton("Reload");
 	layout->addWidget(reloadOutputList, 2, 2, 1, 1);
 	connect(reloadOutputList, SIGNAL(clicked()), this,
 			SLOT(reloadOutputPorts()));
@@ -55,7 +55,7 @@ MidiSettingsDialog::MidiSettingsDialog(QWidget *parent) : QDialog(parent) {
 			SLOT(inputChanged(QListWidgetItem*)));
 
 	layout->addWidget(_inList, 1, 3, 1, 3);
-	QPushButton *reloadInputList = new QPushButton("reload");
+	QPushButton *reloadInputList = new QPushButton("Reload");
 	layout->addWidget(reloadInputList, 2, 5, 1, 1);
 	connect(reloadInputList, SIGNAL(clicked()), this,
 			SLOT(reloadInputPorts()));

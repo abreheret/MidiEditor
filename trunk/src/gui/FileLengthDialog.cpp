@@ -29,14 +29,14 @@ FileLengthDialog::FileLengthDialog(MidiFile *f, QWidget *parent) :
 		QDialog(parent)
 {
 	_file = f;
-	QLabel *text = new QLabel("Max. time: ", this);
+	QLabel *text = new QLabel("Max. Time: ", this);
 	_box = new QSpinBox(this);
 	_box->setMinimum(1);
 	_box->setMaximum(2147483647);
 	_box->setValue(_file->maxTime());
-	QPushButton *breakButton = new QPushButton("break");
+	QPushButton *breakButton = new QPushButton("Cancel");
 	connect(breakButton, SIGNAL(clicked()), this, SLOT(hide()));
-	QPushButton *acceptButton = new QPushButton("accept");
+	QPushButton *acceptButton = new QPushButton("Accept");
 	connect(acceptButton, SIGNAL(clicked()), this, SLOT(accept()));
 
 	QGridLayout *layout = new QGridLayout(this);
