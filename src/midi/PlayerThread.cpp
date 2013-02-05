@@ -164,14 +164,12 @@ void PlayerThread::timeout(){
 					KeySignatureEvent *keySig = dynamic_cast<KeySignatureEvent*>(ev);
 					if(keySig){
 						emit tonalityChanged(keySig->tonality());
-						qWarning("tonality");
 					}
 				}
 				if(ev->line() == MidiEvent::TIME_SIGNATURE_EVENT_LINE){
 					TimeSignatureEvent *timeSig = dynamic_cast<TimeSignatureEvent*>(ev);
 					if(timeSig){
 						emit meterChanged(timeSig->num(), timeSig->denom());
-						qWarning("meter");
 					}
 				}
 				MidiOutput::sendCommand(ev);

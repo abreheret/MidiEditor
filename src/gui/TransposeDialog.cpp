@@ -43,9 +43,9 @@ TransposeDialog::TransposeDialog(QList<NoteOnEvent*> toTranspose, MidiFile *file
 	group->addButton(_up);
 	group->addButton(_down);
 
-	QPushButton *breakButton = new QPushButton("break");
+	QPushButton *breakButton = new QPushButton("Cancel");
 	connect(breakButton, SIGNAL(clicked()), this, SLOT(hide()));
-	QPushButton *acceptButton = new QPushButton("accept");
+	QPushButton *acceptButton = new QPushButton("Accept");
 	connect(acceptButton, SIGNAL(clicked()), this, SLOT(accept()));
 
 	QGridLayout *layout = new QGridLayout(this);

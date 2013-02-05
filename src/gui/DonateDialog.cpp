@@ -32,9 +32,9 @@ DonateDialog::DonateDialog(QWidget *parent):QDialog(parent)
 	//Label starttext
 	QLabel *title = new QLabel("<h2><u>Donate</u></h2><font" \
 		" color='#666666'>Please donate if this software is useful for you. " \
-		 "<br>To donate visit my Homepage:<br><a href=\"http://sourceforge.net/project/project_donations.php?group_id=370293\">http://sourceforge.net/project/project_donations.php?group_id=370293"\
-		 "</a></font> ");
-
+		 "<br>To donate visit my Donate Page on <a href=\"http://sourceforge.net/project/project_donations.php?group_id=370293\">SourceForge.net</a></font>");
+	title->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+	title->setOpenExternalLinks(true);
 	layout->addWidget(title, 0,0,1,4);
 
 	// button close

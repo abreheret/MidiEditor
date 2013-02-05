@@ -33,10 +33,12 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent)
 	QLabel *title = new QLabel("<h2><u>MidiEditor</u></h2><font" \
 		" color='#666666'><br>About<br><br>Copyright by Markus Schwenk" \
 		 " (kontakt@markus-schwenk.de)<br><br>Visit my Homepage: <a href=\"" \
-		 "www.markus-schwenk.de\">www.markus-schwenk.de</a>"
+		 "http://www.markus-schwenk.de\">www.markus-schwenk.de</a>"
 		 "<br><br>"
 		 "Thanks to Romain Behar and Timo Rambaum!"
 		 "</font> ");
+	title->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+	title->setOpenExternalLinks(true);
 
 	layout->addWidget(title, 0,0,1,4);
 
