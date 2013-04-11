@@ -45,6 +45,10 @@ FileLengthDialog::FileLengthDialog(MidiFile *f, QWidget *parent) :
 	layout->addWidget(breakButton, 1, 0, 1, 1);
 	layout->addWidget(acceptButton, 1, 2, 1, 1);
 	layout->setColumnStretch(1, 1);
+
+	connect(_box, SIGNAL(valueChanged(int)), acceptButton, SLOT(setFocus()));
+
+	acceptButton->setFocus();
 }
 
 void FileLengthDialog::accept(){

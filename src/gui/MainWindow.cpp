@@ -18,6 +18,8 @@
 #include "MainWindow.h"
 
 #include <QGridLayout>
+#include <QProcess>
+
 #include "MatrixWidget.h"
 #include "VelocityWidget.h"
 #include "../midi/MidiFile.h"
@@ -387,6 +389,11 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	buttons->addSeparator();
 
+	ClickButton *backToBegin = new ClickButton("back_to_begin.png");
+	buttons->addWidget(backToBegin);
+	backToBegin->setToolTip("Back (to the start of the song)");
+	connect(backToBegin, SIGNAL(clicked()), this, SLOT(backToBegin()));
+
 	ClickButton *back = new ClickButton("back.png");
 	buttons->addWidget(back);
 	back->setToolTip("Back (one Measure)");
@@ -505,7 +512,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
 	editMB->addAction(copyAction);
 
-	QAction *pasteAction = new QAction("Paste Events, beginning at the Cursorposition", this);
+	QAction *pasteAction = new QAction("Paste Events, beginning at the Cursor Position", this);
 	connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
 	editMB->addAction(pasteAction);
 
@@ -777,6 +784,11 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	playbackMB->addSeparator();
 
+	QAction *backToBeginAction = new QAction("Back (To the start of the Song)", this);
+	backToBeginAction->setIcon(QIcon("graphics/tool/back_to_begin.png"));
+	connect(backToBeginAction, SIGNAL(triggered()), this, SLOT(backToBegin()));
+	playbackMB->addAction(backToBeginAction);
+
 	QAction *backAction = new QAction("Back (one Measure)", this);
 	backAction->setIcon(QIcon("graphics/tool/back.png"));
 	connect(backAction, SIGNAL(triggered()), this, SLOT(back()));
@@ -808,6 +820,10 @@ MainWindow::MainWindow() : QMainWindow() {
 	remoteMB->addAction(remoteDAction);
 
 	// Help
+	QAction *manualAction = new QAction("User Manual", this);
+	connect(manualAction, SIGNAL(triggered()), this, SLOT(manual()));
+	helpMB->addAction(manualAction);
+
 	QAction *aboutAction = new QAction("About", this);
 	connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 	helpMB->addAction(aboutAction);
@@ -1034,6 +1050,15 @@ void MainWindow::back(){
 		file->setCursorTick(newTick);
 		mw_matrixWidget->timeMsChanged(file->msOfTick(newTick), true);
 	}
+	mw_matrixWidget->update();
+}
+
+void MainWindow::backToBegin(){
+	if(!file) return;
+
+	file->setPauseTick(0);
+	file->setCursorTick(0);
+
 	mw_matrixWidget->update();
 }
 
@@ -1402,7 +1427,6 @@ void MainWindow::scaleSelection(){
     bool ok;
     double scale = QInputDialog::getDouble(this, "Scalefactor",
     		"Scalefactor:", 1.0, 0, 2147483647, 1, &ok);
-    qWarning("scale %d events", EventTool::selectedEventList()->size());
     if (ok && scale>0 && EventTool::selectedEventList()->size()>0 && file){
     	// find minimum
     	int minTime = 2147483647;
@@ -2119,4 +2143,17 @@ void MainWindow::showRemoteDialog(){
 	RemoteDialog *remoteDialog = new RemoteDialog(_remoteServer, this);
 	remoteDialog->setModal(true);
 	remoteDialog->show();
+}
+
+void MainWindow::manual(){
+
+	QProcess *process = new QProcess;
+
+	QStringList args;
+	args << QLatin1String("-collectionFile")
+	<< QLatin1String("midieditor-collection.qhc");
+
+	process->start(QLatin1String("assistant"), args);
+	if (!process->waitForStarted())
+	return;
 }

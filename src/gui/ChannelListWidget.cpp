@@ -49,6 +49,8 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 		return;
 	}
 
+	int instrumentChangeChannel = -1;
+
 	QPainter *painter = new QPainter(this);
 	QFont f = painter->font();
 	f.setPixelSize(12);
@@ -165,7 +167,7 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 				painter->fillRect(38, y+35, 12, 12, QColor(0,0,0, 100));
 				text = "select instrument";
 				if(mouseReleased){
-					emit selectInstrumentClicked(i);
+					instrumentChangeChannel = i;
 				}
 			}
 
@@ -175,14 +177,11 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 		}
 
 	}
-	if(mouseReleased && enabled){
-		emit(channelStateChanged());
-		mouseReleased = false;
-		delete painter;
-		update();
-		return;
-	}
 
+	if(instrumentChangeChannel > -1){
+		emit selectInstrumentClicked(instrumentChangeChannel);
+		instrumentChangeChannel = -1;
+	}
 	painter->drawLine(0,0,width()-1,0);
 	painter->drawLine(width()-1, 0, width()-1, height()-1);
 	painter->drawLine(width()-1, height()-1, 0, height()-1);
@@ -191,6 +190,12 @@ void ChannelListWidget::paintEvent(QPaintEvent *event){
 	if(!enabled){
 		painter->fillRect(0,0,width(), height(), QColor(110, 110, 110, 100));
 	}
-
+	if(mouseReleased && enabled){
+		emit(channelStateChanged());
+		mouseReleased = false;
+		delete painter;
+		update();
+		return;
+	}
 	delete painter;
 }
