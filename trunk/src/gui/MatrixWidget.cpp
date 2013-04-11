@@ -35,7 +35,7 @@
 
 #include <QList>
 
-#define NUM_LINES 137
+#define NUM_LINES 138
 #define PIXEL_PER_S 100
 #define PIXEL_PER_LINE 12
 #define PIXEL_PER_EVENT 15

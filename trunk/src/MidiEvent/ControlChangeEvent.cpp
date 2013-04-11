@@ -72,7 +72,7 @@ void ControlChangeEvent::reloadState(ProtocolEntry *entry){
 }
 
 QString ControlChangeEvent::typeString(){
-	return "Control Event";
+	return "Control Change Event";
 }
 
 int ControlChangeEvent::value(){

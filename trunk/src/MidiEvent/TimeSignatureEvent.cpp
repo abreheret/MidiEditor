@@ -164,7 +164,7 @@ void TimeSignatureEvent::generateWidget(QWidget *widget){
 	_denom_combo->setHidden(false);
 
 	// Edit Note
-	_denom_label->setText("Demoninator: ");
+	_denom_label->setText("Denominator: ");
 	QLayout *denomL = _denom_widget->layout();
 	if(!denomL){
 		denomL = new QBoxLayout(QBoxLayout::LeftToRight, _denom_widget);

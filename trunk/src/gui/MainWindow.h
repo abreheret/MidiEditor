@@ -57,6 +57,7 @@ class MainWindow : public QMainWindow {
 		void pause();
 		void forward();
 		void back();
+		void backToBegin();
 		void load();
 		void openFile(QString filePath);
 		void save();
@@ -127,6 +128,9 @@ class MainWindow : public QMainWindow {
 
 		void editChannel(int i);
 		void editTrack(int i);
+
+		void manual();
+
 	protected:
 		void closeEvent(QCloseEvent *event);
 		void keyPressEvent(QKeyEvent* e);
