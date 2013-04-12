@@ -1,7 +1,8 @@
 TEMPLATE = app
 TARGET = MidiEditor
 QT += core \
-    network
+    network \
+
 HEADERS += src/gui/RemoteDialog.h \
     src/MidiEvent/KeySignatureEvent.h \
     src/remote/RemoteServer.h \
