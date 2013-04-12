@@ -50,7 +50,7 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent)
 	QLabel *version = new QLabel("Version: MidiEditor, v. 2.5.0");
 	layout->addWidget(version, 2,0,1,4);
 
-	QLabel *date = new QLabel("(31.1.2013)");
+	QLabel *date = new QLabel("(11.04.2013)");
 	layout->addWidget(date, 3, 0, 1, 4);
 
 	QFrame *f3 = new QFrame( this );

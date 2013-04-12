@@ -206,8 +206,8 @@ MainWindow::MainWindow() : QMainWindow() {
 	// Channels
 	QScrollArea *channelScroll = new QScrollArea(upperTabWidget);
 	channelWidget = new ChannelListWidget(channelScroll);
-	connect(channelWidget, SIGNAL(channelStateChanged()), this, SLOT(updateChannelMenu()));
-	connect(channelWidget, SIGNAL(selectInstrumentClicked(int)), this, SLOT(setInstrumentForChannel(int)));
+	connect(channelWidget, SIGNAL(channelStateChanged()), this, SLOT(updateChannelMenu()), Qt::QueuedConnection);
+	connect(channelWidget, SIGNAL(selectInstrumentClicked(int)), this, SLOT(setInstrumentForChannel(int)), Qt::QueuedConnection);
 	channelScroll->setWidget(channelWidget);
 	channelScroll->setWidgetResizable(true);
 	upperTabWidget->addTab(channelScroll, "Channels");
@@ -2148,12 +2148,18 @@ void MainWindow::showRemoteDialog(){
 void MainWindow::manual(){
 
 	QProcess *process = new QProcess;
-
+	process->setWorkingDirectory("assistant");
 	QStringList args;
 	args << QLatin1String("-collectionFile")
 	<< QLatin1String("midieditor-collection.qhc");
 
+#ifdef __WINDOWS_MM__
+	process->start(QLatin1String("assistant/assistant"), args);
+#else
 	process->start(QLatin1String("assistant"), args);
+#endif
+
 	if (!process->waitForStarted())
 	return;
+
 }
