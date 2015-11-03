@@ -19,7 +19,7 @@
 #include "ClickButton.h"
 
 ClickButton::ClickButton(QString imageName, QWidget *parent):QPushButton(parent){
-	setFixedSize(34, 34);
+    setFixedSize(40, 40);
 	button_mouseInButton = false;
 	button_mouseClicked = false;
 	setImageName(imageName);
@@ -31,7 +31,7 @@ void ClickButton::paintEvent(QPaintEvent *event){
 	Q_UNUSED(event);
 
 	QPainter painter(this);
-
+    painter.setRenderHint(QPainter::Antialiasing);
 	if(button_mouseInButton){
 		painter.fillRect(0,0,width(), height(), Qt::gray);
 		if(button_mouseClicked){
@@ -39,7 +39,7 @@ void ClickButton::paintEvent(QPaintEvent *event){
 		}
 	}
 
-	painter.drawImage(QRectF(1,1,32,32),*(image), QRectF(0,0,32,32));
+    painter.drawImage(QRectF(3,3,35,35),*(image));
 }
 
 void ClickButton::enterEvent(QEvent *event){

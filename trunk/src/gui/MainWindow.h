@@ -29,7 +29,6 @@ class MidiEvent;
 class MidiFile;
 class ChannelListWidget;
 class ProtocolWidget;
-class VelocityWidget;
 class EventWidget;
 class ClickButton;
 class QStringList;
@@ -39,6 +38,8 @@ class TrackListWidget;
 class QComboBox;
 class RemoteServer;
 class RemoteDialog;
+class MiscWidget;
+class QGridLayout;
 
 class MainWindow : public QMainWindow {
 
@@ -131,6 +132,9 @@ class MainWindow : public QMainWindow {
 
 		void manual();
 
+        void changeMiscMode(int mode);
+        void selectModeChanged(QAction *action);
+
 	protected:
 		void closeEvent(QCloseEvent *event);
 		void keyPressEvent(QKeyEvent* e);
@@ -141,7 +145,6 @@ class MainWindow : public QMainWindow {
 		QScrollBar *vert, *hori;
 		ChannelListWidget *channelWidget;
 		ProtocolWidget *protocolWidget;
-		VelocityWidget *mw_velocityWidget;
 		TrackListWidget *_trackWidget;
 		MidiFile *file;
 		QString startDirectory;
@@ -157,6 +160,15 @@ class MainWindow : public QMainWindow {
 
 		QComboBox *_chooseEditTrack, *_chooseEditChannel;
 		RemoteServer *_remoteServer;
+
+        QWidget *_miscWidgetControl;
+        QGridLayout *_miscControlLayout;
+
+        QComboBox *_miscMode, *_miscController, *_miscChannel;
+        QAction *setSingleMode, *setLineMode, *setFreehandMode;
+        MiscWidget *_miscWidget;
+
+        QWidget *setupActions(QWidget *parent);
 };
 
 #endif

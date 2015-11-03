@@ -39,10 +39,10 @@ void MidiOutput::init(){
 
 	// RtMidiOut constructor
 	try {
-		_midiOut = new RtMidiOut();
+        _midiOut = new RtMidiOut(QString("MidiEditor Output").toStdString());
 	}
 	catch ( RtError &error ) {
-		qWarning(error.getMessageString());
+        qWarning("%s", error.getMessageString());
 	}
 	_sender->start(QThread::TimeCriticalPriority);
 }

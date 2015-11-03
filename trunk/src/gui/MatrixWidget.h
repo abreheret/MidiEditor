@@ -64,6 +64,9 @@ class MatrixWidget : public PaintWidget {
 		void setColorsByTracks();
 		bool colorsByChannel();
 
+        int msOfTick(int tick);
+        int xPosOfMs(int ms);
+
 	public slots:
 		void scrollXChanged(int scrollPositionX);
 		void scrollYChanged(int scrollPositionY);
@@ -105,8 +108,7 @@ class MatrixWidget : public PaintWidget {
 			lineNameWidth, timeHeight, msOfFirstEventInList;
 		double scaleX, scaleY;
 		MidiFile *file;
-		int msOfTick(int tick);
-		int xPosOfMs(int ms);
+
 		QRectF ToolArea, PianoArea, TimeLineArea;
 		bool screen_locked, alt_pressed;
 

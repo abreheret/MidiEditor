@@ -75,16 +75,16 @@ void EditorTool::enter(){
 
 void EditorTool::deselect(){
 	etool_selected = false;
-	if(button()){
-		button()->repaint();
-	}
+    if(_button){
+        _button->setChecked(false);
+    }
 }
 
 void EditorTool::select(){
 	etool_selected = true;
-	if(button()){
-		button()->repaint();
-	}
+    if(_button){
+        _button->setChecked(true);
+    }
 }
 
 bool EditorTool::selected(){
