@@ -85,8 +85,10 @@ void EventMoveTool::draw(QPainter *painter){
 		shiftY = shiftY/lineHeight*lineHeight;
 		foreach(MidiEvent *event, *selectedEvents){
 			if(event->shown()){
-				painter->fillRect(event->x()-shiftX, event->y()-shiftY,
-						event->width(), event->height(), Qt::blue);
+                painter->setPen(Qt::lightGray);
+                painter->setBrush(Qt::darkBlue);
+                painter->drawRoundedRect(event->x()-shiftX, event->y()-shiftY,
+                        event->width(), event->height(), 1, 1);
 				painter->setPen(Qt::gray);
 				painter->drawLine(event->x()-shiftX, 0, event->x()-shiftX,
 						matrixWidget->height());

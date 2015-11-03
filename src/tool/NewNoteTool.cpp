@@ -31,6 +31,7 @@
 #include "../MidiEvent/KeyPressureEvent.h"
 #include "../MidiEvent/ControlChangeEvent.h"
 #include "../MidiEvent/KeySignatureEvent.h"
+#include "../MidiEvent/PitchBendEvent.h"
 #include "../MidiEvent/TextEvent.h"
 
 int NewNoteTool::_channel = 0;
@@ -187,7 +188,16 @@ bool NewNoteTool::release(){
 				file()->channel(_channel)->insertEvent(event, startTick);
 				event->setTrack(_track, false);
 				currentProtocol()->endAction();
-			} else if(line == MidiEvent::TEXT_EVENT_LINE){
+            } else if(line == MidiEvent::PITCH_BEND_LINE){
+                currentProtocol()->startNewAction(
+                        "Create Pitch Bend Event", image());
+                event = new PitchBendEvent(16, 8192);
+                int startMs = matrixWidget->msOfXPos(xPos);
+                int startTick = file()->tick(startMs);
+                file()->channel(_channel)->insertEvent(event, startTick);
+                event->setTrack(_track, false);
+                currentProtocol()->endAction();
+            } else if(line == MidiEvent::TEXT_EVENT_LINE){
 				currentProtocol()->startNewAction(
 						"Create Text Event", image());
 				event = new TextEvent(16);

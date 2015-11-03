@@ -41,13 +41,13 @@ void MidiInput::init(){
 
 	// RtMidiIn constructor
 	try {
-		_midiIn = new RtMidiIn();
+        _midiIn = new RtMidiIn(QString("MidiEditor Input").toStdString());
 		_midiIn->setQueueSizeLimit(65535);
 		_midiIn->ignoreTypes(false, true, true);
 		_midiIn->setCallback(&receiveMessage);
 	}
-	catch (RtError &error ) {
-		qWarning(error.getMessageString());
+    catch (RtError &error) {
+        qWarning("%s", error.getMessageString());
 	}
 }
 

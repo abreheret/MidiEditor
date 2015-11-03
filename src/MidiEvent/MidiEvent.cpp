@@ -30,6 +30,7 @@
 #include "../midi/MidiFile.h"
 #include "../gui/EventWidget.h"
 #include "KeySignatureEvent.h"
+#include "PitchBendEvent.h"
 
 #include <QByteArray>
 #include <QSpinBox>
@@ -178,21 +179,22 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 		}
 
 		case 0xE0: {
+
 			// Pitch Wheel
-			QByteArray array;
-			array = array.append((char)tempByte);
-			if(!startByte){
-				(*content)>>tempByte;
-			} else {
-				tempByte = secondByte;
-			}
-			array = array.append((char)tempByte);
-			(*content)>>tempByte;
-			array = array.append((char)tempByte);
+            if(!startByte){
+                (*content)>>tempByte;
+            } else {
+                tempByte = secondByte;
+            }
+            quint8 first = tempByte;
+            (*content)>>tempByte;
+            quint8 second = tempByte;
 
-			*ok = true;
+            int value = (second << 7) | first;
 
-			return new UnknownEvent(channel, array);
+            *ok = true;
+
+            return new PitchBendEvent(channel, value);
 		}
 
 		case 0xF0: {
@@ -425,11 +427,9 @@ int MidiEvent::line(){
 }
 
 void MidiEvent::draw(QPainter *p, QColor c){
-	p->fillRect(x(), y(), width(), height(), c);
-	p->drawLine(x(), y(), x(), y()+height());
-	p->drawLine(x()+width(), y(), x()+width(), y()+height());
-	p->drawLine(x(), y(), x()+width(), y());
-	p->drawLine(x(), y()+height(), x()+width(), y()+height());
+    p->setPen(Qt::gray);
+    p->setBrush(c);
+    p->drawRoundedRect(x(), y(), width(), height(), 1, 1);
 }
 
 ProtocolEntry *MidiEvent::copy(){

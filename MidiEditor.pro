@@ -35,7 +35,6 @@ HEADERS += src/gui/RemoteDialog.h \
     src/tool/SizeChangeTool.h \
     src/tool/EraserTool.h \
     src/tool/NewNoteTool.h \
-    src/gui/VelocityWidget.h \
     src/MidiEvent/OnEvent.h \
     src/MidiEvent/OffEvent.h \
     src/gui/ProtocolWidget.h \
@@ -61,7 +60,10 @@ HEADERS += src/gui/RemoteDialog.h \
     src/MidiEvent/TempoChangeEvent.h \
     src/MidiEvent/UnknownEvent.h \
     src/MidiEvent/NoteOnEvent.h \
-    src/MidiEvent/MidiEvent.h
+    src/MidiEvent/PitchBendEvent.h \
+    src/MidiEvent/MidiEvent.h \
+    src/gui/MiscWidget.h \
+    src/gui/PlayControlWidget.h
 SOURCES += src/gui/RemoteDialog.cpp \
     src/MidiEvent/KeySignatureEvent.cpp \
     src/remote/RemoteServer.cpp \
@@ -93,7 +95,6 @@ SOURCES += src/gui/RemoteDialog.cpp \
     src/tool/SizeChangeTool.cpp \
     src/tool/EraserTool.cpp \
     src/tool/NewNoteTool.cpp \
-    src/gui/VelocityWidget.cpp \
     src/MidiEvent/OnEvent.cpp \
     src/MidiEvent/OffEvent.cpp \
     src/gui/ProtocolWidget.cpp \
@@ -120,7 +121,10 @@ SOURCES += src/gui/RemoteDialog.cpp \
     src/MidiEvent/UnknownEvent.cpp \
     src/MidiEvent/NoteOnEvent.cpp \
     src/MidiEvent/MidiEvent.cpp \
-    src/main.cpp
+    src/MidiEvent/PitchBendEvent.cpp \
+    src/main.cpp \
+    src/gui/MiscWidget.cpp \
+    src/gui/PlayControlWidget.cpp
 FORMS += 
 RESOURCES += 
 DEFINES += __LINUX_ALSASEQ__

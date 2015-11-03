@@ -135,8 +135,10 @@ void EventTool::paintSelectedEvents(QPainter *painter){
 			}
 		}
 		if(show){
-			painter->fillRect(event->x(), event->y(), event->width(),
-					event->height(), Qt::black);
+            painter->setBrush(Qt::darkBlue);
+            painter->setPen(Qt::lightGray);
+            painter->drawRoundedRect(event->x(), event->y(), event->width(),
+                    event->height(), 1, 1);
 		}
 	}
 }

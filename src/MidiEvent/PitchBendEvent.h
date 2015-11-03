@@ -16,25 +16,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TOOLBUTTON_H
-#define TOOLBUTTON_H
+#ifndef PITCHBENDEVENT_H_
+#define PITCHBENDEVENT_H_
 
-#include <QAction>
+#include "MidiEvent.h"
 
-class Tool;
+class QComboBox;
+class QLabel;
+class QWidget;
+class QSpinBox;
 
-class ToolButton  : public QAction {
+class PitchBendEvent : public MidiEvent {
 
-	Q_OBJECT
-	
 	public:
-		ToolButton(Tool *tool, QWidget *parent = 0);
-	
-	public slots:
-		void buttonClick();
-		void releaseButton();
+		PitchBendEvent(int channel, int val);
+		PitchBendEvent(PitchBendEvent &other);
 
+		virtual int line();
+		int value();
+		void setValue(int v);
+
+		QString toMessage();
+		QByteArray save();
+
+		virtual ProtocolEntry *copy();
+		virtual void reloadState(ProtocolEntry *entry);
+
+		QString typeString();
+		void generateWidget(QWidget *widget);
+		void editByWidget();
+
+		virtual bool isOnEvent();
 	private:
-        Tool *button_tool;
+		int _value;
+		static QSpinBox *_value_box;
+		static QLabel *_value_label;
+		static QWidget *_value_widget;
 };
+
 #endif
