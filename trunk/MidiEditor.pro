@@ -63,7 +63,8 @@ HEADERS += src/gui/RemoteDialog.h \
     src/MidiEvent/PitchBendEvent.h \
     src/MidiEvent/MidiEvent.h \
     src/gui/MiscWidget.h \
-    src/gui/PlayControlWidget.h
+    src/gui/PlayControlWidget.h \
+    src/MidiEvent/SysExEvent.h
 SOURCES += src/gui/RemoteDialog.cpp \
     src/MidiEvent/KeySignatureEvent.cpp \
     src/remote/RemoteServer.cpp \
@@ -124,7 +125,8 @@ SOURCES += src/gui/RemoteDialog.cpp \
     src/MidiEvent/PitchBendEvent.cpp \
     src/main.cpp \
     src/gui/MiscWidget.cpp \
-    src/gui/PlayControlWidget.cpp
+    src/gui/PlayControlWidget.cpp \
+    src/MidiEvent/SysExEvent.cpp
 FORMS += 
 RESOURCES += 
 DEFINES += __LINUX_ALSASEQ__

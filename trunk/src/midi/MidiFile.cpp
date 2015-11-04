@@ -76,7 +76,12 @@ MidiFile::MidiFile(){
 	calcMaxTime();
 }
 
-MidiFile::MidiFile(QString path, bool *ok) {
+MidiFile::MidiFile(QString path, bool *ok, QStringList *log) {
+
+	if(!log){
+		log = new QStringList();
+	}
+
 	_pauseTick = -1;
 	_saved = true;
 	midiTicks = 0;
@@ -89,7 +94,8 @@ MidiFile::MidiFile(QString path, bool *ok) {
 
 	if(!f->open(QIODevice::ReadOnly)){
 		*ok = false;
-		errorString = "file could not be opened";
+		log->append("Error: File could not be opened.");
+		printLog(log);
 		return;
 	}
 
@@ -99,15 +105,16 @@ MidiFile::MidiFile(QString path, bool *ok) {
 
 	QDataStream *stream = new QDataStream(f);
 	stream->setByteOrder(QDataStream::BigEndian);
-	if(!readMidiFile(stream)){
+	if(!readMidiFile(stream, log)){
 		*ok = false;
+		printLog(log);
 		return;
 	}
 
 	*ok = true;
-	errorString = "";
 	playerMap = new QMultiMap<int, MidiEvent*>;
 	calcMaxTime();
+	printLog(log);
 }
 
 MidiFile::MidiFile(int ticks, Protocol *p){
@@ -115,33 +122,34 @@ MidiFile::MidiFile(int ticks, Protocol *p){
 	prot = p;
 }
 
-bool MidiFile::readMidiFile(QDataStream *content){
+bool MidiFile::readMidiFile(QDataStream *content, QStringList *log){
 
 
 	OffEvent::clearOnEvents();
 
 	quint8 tempByte;
 
+	QString badHeader = "Error: Bad format in file header (Expected MThd).";
 	(*content)>>tempByte;
-	if(tempByte != 'M'){ return false; }
+	if(tempByte != 'M'){ log->append(badHeader); return false; }
 	(*content)>>tempByte;
-	if(tempByte != 'T'){ return false; }
+	if(tempByte != 'T'){ log->append(badHeader); return false; }
 	(*content)>>tempByte;
-	if(tempByte != 'h'){ return false; }
+	if(tempByte != 'h'){ log->append(badHeader); return false; }
 	(*content)>>tempByte;
-	if(tempByte != 'd'){ return false; }
+	if(tempByte != 'd'){ log->append(badHeader); return false; }
 
 	quint32 MThdTrackLength;
 	(*content)>>MThdTrackLength;
 	if(MThdTrackLength!=6){
-		errorString = "MThdTrackLength wrong!";
+		log->append("Error: MThdTrackLength wrong (expected 6).");
 		return false;
 	}
 
 	quint16 midiFormat;
 	(*content)>>midiFormat;
 	if(midiFormat>1){
-		errorString="this program is not able to read Midifiles of this format";
+		log->append("Error: MidiFormat v. 2 cannot be loaded with this Editor.");
 		return false;
 	}
 
@@ -156,16 +164,16 @@ bool MidiFile::readMidiFile(QDataStream *content){
 
 	bool ok;
 	for(int num = 0; num<numTracks; num++){
-		ok = readTrack(content, num);
+		ok = readTrack(content, num, log);
 		if(!ok){
-			errorString = "Error in Track "+QString::number(num);
+			log->append("Error in Track "+QString::number(num));
 			return false;
 		}
 	}
 
 	// find corrupted OnEvents (without OffEvent)
 	foreach(OnEvent *onevent, OffEvent::corruptedOnEvents()){
-		qWarning("mid error: found OnEvent without OffEvent (line %d) - removing...", onevent->line());
+		log->append("Warning: found OnEvent without OffEvent (line "+QString::number(onevent->line()) +") - removing...");
 		channel(onevent->channel())->removeEvent(onevent);
 	}
 
@@ -174,18 +182,19 @@ bool MidiFile::readMidiFile(QDataStream *content){
 	return true;
 }
 
-bool MidiFile::readTrack(QDataStream *content, int num){
+bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 
 	quint8 tempByte;
 
+	QString badHeader = "Error: Bad format in track header (Track "+QString::number(num)+", Expected MTrk).";
 	(*content)>>tempByte;
-	if(tempByte != 'M'){ return false; }
+	if(tempByte != 'M'){ log->append(badHeader); return false; }
 	(*content)>>tempByte;
-	if(tempByte != 'T'){ return false; }
+	if(tempByte != 'T'){ log->append(badHeader); return false; }
 	(*content)>>tempByte;
-	if(tempByte != 'r'){ return false; }
+	if(tempByte != 'r'){ log->append(badHeader); return false; }
 	(*content)>>tempByte;
-	if(tempByte != 'k'){ return false; }
+	if(tempByte != 'k'){ log->append(badHeader); return false; }
 
 	quint32 numBytes;
 	(*content)>>numBytes;
@@ -211,7 +220,7 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 
 		OffEvent *offEvent = dynamic_cast<OffEvent*>(event);
 		if(offEvent && !offEvent->onEvent()){
-			qWarning("skipping offEvent without onEvent!");
+			log->append("Warning: detected offEvent without prior onEvent. Skipping!");
 			continue;
 		}
 		// check whether its the tracks name
@@ -242,11 +251,13 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 
 	// end of track
 	(*content)>>tempByte;
-	if(tempByte != 0x00){ return false; }
+	QString errorText = "Error: track " + QString::number(num) +"not ended as expected. ";
+	if(tempByte != 0x00){log->append(errorText); return false; }
 
 	// check whether TimeSignature at tick 0 is given. If not, create one.
 	// this will be done after reading the first track
 	if(!channel(18)->eventMap()->contains(0)){
+		log->append("Warning: no TimeSignatureEvent detected at tick 0. Adding default value.");
 		TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8);
 		timeSig->setFile(this);
 		timeSig->setTrack(0, false);
@@ -255,6 +266,7 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 
 	// check whether TempoChangeEvent at tick 0 is given. If not, create one.
 	if(!channel(17)->eventMap()->contains(0)){
+		log->append("Warning: no TempoChangeEvent detected at tick 0. Adding default value.");
 		TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000);
 		tempoEv->setFile(this);
 		tempoEv->setTrack(0, false);
@@ -265,18 +277,19 @@ bool MidiFile::readTrack(QDataStream *content, int num){
 }
 
 int MidiFile::deltaTime(QDataStream *content){
-	quint32 deltaTime = 0;
+	return variableLengthvalue(content);
+}
+
+
+int MidiFile::variableLengthvalue(QDataStream *content){
+	quint32 v = 0;
 	quint8 byte = 0;
 	do {
 		(*content)>>byte;
-		deltaTime<<=7;
-		deltaTime|=(byte&0x7F);
+		v<<=7;
+		v|=(byte&0x7F);
 	} while (byte & (1<<7));
-	return (int)deltaTime;
-}
-
-QString MidiFile::errorCode(){
-	return errorString;
+	return (int)v;
 }
 
 QMap<int, MidiEvent*> *MidiFile::timeSignatureEvents(){
@@ -901,7 +914,6 @@ bool MidiFile::save(QString path){
 	QFile *f = new QFile(path);
 
 	if(!f->open(QIODevice::WriteOnly)){
-		errorString = "file could not be opened";
 		return false;
 	}
 
@@ -1014,12 +1026,16 @@ bool MidiFile::save(QString path){
 }
 
 QByteArray MidiFile::writeDeltaTime(int time){
+	return writeVariableLengthValue(time);
+}
+
+QByteArray MidiFile::writeVariableLengthValue(int value){
 
 	QByteArray array = QByteArray();
 
 	bool isFirst = true;
 	for(int i = 3; i>=0; i--){
-		int b = time>>(7*i);
+		int b = value>>(7*i);
 		qint8 byte = (qint8)b & 127;
 		if(!isFirst || byte>0 || i==0){
 			isFirst = false;
@@ -1185,5 +1201,11 @@ void MidiFile::meterAt(int tick, int *num, int *denum){
 	else {
 		*num = event->num();
 		*denum = event->denom();
+	}
+}
+
+void MidiFile::printLog(QStringList *log){
+	foreach(QString str, *log){
+		qWarning(str.toUtf8().constData());
 	}
 }

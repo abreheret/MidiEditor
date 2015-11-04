@@ -38,7 +38,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 	Q_OBJECT
 
 	public:
-		MidiFile(QString path, bool *ok);
+		MidiFile(QString path, bool *ok, QStringList *log = 0);
 		MidiFile();
 		// needed to protocol fileLength
 		MidiFile(int maxTime, Protocol *p);
@@ -46,7 +46,6 @@ class MidiFile : public QObject, public ProtocolEntry {
 		QByteArray writeDeltaTime(int time);
 		int maxTime();
 		int endTick();
-		QString errorCode();
 		int timeMS(int midiTime);
 		int measure(int midiTime, int &midiTimeInMeasure);
 		QMap<int, MidiEvent*> *tempoEvents();
@@ -91,25 +90,29 @@ class MidiFile : public QObject, public ProtocolEntry {
 		int tonalityAt(int tick);
 		void meterAt(int tick, int *num, int *denum);
 
+		static int variableLengthvalue(QDataStream *content);
+		static QByteArray writeVariableLengthValue(int value);
 	signals:
 		void cursorPositionChanged();
 		void recalcWidgetSize();
 		void trackChanged();
 
 	private:
-		bool readMidiFile(QDataStream *content);
-		bool readTrack(QDataStream *content, int num);
+		bool readMidiFile(QDataStream *content, QStringList *log);
+		bool readTrack(QDataStream *content, int num, QStringList *log);
 		int deltaTime(QDataStream *content);
 
 		int timePerQuarter;
 		MidiChannel *channels[19];
 
-		QString errorString, _path;
+		QString _path;
 		int midiTicks, maxTimeMS, _cursorTick, _pauseTick, _midiFormat;
 		Protocol *prot;
 		QMultiMap<int, MidiEvent*> *playerMap;
 		bool _saved;
 		QList<MidiTrack*> *_tracks;
+
+		void printLog(QStringList *log);
 };
 
 #endif

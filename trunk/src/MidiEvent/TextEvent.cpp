@@ -71,7 +71,7 @@ QByteArray TextEvent::save(){
 
 	array.append(0xFF);
 	array.append(_type);
-	array.append(_text.length());
+	array.append(MidiFile::writeVariableLengthValue(_text.length()));
 
 	for(int i = 0; i < _text.length(); i++){
 		array.append(_text.at(i));
