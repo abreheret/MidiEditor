@@ -876,7 +876,7 @@ void MatrixWidget::leaveEvent(QEvent *event){
 void MatrixWidget::mousePressEvent(QMouseEvent *event){
 	PaintWidget::mousePressEvent(event);
 	if(!MidiPlayer::isPlaying()&&Tool::currentTool() && mouseInRect(ToolArea)){
-		if(Tool::currentTool()->press()){
+		if(Tool::currentTool()->press(event->buttons() == Qt::LeftButton)){
 			if(enabled){
 				update();
 			}

@@ -96,7 +96,10 @@ void SizeChangeTool::draw(QPainter *painter){
 	}
 }
 
-bool SizeChangeTool::press(){
+bool SizeChangeTool::press(bool leftClick){
+
+	Q_UNUSED(leftClick);
+
 	inDrag = false;
 	xPos = mouseX;
 	foreach(MidiEvent* event, *selectedEvents){

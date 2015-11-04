@@ -91,7 +91,8 @@ void SelectTool::draw(QPainter *painter){
 	}
 }
 
-bool SelectTool::press(){
+bool SelectTool::press(bool leftClick){
+	Q_UNUSED(leftClick);
 	if(stool_type == SELECTION_TYPE_BOX){
 		y_rect = mouseY;
 		x_rect = mouseX;

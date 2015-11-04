@@ -43,7 +43,7 @@ class SelectTool: public EventTool {
 		 * Returns wether the Widget has to be repainted after the Tools
 		 * action
 		 */
-		bool press();
+		bool press(bool leftClick);
 		/**
 		 * \brief this method is called when the mouse is released above the
 		 * Widget.

@@ -100,7 +100,8 @@ void EventMoveTool::draw(QPainter *painter){
 	}
 }
 
-bool EventMoveTool::press(){
+bool EventMoveTool::press(bool leftClick){
+	Q_UNUSED(leftClick);
 	inDrag = true;
 	startX = mouseX;
 	startY = mouseY;

@@ -39,7 +39,8 @@ void EditorTool::draw(QPainter *painter){
 	return;
 }
 
-bool EditorTool::press(){
+bool EditorTool::press(bool leftClick){
+	Q_UNUSED(leftClick);
 	return false;
 }
 
