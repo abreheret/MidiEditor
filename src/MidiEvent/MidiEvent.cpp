@@ -31,6 +31,7 @@
 #include "../gui/EventWidget.h"
 #include "KeySignatureEvent.h"
 #include "PitchBendEvent.h"
+#include "SysExEvent.h"
 
 #include <QByteArray>
 #include <QSpinBox>
@@ -93,8 +94,9 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 				tempByte = secondByte;
 			}
 			int note = tempByte;
+
+			// skip byte (velocity)
 			(*content)>>tempByte;
-			int velocity = tempByte;
 
 			OffEvent *event = new OffEvent(channel, 128-note);
 			*ok = true;
@@ -205,18 +207,17 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 			switch(tempByte & 0x0F){
 
 				case 0x00: {
+
 					// SysEx
 					QByteArray array;
-					array.append((char)tempByte);
-
-					// TODO are there sysex events like F0F7? here they are
-					// ignored
 					while(tempByte!=0xF7){
 						(*content)>>tempByte;
-						array.append((char)tempByte);
+						if(tempByte!=0xF7){
+							array.append((char)tempByte);
+						}
 					}
 					*ok = true;
-					return new	UnknownEvent(channel, array);
+					return new	SysExEvent(channel, array);
 				}
 
 				case 0x0F: {
@@ -288,9 +289,7 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 								// read type
 								TextEvent *textEvent = new TextEvent(channel);
 								textEvent->setType(tempByte);
-								(*content)>>tempByte;
-								int length = tempByte;
-
+								int length = MidiFile::variableLengthvalue(content);
 								QByteArray array;
 								for(int i = 0; i<length; i++){
 									(*content)>>tempByte;
@@ -301,20 +300,21 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 								return textEvent;
 
 							} else {
-								// Laenge lesen und ueberspringen
-								QByteArray array;
-								array.append(0xFF);
-								array.append((char)tempByte);
-								(*content)>>tempByte;
-								array.append((char)tempByte);
-								int length = tempByte;
 
+								// tempByte is meta event type
+								int typeByte = ((char)tempByte);
+
+								// read length
+								int length = MidiFile::variableLengthvalue(content);
+
+								// content
+								QByteArray array;
 								for(int i = 0; i<length; i++){
 									(*content)>>tempByte;
 									array.append((char)tempByte);
 								}
 								*ok = true;
-								return new UnknownEvent(channel, array);
+								return new UnknownEvent(channel, typeByte, array);
 							}
 						}
 					}

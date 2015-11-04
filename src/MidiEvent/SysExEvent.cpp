@@ -16,46 +16,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "UnknownEvent.h"
+#include "SysExEvent.h"
 
 #include <QLabel>
 #include <QLayout>
 
-#include "../midi/MidiFile.h"
-
-UnknownEvent::UnknownEvent(int channel, int type, QByteArray data) : MidiEvent(channel){
+SysExEvent::SysExEvent(int channel, QByteArray data) : MidiEvent(channel){
 	_data = data;
-	_type = type;
 }
 
-QByteArray UnknownEvent::data(){
+QByteArray SysExEvent::data(){
 	return _data;
 }
 
-int UnknownEvent::line(){
-	return UNKNOWN_LINE;
+int SysExEvent::line(){
+	return SYSEX_LINE;
 }
 
-QByteArray UnknownEvent::save(){
+QByteArray SysExEvent::save(){
 	QByteArray s;
-	s.append(0xFF);
-	s.append(_type);
-	s.append(MidiFile::writeVariableLengthValue(_data.length()));
+	s.append(0xF0);
 	s.append(_data);
+	s.append(0xF7);
 	return s;
 }
 
-void UnknownEvent::generateWidget(QWidget *widget){
+void SysExEvent::generateWidget(QWidget *widget){
 	MidiEvent::generateWidget(widget);
 	QLayout *layout = widget->layout();
-	QLabel *t = new QLabel("Type: 0x"+QString::number(_type, 16));
-	layout->addWidget(t);
-	t = new QLabel("Data:");
-	layout->addWidget(t);
 	int i = 0;
 	foreach(unsigned char b,_data){
 		QLabel *l = new QLabel("0x"+QString::number(i, 16)+"   0x"+QString::number(b, 16));
 		layout->addWidget(l);
 		i++;
 	}
+}
+
+QString SysExEvent::typeString(){
+	return "System Exclusive Message (SysEx)";
 }

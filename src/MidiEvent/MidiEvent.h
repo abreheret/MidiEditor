@@ -54,6 +54,7 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 			CHANNEL_PRESSURE_LINE,
 			TEXT_EVENT_LINE,
             PITCH_BEND_LINE,
+			SYSEX_LINE,
 			UNKNOWN_LINE
 		};
 		void setTrack(int num, bool toProtocol=true);

@@ -16,25 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UNKNOWNEVENT_H_
-#define UNKNOWNEVENT_H_
+#ifndef SYSEXEVENT_H
+#define SYSEXEVENT_H
 
 #include "MidiEvent.h"
 #include <QByteArray>
+
 class QWdiget;
-class UnknownEvent : public MidiEvent{
+class SysExEvent : public MidiEvent{
 
 	public:
-		UnknownEvent(int channel, int type, QByteArray data);
+		SysExEvent(int channel, QByteArray data);
 		QByteArray data();
 		int line();
 		QByteArray save();
 
 		void generateWidget(QWidget *widget);
-
+		QString typeString();
 	private:
 		QByteArray _data;
-		int _type;
 
 };
 

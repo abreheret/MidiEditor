@@ -35,7 +35,7 @@
 
 #include <QList>
 
-#define NUM_LINES 139
+#define NUM_LINES 140
 #define PIXEL_PER_S 100
 #define PIXEL_PER_LINE 11
 #define PIXEL_PER_EVENT 15
@@ -400,6 +400,10 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
                     text = "Pitch Bend";
                     break;
                 }
+				case MidiEvent::SYSEX_LINE: {
+					text = "System Exclusive";
+					break;
+				}
 				case MidiEvent::UNKNOWN_LINE: {
                     text = "(Unknown)";
 					break;
