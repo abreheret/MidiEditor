@@ -33,6 +33,7 @@
 #include "../MidiEvent/KeySignatureEvent.h"
 #include "../MidiEvent/PitchBendEvent.h"
 #include "../MidiEvent/TextEvent.h"
+#include "StandardTool.h"
 
 int NewNoteTool::_channel = 0;
 int NewNoteTool::_track = 0;
@@ -83,7 +84,8 @@ void NewNoteTool::draw(QPainter *painter){
 	}
 }
 
-bool NewNoteTool::press(){
+bool NewNoteTool::press(bool leftClick){
+	Q_UNUSED(leftClick);
 	inDrag = true;
 	line = matrixWidget->lineAtY(mouseY);
 	xPos = mouseX;
@@ -113,6 +115,12 @@ bool NewNoteTool::release(){
 			file()->channel(_channel)->insertNote(128-line,
 					startTick, endTick, 100, _track);
 			currentProtocol()->endAction();
+
+			if(_standardTool){
+				Tool::setCurrentTool(_standardTool);
+				_standardTool->move(mouseX, mouseY);
+				_standardTool->release();
+			}
 
 			return true;
 		} else {
@@ -210,9 +218,19 @@ bool NewNoteTool::release(){
 				event->setTrack(_track, false);
 				currentProtocol()->endAction();
 			} else {
+				if(_standardTool){
+					Tool::setCurrentTool(_standardTool);
+					_standardTool->move(mouseX, mouseY);
+					_standardTool->release();
+				}
 				return true;
 			}
 		}
+	}
+	if(_standardTool){
+		Tool::setCurrentTool(_standardTool);
+		_standardTool->move(mouseX, mouseY);
+		_standardTool->release();
 	}
 	return true;
 }

@@ -35,7 +35,7 @@ class EventMoveTool : public EventTool {
 		void setDirections(bool upDown, bool leftRight);
 
 		void draw(QPainter *painter);
-		bool press();
+		bool press(bool leftClick);
 		bool release();
 		bool move(int mouseX, int mouseY);
 		bool releaseOnly();

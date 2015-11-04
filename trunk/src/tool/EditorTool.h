@@ -65,7 +65,7 @@ class EditorTool : public Tool {
 		 * Returns wether the Widget has to be repainted after the Tools
 		 * action
 		 */
-		virtual bool press();
+		virtual bool press(bool leftClick);
 
 		/**
 		 * \brief this method is called when a key is pressed while the

@@ -24,6 +24,7 @@
 class EventMoveTool;
 class SelectTool;
 class SizeChangeTool;
+class NewNoteTool;
 
 class StandardTool :public EventTool {
 
@@ -32,7 +33,7 @@ class StandardTool :public EventTool {
 		StandardTool(StandardTool &other);
 
 		void draw(QPainter *painter);
-		bool press();
+		bool press(bool leftClick);
 		bool move(int mouseX, int mouseY);
 		bool release();
 
@@ -43,5 +44,6 @@ class StandardTool :public EventTool {
 		EventMoveTool *moveTool;
 		SelectTool *selectTool;
 		SizeChangeTool *sizeChangeTool;
+		NewNoteTool *newNoteTool;
 };
 #endif
