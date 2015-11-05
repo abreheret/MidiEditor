@@ -35,7 +35,7 @@
 
 #include <QList>
 
-#define NUM_LINES 140
+#define NUM_LINES 139
 #define PIXEL_PER_S 100
 #define PIXEL_PER_LINE 11
 #define PIXEL_PER_EVENT 15
@@ -206,8 +206,8 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 
 		// fill the pianos background white
 		int pianoKeys = numLines;
-		if(endLineY>128){
-			pianoKeys-=(endLineY-129);
+		if(endLineY>127){
+			pianoKeys-=(endLineY-128);
 		}
 		if(pianoKeys>0){
             pixpainter->fillRect(0, timeHeight,lineNameWidth-10,
@@ -222,9 +222,9 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 				c = QColor(234,246,255);
 			}
 
-            if(i>128){
+			if(i>127){
                 c = QColor(194,194,194);
-                if(i%2==0){
+				if(i%2==1){
                     c = QColor(234,246,255);
                 }
             }
@@ -358,8 +358,8 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 	// draw the piano / linenames
 	for(int i = startLineY; i<=endLineY; i++){
 		int startLine = yPosOfLine(i);
-		if(i>=0 && i<=128){
-			paintPianoKey(painter, 128-i,0,startLine,
+		if(i>=0 && i<=127){
+			paintPianoKey(painter, 127-i,0,startLine,
 					lineNameWidth,lineHeight());
 		} else {
 			QString text = "";
@@ -588,7 +588,7 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 
     int borderRight = 10;
     width = width-borderRight;
-	if(number>=0 && number<=128){
+	if(number>=0 && number<=127){
 
 		double scaleHeightBlack = 0.5;
         double scaleWidthBlack = 0.6;
@@ -643,13 +643,13 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 			case 11: { blackBeneath = true; break; }
 		}
 
-		if(128-number == startLineY){
+		if(127-number == startLineY){
 			blackOnTop = false;
 		}
 
 		bool selected = mouseY >= y && mouseY <= y+height && mouseX > lineNameWidth && mouseOver;
 		foreach(MidiEvent *event, *EventTool::selectedEventList()){
-			if(event->line() == 128-number){
+			if(event->line() == 127-number){
 				selected = true;
 				break;
 			}

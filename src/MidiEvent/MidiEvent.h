@@ -45,7 +45,7 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		static void setEventWidget(EventWidget *widget);
 
 		enum {
-			TEMPO_CHANGE_EVENT_LINE = 129,
+			TEMPO_CHANGE_EVENT_LINE = 128,
 			TIME_SIGNATURE_EVENT_LINE,
 			KEY_SIGNATURE_EVENT_LINE,
 			PROG_CHANGE_LINE,

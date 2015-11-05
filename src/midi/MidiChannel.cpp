@@ -161,7 +161,7 @@ void MidiChannel::insertNote(int note, int startTick, int endTick,int velocity, 
 	ProtocolEntry *toCopy = copy();
 	NoteOnEvent *onEvent = new NoteOnEvent(note, velocity, number());
 
-	OffEvent *off = new OffEvent(number(), 128-note);
+	OffEvent *off = new OffEvent(number(), 127-note);
 
 	off->setFile(file());
 	off->setMidiTime(endTick, false);

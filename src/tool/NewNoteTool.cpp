@@ -94,15 +94,15 @@ bool NewNoteTool::press(bool leftClick){
 
 bool NewNoteTool::release(){
 	inDrag = false;
-	if(mouseX<xPos || line>128){
+	if(mouseX<xPos || line>127){
 		int temp = mouseX;
 		mouseX = xPos;
 		xPos = temp;
 	}
-	if(mouseX-xPos>2 || line>128){
+	if(mouseX-xPos>2 || line>127){
 
 		// note
-		if(line>=0 && line<=128){
+		if(line>=0 && line<=127){
 			currentProtocol()->startNewAction("Create Note", image());
 
 
@@ -112,7 +112,7 @@ bool NewNoteTool::release(){
 			int endMs = matrixWidget->msOfXPos(mouseX);
 			int endTick = file()->tick(endMs);
 
-			file()->channel(_channel)->insertNote(128-line,
+			file()->channel(_channel)->insertNote(127-line,
 					startTick, endTick, 100, _track);
 			currentProtocol()->endAction();
 
