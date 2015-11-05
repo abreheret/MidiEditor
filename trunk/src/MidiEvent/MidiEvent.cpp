@@ -94,11 +94,14 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 				tempByte = secondByte;
 			}
 			int note = tempByte;
-
+			if(note<0 || note>127){
+				*ok = false;
+				return 0;
+			}
 			// skip byte (velocity)
 			(*content)>>tempByte;
 
-			OffEvent *event = new OffEvent(channel, 128-note);
+			OffEvent *event = new OffEvent(channel, 127-note);
 			*ok = true;
 			return event;
 		}
@@ -112,6 +115,10 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 				tempByte = secondByte;
 			}
 			int note = tempByte;
+			if(note<0 || note>127){
+				*ok = false;
+				return 0;
+			}
 			(*content)>>tempByte;
 			int velocity = tempByte;
 			*ok = true;
@@ -120,7 +127,7 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 				NoteOnEvent *event = new NoteOnEvent(note, velocity, channel);
 				return event;
 			} else {
-				OffEvent *event = new OffEvent(channel, 128-note);
+				OffEvent *event = new OffEvent(channel, 127-note);
 				return event;
 			}
 		}
@@ -133,6 +140,10 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 				tempByte = secondByte;
 			}
 			int note = tempByte;
+			if(note<0 || note>127){
+				*ok = false;
+				return 0;
+			}
 			(*content)>>tempByte;
 			int value = tempByte;
 

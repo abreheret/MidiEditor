@@ -24,7 +24,6 @@
 NoteOnEvent::NoteOnEvent(int note, int velocity, int ch) : OnEvent(ch){
 	_note = note;
 	_velocity = velocity;
-
 	// has to be done here because the line is not known in OnEvents constructor
 	// before
 	OffEvent::enterOnEvent(this);
@@ -59,7 +58,7 @@ void NoteOnEvent::setVelocity(int v){
 }
 
 int NoteOnEvent::line(){
-	return 128-_note;
+	return 127-_note;
 }
 
 void NoteOnEvent::setNote(int n){
@@ -108,7 +107,7 @@ QByteArray NoteOnEvent::saveOffEvent(){
 	QByteArray array = QByteArray();
 	array.append(0x80 | channel());
 	array.append(note());
-	array.append('0');
+	array.append((char)0x0);
 	return array;
 }
 
@@ -163,7 +162,7 @@ void NoteOnEvent::generateWidget(QWidget *widget){
 	noteL->addWidget(_note_label);
 
 	// box
-	_note_box->setMaximum(128);
+	_note_box->setMaximum(127);
 	_note_box->setMinimum(0);
 	_note_box->setValue(note());
 	noteL->addWidget(_note_box);

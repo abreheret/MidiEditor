@@ -106,9 +106,9 @@ void MiscWidget::paintEvent(QPaintEvent *event){
                 continue;
             }
 
-            if(event->file()->track(event->track())->hidden()){
-                continue;
-            }
+			if(event->file()->track(event->track())->hidden()){
+				continue;
+			}
 
             QColor *c=matrixWidget->midiFile()->channel(event->channel())->color();
             if(!matrixWidget->colorsByChannel()){

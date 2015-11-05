@@ -34,7 +34,6 @@ OffEvent::OffEvent(int ch, int l) : MidiEvent(ch) {
 			return;
 		}
 	}
-	qWarning("mid error: found OffEvent without OnEvent! line: %d", line());
 }
 
 QList<OnEvent*> OffEvent::corruptedOnEvents(){
