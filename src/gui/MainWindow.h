@@ -150,7 +150,7 @@ class MainWindow : public QMainWindow {
 		QString startDirectory;
 		EventWidget *_eventWidget;
 		QSettings *_settings;
-		ClickButton *_lockButton;
+		QAction *_lockAction;
 		QStringList _recentFilePaths;
 		QMenu *_recentPathsMenu, *_channelVisibilityMenu, *_channelMuteMenu, *_channelInstrumentMenu, *_deleteChannelMenu,
 			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu, *_moveSelectedEventsToChannelMenu,
@@ -168,7 +168,7 @@ class MainWindow : public QMainWindow {
         QAction *setSingleMode, *setLineMode, *setFreehandMode;
         MiscWidget *_miscWidget;
 
-        QWidget *setupActions(QWidget *parent);
+		QWidget *setupActions(QWidget *parent);
 };
 
 #endif

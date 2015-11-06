@@ -36,6 +36,8 @@ class SizeChangeTool : public EventTool {
 		bool move(int mouseX, int mouseY);
 		bool releaseOnly();
 
+		bool showsSelection();
+
 	private:
 		bool inDrag, dragsOnEvent;
 		int xPos;

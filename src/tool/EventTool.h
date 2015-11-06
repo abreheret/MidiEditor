@@ -39,9 +39,10 @@ class EventTool: public EditorTool {
 		void reloadState(ProtocolEntry *entry);
 
 		virtual bool pressKey(int key);
-		static bool shiftPressed, strPressed, altPressed, spacePressed, altGrPressed;
 		static void copyAction();
 		static void pasteAction();
+
+		virtual bool showsSelection();
 
 	protected:
 		static QList<MidiEvent*> *selectedEvents, *copiedEvents;

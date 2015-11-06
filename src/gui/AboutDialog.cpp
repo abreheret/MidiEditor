@@ -30,13 +30,18 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent)
 	QGridLayout *layout = new QGridLayout;
 
 	//Label starttext
-	QLabel *title = new QLabel("<h2><u>MidiEditor</u></h2><font" \
-		" color='#666666'><br>About<br><br>Copyright by Markus Schwenk" \
-		 " (kontakt@markus-schwenk.de)<br><br>Visit my Homepage: <a href=\"" \
+	QLabel *title = new QLabel("<h2><b>MidiEditor</b></h2>"
+		"Copyright by Markus Schwenk"
+		 " (kontakt@markus-schwenk.de)<br>Visit my Homepage: <a href=\""
 		 "http://www.markus-schwenk.de\">www.markus-schwenk.de</a>"
 		 "<br><br>"
-		 "Thanks to Romain Behar and Timo Rambaum!"
-		 "</font> ");
+		 "Thanks to Romain Behar."
+		 "<br>"
+		 "3D icons by Double-J Design (http://www.doublejdesign.co.uk)."
+		 "<br>"
+		"Flat icons designed by Freepik."
+		"<br>"
+		 "MidiEditor logo by Markus Schwenk.");
 	title->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
 	title->setOpenExternalLinks(true);
 

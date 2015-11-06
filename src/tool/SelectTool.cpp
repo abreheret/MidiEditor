@@ -109,7 +109,7 @@ bool SelectTool::release(){
 	file()->protocol()->startNewAction("Selection changed", image());
 	ProtocolEntry* toCopy = copy();
 
-	if(!shiftPressed && !strPressed){
+	if(!QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) && !QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)){
 		clearSelection();
 	}
 
@@ -201,4 +201,8 @@ void SelectTool::reloadState(ProtocolEntry *entry){
 
 bool SelectTool::releaseOnly(){
 	return release();
+}
+
+bool SelectTool::showsSelection(){
+	return true;
 }

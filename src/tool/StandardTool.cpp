@@ -144,19 +144,19 @@ bool StandardTool::press(bool leftClick){
 				}
 
 				case MOVE_ACTION: {
-					file()->protocol()->startNewAction("Selection changed", image());
+					file()->protocol()->startNewAction("Moved Events", image());
 					ProtocolEntry* toCopy = copy();
 					EventTool::selectEvent(event,!EventTool::selectedEvents->contains(event));
 					protocol(toCopy, this);
 					file()->protocol()->endAction();
-
+/* TODO reenable
 					if(altGrPressed){
 						moveTool->setDirections(true, false);
 					} else if(spacePressed){
 						moveTool->setDirections(false, true);
 					} else {
 						moveTool->setDirections(true, true);
-					}
+					} */
 					Tool::setCurrentTool(moveTool);
 					moveTool->move(mouseX, mouseY);
 					moveTool->press(leftClick);
@@ -211,5 +211,9 @@ void StandardTool::reloadState(ProtocolEntry *entry){
 
 bool StandardTool::release(){
 	matrixWidget->setCursor(Qt::ArrowCursor);
+	return true;
+}
+
+bool StandardTool::showsSelection(){
 	return true;
 }

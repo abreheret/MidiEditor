@@ -66,7 +66,7 @@ void NewNoteTool::reloadState(ProtocolEntry *entry){
 
 void NewNoteTool::draw(QPainter *painter){
 	if(inDrag){
-		if(line<=128) {
+		if(line<=127) {
 			int y = matrixWidget->yPosOfLine(line);
 			painter->fillRect(xPos, y, mouseX-xPos, matrixWidget->lineHeight(), Qt::black);
 			painter->setPen(Qt::gray);

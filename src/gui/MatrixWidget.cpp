@@ -43,7 +43,6 @@
 MatrixWidget::MatrixWidget(QWidget *parent) : PaintWidget(parent) {
 
 	screen_locked = false;
-	alt_pressed = false;
 	startTimeX = 0;
 	startLineY = 0;
 	endTimeX = 0;
@@ -849,12 +848,6 @@ double MatrixWidget::lineHeight(){
 
 void MatrixWidget::enterEvent(QEvent *event){
 	PaintWidget::enterEvent(event);
-	alt_pressed = false;
-	EventTool::strPressed = false;
-	EventTool::shiftPressed = false;
-	EventTool::altPressed = false;
-	EventTool::altGrPressed = false;
-	EventTool::spacePressed = false;
 	if(Tool::currentTool()){
 		Tool::currentTool()->enter();
 		if(enabled){
@@ -864,12 +857,6 @@ void MatrixWidget::enterEvent(QEvent *event){
 }
 void MatrixWidget::leaveEvent(QEvent *event){
 	PaintWidget::leaveEvent(event);
-	alt_pressed = false;
-	EventTool::strPressed = false;
-	EventTool::shiftPressed = false;
-	EventTool::altPressed = false;
-	EventTool::altGrPressed = false;
-	EventTool::spacePressed = false;
 	if(Tool::currentTool()){
 		Tool::currentTool()->exit();
 		if(enabled){
@@ -905,40 +892,8 @@ void MatrixWidget::mouseReleaseEvent(QMouseEvent *event){
 }
 
 void MatrixWidget::takeKeyPressEvent(QKeyEvent *event){
-	// Undo, redo
-	if(event->matches(QKeySequence::Undo)){
-		file->protocol()->undo();
-		repaint();
-	} else if(event->matches(QKeySequence::Redo)){
-		file->protocol()->redo();
-		repaint();
-	}   else if(event->matches(QKeySequence::Copy)){
-		EventTool::copyAction();
-	}  else if(event->matches(QKeySequence::Paste)){
-		EventTool::pasteAction();
-	}  else if(event->key() == Qt::Key_Shift){
-		EventTool::shiftPressed = true;
-	} else if(event->key() == Qt::Key_Control){
-		EventTool::strPressed = true;
-	} else if(event->matches(QKeySequence::SelectAll)){
-		if(file){
-			// Select all
-			foreach(MidiEvent *event,
-					*(file->eventsBetween(0, file->endTick())))
-			{
-				EventTool::selectEvent(event, false, true);
-			}
-			repaint();
-		}
-	} else if(event->key() == Qt::Key_Alt){
-		alt_pressed = true;
-		EventTool::altPressed = true;
-	} else if(event->key() == Qt::Key_AltGr){
-		EventTool::altGrPressed = true;
-	} else if(event->key() == Qt::Key_Space){
-		EventTool::spacePressed = true;
-	} else if(Tool::currentTool()){
-		// an das Werkzeug weitergeben
+
+	if(Tool::currentTool()){
 		if(Tool::currentTool()->pressKey(event->key())){
 			repaint();
 		}
@@ -946,18 +901,7 @@ void MatrixWidget::takeKeyPressEvent(QKeyEvent *event){
 }
 
 void MatrixWidget::takeKeyReleaseEvent(QKeyEvent *event){
-	if(event->key() == Qt::Key_Shift){
-		EventTool::shiftPressed = false;
-	} else if(event->key() == Qt::Key_Control){
-		EventTool::strPressed = false;
-	} else if(event->key() == Qt::Key_Alt){
-		alt_pressed = false;
-		EventTool::altPressed = false;
-	} else if(event->key() == Qt::Key_AltGr){
-		EventTool::altGrPressed = false;
-	}  else if(event->key() == Qt::Key_Space){
-		EventTool::spacePressed = false;
-	}  else if(Tool::currentTool()){
+	if(Tool::currentTool()){
 		if(Tool::currentTool()->releaseKey(event->key())){
 			repaint();
 		}
@@ -1079,7 +1023,7 @@ void MatrixWidget::wheelEvent(QWheelEvent *event){
 	int maxTimeInFile = file->maxTime();
 	int widgetRange = endTimeX-startTimeX;
 
-	if(alt_pressed){
+	if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier)){
 
 		int scroll = -1*event->delta()*widgetRange/1000; // test
 

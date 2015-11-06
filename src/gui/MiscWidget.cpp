@@ -867,19 +867,7 @@ void MiscWidget::resetState(){
 }
 
 void MiscWidget::keyPressEvent(QKeyEvent* event){
-    // Undo, redo abfragen
-    if(event->matches(QKeySequence::Undo)){
-        matrixWidget->midiFile()->protocol()->undo();
-        repaint();
-    } else if(event->matches(QKeySequence::Redo)){
-        matrixWidget->midiFile()->protocol()->redo();
-        repaint();
-    }  else if(event->key() == Qt::Key_Shift){
-        EventTool::shiftPressed = true;
-    } else if(event->key() == Qt::Key_Control){
-        EventTool::strPressed = true;
-    } else if(Tool::currentTool()){
-        // an das Werkzeug weitergeben
+	if(Tool::currentTool()){
         if(Tool::currentTool()->pressKey(event->key())){
             repaint();
         }
@@ -887,11 +875,7 @@ void MiscWidget::keyPressEvent(QKeyEvent* event){
 }
 
 void MiscWidget::keyReleaseEvent(QKeyEvent *event){
-    if(event->key() == Qt::Key_Shift){
-        EventTool::shiftPressed = false;
-    } else if(event->key() == Qt::Key_Control){
-        EventTool::strPressed = false;
-    } else if(Tool::currentTool()){
+	if(Tool::currentTool()){
         if(Tool::currentTool()->releaseKey(event->key())){
             repaint();
         }
