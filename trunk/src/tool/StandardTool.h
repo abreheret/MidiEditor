@@ -39,7 +39,7 @@ class StandardTool :public EventTool {
 
 		ProtocolEntry *copy();
 		void reloadState(ProtocolEntry *entry);
-
+		bool showsSelection();
 	private:
 		EventMoveTool *moveTool;
 		SelectTool *selectTool;

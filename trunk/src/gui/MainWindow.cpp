@@ -166,9 +166,6 @@ MainWindow::MainWindow() : QMainWindow() {
 	lowerTabWidget = new QTabWidget(rightSplitter);
 	rightSplitter->addWidget(lowerTabWidget);
 
-	rightSplitter->setStretchFactor(0, 15);
-	rightSplitter->setStretchFactor(1, 85);
-
 	// MatrixArea
 	QWidget *matrixArea = new QWidget(leftSplitter);
 	leftSplitter->addWidget(matrixArea);
@@ -357,7 +354,11 @@ MainWindow::MainWindow() : QMainWindow() {
 			SLOT(scrollPositionsChanged(int, int, int, int)));
 
 	setCentralWidget(central);
-    QWidget *buttons = setupActions(central);
+
+	QWidget *buttons = setupActions(central);
+
+	rightSplitter->setStretchFactor(0, 15);
+	rightSplitter->setStretchFactor(1, 85);
 
     // Add the Widgets to the central Layout
     centralLayout->setSpacing(0);
@@ -949,12 +950,12 @@ void MainWindow::panic(){
 
 void MainWindow::toggleScreenLock() {
 	if(mw_matrixWidget->screenLocked()){
-		_lockButton->setImageName("screen_unlocked.png");
-		_lockButton->setToolTip("Do not scroll automatically while playing/recording");
+		_lockAction->setIcon(QIcon("graphics/tool/screen_unlocked.png"));
+		_lockAction->setToolTip("Do not scroll automatically while playing/recording");
 		mw_matrixWidget->setScreenLocked(false);
 	} else {
-		_lockButton->setImageName("screen_locked.png");
-		_lockButton->setToolTip("Scroll automatically while playing/recording");
+		_lockAction->setIcon(QIcon("graphics/tool/screen_locked.png"));
+		_lockAction->setToolTip("Scroll automatically while playing/recording");
 		mw_matrixWidget->setScreenLocked(true);
 	}
 }
@@ -1066,7 +1067,15 @@ void MainWindow::equalize()
 }
 
 void MainWindow::deleteSelectedEvents(){
-    if (EventTool::selectedEventList()->size()>0 && file){
+	bool showsSelected = false;
+	if(Tool::currentTool()){
+		EventTool *eventTool = dynamic_cast<EventTool*>(Tool::currentTool());
+		if(eventTool){
+			showsSelected = eventTool->showsSelection();
+		}
+	}
+	if(showsSelected && EventTool::selectedEventList()->size()>0 && file){
+
 		file->protocol()->startNewAction("Remove Event(s)");
 		foreach(MidiEvent *ev, *EventTool::selectedEventList()){
 			file->channel(ev->channel())->removeEvent(ev);
@@ -1753,16 +1762,19 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     // File
     QAction *newAction = new QAction("New File", this);
+	newAction->setShortcut(QKeySequence::New);
     newAction->setIcon(QIcon("graphics/tool/new.png"));
     connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
     fileMB->addAction(newAction);
 
     QAction *loadAction = new QAction("Open File...", this);
+	loadAction->setShortcut(QKeySequence::Open);
     loadAction->setIcon(QIcon("graphics/tool/load.png"));
     connect(loadAction, SIGNAL(triggered()), this, SLOT(load()));
     fileMB->addAction(loadAction);
 
     _recentPathsMenu = new QMenu("Open Recent..", this);
+	_recentPathsMenu->setIcon(QIcon("graphics/tool/noicon.png"));
     fileMB->addMenu(_recentPathsMenu);
     connect(_recentPathsMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecent(QAction*)));
 
@@ -1771,11 +1783,13 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     fileMB->addSeparator();
 
     QAction *saveAction = new QAction("Save File", this);
+	saveAction->setShortcut(QKeySequence::Save);
     saveAction->setIcon(QIcon("graphics/tool/save.png"));
     connect(saveAction, SIGNAL(triggered()), this, SLOT(save()));
     fileMB->addAction(saveAction);
 
     QAction *saveAsAction = new QAction("Save As...", this);
+	saveAsAction->setShortcut(QKeySequence::SaveAs);
     saveAsAction->setIcon(QIcon("graphics/tool/saveas.png"));
     connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveas()));
     fileMB->addAction(saveAsAction);
@@ -1783,17 +1797,20 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     fileMB->addSeparator();
 
     QAction *quitAction = new QAction("Quit", this);
+	quitAction->setShortcut(QKeySequence::Quit);
+	quitAction->setIcon(QIcon("graphics/tool/noicon.png"));
     connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
     fileMB->addAction(quitAction);
 
     // Edit
-
     QAction *undoAction = new QAction("Undo", this);
+	undoAction->setShortcut(QKeySequence::Undo);
     undoAction->setIcon(QIcon("graphics/tool/undo.png"));
     connect(undoAction, SIGNAL(triggered()), this, SLOT(undo()));
     editMB->addAction(undoAction);
 
     QAction *redoAction = new QAction("Redo", this);
+	redoAction->setShortcut(QKeySequence::Redo);
     redoAction->setIcon(QIcon("graphics/tool/redo.png"));
     connect(redoAction, SIGNAL(triggered()), this, SLOT(redo()));
     editMB->addAction(redoAction);
@@ -1801,6 +1818,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     editMB->addSeparator();
 
     QAction *selectAllAction = new QAction("Select all Visible Events", this);
+	selectAllAction->setShortcut(QKeySequence::SelectAll);
     connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
     editMB->addAction(selectAllAction);
 
@@ -1808,16 +1826,21 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     editMB->addSeparator();
 
     QAction *copyAction = new QAction("Copy Events to Clipboard", this);
+	copyAction->setIcon(QIcon("graphics/tool/copy.png"));
+	copyAction->setShortcut(QKeySequence::Copy);
     connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
     editMB->addAction(copyAction);
 
     QAction *pasteAction = new QAction("Paste Events, beginning at the Cursor Position", this);
+	pasteAction->setShortcut(QKeySequence::Paste);
+	pasteAction->setIcon(QIcon("graphics/tool/paste.png"));
     connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
     editMB->addAction(pasteAction);
 
     editMB->addSeparator();
 
     QAction *deleteAction = new QAction("Remove selected Events", this);
+	deleteAction->setShortcut(QKeySequence::Delete);
     deleteAction->setIcon(QIcon("graphics/tool/eraser.png"));
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedEvents()));
     editMB->addAction(deleteAction);
@@ -2131,63 +2154,14 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     connect(donateAction, SIGNAL(triggered()), this, SLOT(donate()));
     helpMB->addAction(donateAction);
 
-
-    // Toolbars
-
-
-    /*
-
-    ClickButton *backToBegin = new ClickButton("back_to_begin.png");
-    buttons->addWidget(backToBegin);
-    backToBegin->setToolTip("Back (to the start of the song)");
-    connect(backToBegin, SIGNAL(clicked()), this, SLOT(backToBegin()));
-
-    ClickButton *back = new ClickButton("back.png");
-    buttons->addWidget(back);
-    back->setToolTip("Back (one Measure)");
-    connect(back, SIGNAL(clicked()), this, SLOT(back()));
-
-    ClickButton *pause = new ClickButton("pause.png");
-    buttons->addWidget(pause);
-    pause->setToolTip("Pause");
-    connect(pause, SIGNAL(clicked()), this, SLOT(pause()));
-
-    ClickButton *record = new ClickButton("record.png");
-    buttons->addWidget(record);
-    record->setToolTip("Record from the selected Midi-Input");
-    connect(record, SIGNAL(clicked()), this, SLOT(record()));
-
-    ClickButton *play = new ClickButton("play.png");
-    buttons->addWidget(play);
-    play->setToolTip("Play from the current Cursor Position");
-    connect(play, SIGNAL(clicked()), this, SLOT(play()));
-
-    ClickButton *stop = new ClickButton("stop.png");
-    stop->setToolTip("Stop Playback/Record");
-    buttons->addWidget(stop);
-    connect(stop, SIGNAL(clicked()), this, SLOT(stop()));
-
-    ClickButton *forward = new ClickButton("forward.png");
-    buttons->addWidget(forward);
-    forward->setToolTip("Forward (one Measure)");
-    connect(forward, SIGNAL(clicked()), this, SLOT(forward()));
-
-    buttons->addSeparator();
-
-    _lockButton = new ClickButton("screen_unlocked.png");
-    buttons->addWidget(_lockButton);
-    _lockButton->setToolTip("Do not scroll automatically while playing/recording");
-    connect(_lockButton, SIGNAL(clicked()), this, SLOT(toggleScreenLock()));
-
-    buttons->addSeparator();
-    */
-
     QWidget *buttonBar = new QWidget(parent);
     QGridLayout *btnLayout = new QGridLayout(buttonBar);
     buttonBar->setLayout(btnLayout);
     btnLayout->setSpacing(0);
     buttonBar->setContentsMargins(0,0,0,0);
     QToolBar *fileTB = new QToolBar("File", buttonBar);
+
+	fileTB->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     fileTB->setFloatable(false);
     fileTB->setContentsMargins(0,0,0,0);
     fileTB->layout()->setSpacing(0);
@@ -2218,13 +2192,17 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     upperTB->setFloatable(false);
     upperTB->setContentsMargins(0,0,0,0);
     upperTB->layout()->setSpacing(0);
-    upperTB->setIconSize(QSize(20,20));
+	upperTB->setIconSize(QSize(20,20));
     lowerTB->setFloatable(false);
     lowerTB->setContentsMargins(0,0,0,0);
     lowerTB->layout()->setSpacing(0);
-    lowerTB->setIconSize(QSize(20,20));
-    lowerTB->setStyleSheet("QToolBar { border: 0px }");
-    upperTB->setStyleSheet("QToolBar { border: 0px }");
+	lowerTB->setIconSize(QSize(20,20));
+	lowerTB->setStyleSheet("QToolBar { border: 0px }");
+	upperTB->setStyleSheet("QToolBar { border: 0px }");
+
+	lowerTB->addAction(copyAction);
+	lowerTB->addAction(pasteAction);
+	lowerTB->addSeparator();
 
     lowerTB->addAction(zoomHorInAction);
     lowerTB->addAction(zoomHorOutAction);
@@ -2233,13 +2211,19 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     lowerTB->addSeparator();
 
-    lowerTB->addAction(backToBeginAction);
+	lowerTB->addAction(backToBeginAction);
     lowerTB->addAction(backAction);
     lowerTB->addAction(playAction);
     lowerTB->addAction(pauseAction);
     lowerTB->addAction(stopAction);
     lowerTB->addAction(recAction);
-    lowerTB->addAction(forwAction);
+	lowerTB->addAction(forwAction);
+	lowerTB->addSeparator();
+
+	_lockAction = new QAction("Lock screen while playing", this);
+	_lockAction->setIcon(QIcon("graphics/tool/screen_unlocked.png"));
+	lowerTB->addAction(_lockAction);
+	connect(_lockAction, SIGNAL(triggered()), this, SLOT(toggleScreenLock()));
 
     StandardTool *tool = new StandardTool();
     Tool::setCurrentTool(tool);
@@ -2260,28 +2244,18 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     upperTB->addSeparator();
 
-    //ClickButton *alignLeft = new ClickButton("align_left.png");
-    //alignLeft->setToolTip("Align to Leftmost");
-    //buttons->addWidget(alignLeft);
-   // connect(alignLeft, SIGNAL(clicked()), this, SLOT(alignLeft()));
 
-   // ClickButton *alignRight = new ClickButton("align_right.png");
-    //alignLeft->setToolTip("Align to Rightmost");
-    //buttons->addWidget(alignRight);
-    //connect(alignRight, SIGNAL(clicked()), this, SLOT(alignRight()));
-
-  //  ClickButton *equalize = new ClickButton("equalize.png");
-   // equalize->setToolTip("Equalize Selection");
-    //buttons->addWidget(equalize);
-   // connect(equalize, SIGNAL(clicked()), this, SLOT(equalize()));
-
-    //buttons->addSeparator();
+	upperTB->addAction(alignLeftAction);
+	upperTB->addAction(alignRightAction);
+	upperTB->addAction(equalizeAction);
+	upperTB->addSeparator();
 
     upperTB->addAction(new ToolButton(new NewNoteTool()));
     upperTB->addAction(new ToolButton(new EraserTool()));
 
-    upperTB->addSeparator();
+   // upperTB->addSeparator();
 
     btnLayout->setColumnStretch(3, 1);
+
     return buttonBar;
 }

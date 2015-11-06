@@ -40,6 +40,8 @@ class EventMoveTool : public EventTool {
 		bool move(int mouseX, int mouseY);
 		bool releaseOnly();
 
+		bool showsSelection();
+
 	protected:
 		bool moveUpDown, moveLeftRight, inDrag;
 		int startX, startY;

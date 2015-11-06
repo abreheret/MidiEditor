@@ -36,29 +36,8 @@ class SelectTool: public EventTool {
 
 		void draw(QPainter *painter);
 
-		/**
-		 * \brief this method is called when the mouse is clicked above the
-		 * Widget.
-		 *
-		 * Returns wether the Widget has to be repainted after the Tools
-		 * action
-		 */
 		bool press(bool leftClick);
-		/**
-		 * \brief this method is called when the mouse is released above the
-		 * Widget.
-		 *
-		 * Returns wether the Widget has to be repainted after the Tools
-		 * action
-		 */
 		bool release();
-		/**
-		 * \brief this method is called when the mouse is moved above the
-		 * Widget.
-		 *
-		 * Returns wether the Widget has to be repainted after the Tools
-		 * action
-		 */
 		bool releaseOnly();
 
 		bool move(int mouseX, int mouseY);
@@ -66,6 +45,8 @@ class SelectTool: public EventTool {
 		ProtocolEntry *copy();
 		void reloadState(ProtocolEntry *entry);
 		bool inRect(MidiEvent *event, int x_start, int y_start, int x_end, int y_end);
+
+		bool showsSelection();
 
 	protected:
 		int stool_type;

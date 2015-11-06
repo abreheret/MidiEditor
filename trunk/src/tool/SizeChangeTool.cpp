@@ -190,3 +190,7 @@ bool SizeChangeTool::releaseOnly(){
 	xPos = 0;
 	return true;
 }
+
+bool SizeChangeTool::showsSelection(){
+	return true;
+}

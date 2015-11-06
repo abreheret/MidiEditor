@@ -23,7 +23,8 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) : QAction(parent){
 	button_tool = tool;
 	tool->setButton(this);
 	setToolTip(button_tool->toolTip());
-    setIcon(QIcon(QPixmap::fromImage(*(button_tool->image()))));
+	QImage image = *(button_tool->image());
+	setIcon(QIcon(QPixmap::fromImage(image)));
     connect(this, SIGNAL(triggered()), this, SLOT(buttonClick()));
     setCheckable(true);
 }

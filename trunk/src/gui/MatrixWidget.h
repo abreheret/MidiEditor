@@ -110,7 +110,7 @@ class MatrixWidget : public PaintWidget {
 		MidiFile *file;
 
 		QRectF ToolArea, PianoArea, TimeLineArea;
-		bool screen_locked, alt_pressed;
+		bool screen_locked;
 
 		// pixmap is the painted widget (without tools and cursorLines).
 		// it will be zero if it needs to be repainted

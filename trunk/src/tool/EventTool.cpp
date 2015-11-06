@@ -33,11 +33,6 @@
 
 QList<MidiEvent*> *EventTool::selectedEvents = new QList<MidiEvent*>;
 QList<MidiEvent*> *EventTool::copiedEvents = new QList<MidiEvent*>;
-bool EventTool::shiftPressed = false;
-bool EventTool::strPressed = false;
-bool EventTool::altPressed = false;
-bool EventTool::altGrPressed = false;
-bool EventTool::spacePressed = false;
 
 EventTool::EventTool() : EditorTool() {
 	ownSelectedEvents = 0;
@@ -67,16 +62,16 @@ void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 		return;
 	}
 
-	if(single && !shiftPressed && (!strPressed || ignoreStr)){
+	if(single && !QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) && (!QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) || ignoreStr)){
 		selectedEvents->clear();
 		NoteOnEvent *on = dynamic_cast<NoteOnEvent*>(event);
 		if(on){
 			MidiPlayer::play(on);
 		}
 	}
-	if(!selectedEvents->contains(event) && (!strPressed || ignoreStr)){
+	if(!selectedEvents->contains(event) && (!QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) || ignoreStr)){
 		selectedEvents->append(event);
-	} else if(strPressed && !ignoreStr){
+	} else if(QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) && !ignoreStr){
 		selectedEvents->removeAll(event);
 	}
 	if(selectedEvents->count() == 1){
@@ -184,6 +179,9 @@ void EventTool::pasteAction(){
 
 	if(copiedEvents->count()>0){
 
+		// check whether channles / tracks exist which differ from the channel / track to assign new notes to
+
+
 		// Begin a new ProtocolAction
 		currentFile()->protocol()->startNewAction("Paste "+
 				QString::number(copiedEvents->count())+" Events");
@@ -216,4 +214,8 @@ void EventTool::pasteAction(){
 		// one time
 		copyAction();
 	}
+}
+
+bool EventTool::showsSelection(){
+	return false;
 }

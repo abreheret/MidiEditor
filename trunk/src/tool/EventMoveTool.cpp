@@ -195,3 +195,7 @@ void EventMoveTool::setDirections(bool upDown, bool leftRight){
 	moveUpDown = upDown;
 	moveLeftRight = leftRight;
 }
+
+bool EventMoveTool::showsSelection(){
+	return true;
+}
