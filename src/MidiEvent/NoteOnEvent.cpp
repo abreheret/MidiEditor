@@ -21,7 +21,7 @@
 #include "OffEvent.h"
 #include <QBoxLayout>
 
-NoteOnEvent::NoteOnEvent(int note, int velocity, int ch) : OnEvent(ch){
+NoteOnEvent::NoteOnEvent(int note, int velocity, int ch, MidiTrack *track) : OnEvent(ch, track){
 	_note = note;
 	_velocity = velocity;
 	// has to be done here because the line is not known in OnEvents constructor

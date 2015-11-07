@@ -21,6 +21,7 @@
 #include "../MidiEvent/MidiEvent.h"
 #include "../MidiEvent/OffEvent.h"
 #include "../MidiEvent/OnEvent.h"
+#include "MidiTrack.h"
 
 #include <QTextStream>
 #include <QByteArray>
@@ -116,7 +117,7 @@ void MidiInput::startInput(){
 	_recording = true;
 }
 
-QMultiMap<int, MidiEvent*> MidiInput::endInput(){
+QMultiMap<int, MidiEvent*> MidiInput::endInput(MidiTrack *track){
 
 	QMultiMap<int, MidiEvent*> eventList;
 	QByteArray array;
@@ -141,7 +142,7 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(){
 
 		QDataStream tempStream(array);
 
-		MidiEvent *event = MidiEvent::loadMidiEvent(&tempStream,&ok,&endEvent);
+		MidiEvent *event = MidiEvent::loadMidiEvent(&tempStream,&ok,&endEvent, track);
 		OffEvent *off = dynamic_cast<OffEvent*>(event);
 		if(off && !off->onEvent()){
 			emptyOffEvents.insert(it.key(), off);

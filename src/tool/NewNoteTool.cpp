@@ -99,6 +99,7 @@ bool NewNoteTool::release(){
 		mouseX = xPos;
 		xPos = temp;
 	}
+	MidiTrack *track = file()->track(_track);
 	if(mouseX-xPos>2 || line>127){
 
 		// note
@@ -113,7 +114,7 @@ bool NewNoteTool::release(){
 			int endTick = file()->tick(endMs);
 
 			file()->channel(_channel)->insertNote(127-line,
-					startTick, endTick, 100, _track);
+					startTick, endTick, 100, track);
 			currentProtocol()->endAction();
 
 			if(_standardTool){
@@ -125,17 +126,19 @@ bool NewNoteTool::release(){
 			return true;
 		} else {
 
+			MidiTrack *generalTrack = file()->track(0);
+
 			MidiEvent *event;
 			// prog
 			if(line == MidiEvent::PROG_CHANGE_LINE){
 
 				currentProtocol()->startNewAction("Create Program Change Event",
 						image());
-				event = new ProgChangeEvent(_channel, 0);
+
+				event = new ProgChangeEvent(_channel, 0, track);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(_channel)->insertEvent(event, startTick);
-				event->setTrack(_track, false);
 				currentProtocol()->endAction();
 
 			} else if(line == MidiEvent::TIME_SIGNATURE_EVENT_LINE){
@@ -143,79 +146,72 @@ bool NewNoteTool::release(){
 						image());
 
 				// 4/4
-				event = new TimeSignatureEvent(18, 4, 2, 24, 8);
+				event = new TimeSignatureEvent(18, 4, 2, 24, 8, generalTrack);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(18)->insertEvent(event, startTick);
-				event->setTrack(0);
 				currentProtocol()->endAction();
 			} else if(line == MidiEvent::TEMPO_CHANGE_EVENT_LINE){
 				currentProtocol()->startNewAction("Create Tempo Change Event",
 						image());
 				// quarter = 120
-				event = new TempoChangeEvent(17, 500000);
+				event = new TempoChangeEvent(17, 500000, generalTrack);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(17)->insertEvent(event, startTick);
-				event->setTrack(0);
 				currentProtocol()->endAction();
 			}  else if(line == MidiEvent::KEY_SIGNATURE_EVENT_LINE){
 				currentProtocol()->startNewAction("Create Key Signature Event",
 						image());
-				event = new KeySignatureEvent(16, 0, true);
+				event = new KeySignatureEvent(16, 0, true, generalTrack);
 
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(16)->insertEvent(event, startTick);
-				event->setTrack(0);
 				currentProtocol()->endAction();
 			} else if(line == MidiEvent::CONTROLLER_LINE){
 				currentProtocol()->startNewAction("Create Control Change Event",
 						image());
-				event = new ControlChangeEvent(_channel, 0, 0);
+				event = new ControlChangeEvent(_channel, 0, 0, track);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(_channel)->insertEvent(event, startTick);
-				event->setTrack(_track, false);
 				currentProtocol()->endAction();
 			}  else if(line == MidiEvent::KEY_PRESSURE_LINE){
 				currentProtocol()->startNewAction("Create Key Pressure Event",
 						image());
-				event = new KeyPressureEvent(_channel, 127, 100);
+				event = new KeyPressureEvent(_channel, 127, 100, track);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(_channel)->insertEvent(event, startTick);
-				event->setTrack(_track, false);
 				currentProtocol()->endAction();
 			}  else if(line == MidiEvent::CHANNEL_PRESSURE_LINE){
 				currentProtocol()->startNewAction(
 						"Create Channel Pressure Event", image());
-				event = new ChannelPressureEvent(_channel, 100);
+				event = new ChannelPressureEvent(_channel, 100, track);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(_channel)->insertEvent(event, startTick);
-				event->setTrack(_track, false);
 				currentProtocol()->endAction();
             } else if(line == MidiEvent::PITCH_BEND_LINE){
                 currentProtocol()->startNewAction(
                         "Create Pitch Bend Event", image());
-                event = new PitchBendEvent(16, 8192);
+				event = new PitchBendEvent(_channel, 8192, track);
                 int startMs = matrixWidget->msOfXPos(xPos);
                 int startTick = file()->tick(startMs);
                 file()->channel(_channel)->insertEvent(event, startTick);
-                event->setTrack(_track, false);
                 currentProtocol()->endAction();
             } else if(line == MidiEvent::TEXT_EVENT_LINE){
 				currentProtocol()->startNewAction(
 						"Create Text Event", image());
-				event = new TextEvent(16);
+				event = new TextEvent(16, track);
 				TextEvent *textEvent = (TextEvent*)event;
 				textEvent->setText("New Text Event");
 				textEvent->setType(TextEvent::TEXT);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(_channel)->insertEvent(event, startTick);
-				event->setTrack(_track, false);
+
 				currentProtocol()->endAction();
 			} else {
 				if(_standardTool){

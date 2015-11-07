@@ -28,7 +28,7 @@
 class ChannelPressureEvent : public MidiEvent {
 
 	public:
-		ChannelPressureEvent(int channel, int value);
+		ChannelPressureEvent(int channel, int value, MidiTrack *track);
 		ChannelPressureEvent(ChannelPressureEvent &other);
 
 		virtual int line();

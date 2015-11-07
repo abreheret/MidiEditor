@@ -115,7 +115,7 @@ RecordDialog::RecordDialog(MidiFile *file, QMultiMap<int, MidiEvent*> data,
 void RecordDialog::enter(){
 
 	int channel = _channelBox->currentIndex();
-	int track = _trackBox->currentIndex();
+	MidiTrack *track = _file->track(_trackBox->currentIndex());
 	bool ownChannel = channel == 16;
 
 	if(_data.size()>0){

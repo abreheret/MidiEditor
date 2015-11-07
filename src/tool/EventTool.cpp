@@ -53,7 +53,7 @@ void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 		return;
 	}
 
-	if(event->file()->track(event->track())->hidden()){
+	if(event->track()->hidden()){
 		return;
 	}
 
@@ -180,6 +180,12 @@ void EventTool::pasteAction(){
 	if(copiedEvents->count()>0){
 
 		// check whether channles / tracks exist which differ from the channel / track to assign new notes to
+		bool multipleTracks = false;
+		bool multipleChannels = false;
+		bool allTracksExist = true;
+		int lastChannel = -1;
+		MidiTrack *lastTrack = 0;
+
 
 
 		// Begin a new ProtocolAction

@@ -26,8 +26,8 @@
 #include <QLayout>
 #include "../midi/MidiFile.h"
 
-ControlChangeEvent::ControlChangeEvent(int channel, int control, int value) :
-		MidiEvent(channel)
+ControlChangeEvent::ControlChangeEvent(int channel, int control, int value, MidiTrack *track) :
+		MidiEvent(channel, track)
 {
 	_control = control;
 	_value = value;

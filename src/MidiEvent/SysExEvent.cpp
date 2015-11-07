@@ -21,7 +21,7 @@
 #include <QLabel>
 #include <QLayout>
 
-SysExEvent::SysExEvent(int channel, QByteArray data) : MidiEvent(channel){
+SysExEvent::SysExEvent(int channel, QByteArray data, MidiTrack *track) : MidiEvent(channel, track){
 	_data = data;
 }
 

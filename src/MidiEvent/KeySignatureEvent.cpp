@@ -20,7 +20,7 @@
 
 #include <QLayout>
 
-KeySignatureEvent::KeySignatureEvent(int channel, int tonality, bool minor) : MidiEvent(channel){
+KeySignatureEvent::KeySignatureEvent(int channel, int tonality, bool minor, MidiTrack *track) : MidiEvent(channel, track){
 	_tonality = tonality;
 	_minor = minor;
 }

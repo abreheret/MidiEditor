@@ -27,7 +27,7 @@
 #include <QLayout>
 
 TimeSignatureEvent::TimeSignatureEvent(int channel, int num, int denom,
-		int midiClocks, int num32In4) : MidiEvent(channel)
+		int midiClocks, int num32In4, MidiTrack *track) : MidiEvent(channel, track)
 {
 	numerator = num;
 	denominator = denom;

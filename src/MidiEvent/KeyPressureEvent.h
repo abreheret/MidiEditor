@@ -28,7 +28,7 @@
 class KeyPressureEvent : public MidiEvent {
 
 	public:
-		KeyPressureEvent(int channel, int value, int note);
+		KeyPressureEvent(int channel, int value, int note, MidiTrack *track);
 		KeyPressureEvent(KeyPressureEvent &other);
 
 		virtual int line();

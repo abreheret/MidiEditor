@@ -24,7 +24,7 @@
 #include <QLabel>
 #include <QLayout>
 
-TempoChangeEvent::TempoChangeEvent(int channel, int value) : MidiEvent(channel){
+TempoChangeEvent::TempoChangeEvent(int channel, int value, MidiTrack *track) : MidiEvent(channel, track){
 	_beats = 60000000/value;
 }
 

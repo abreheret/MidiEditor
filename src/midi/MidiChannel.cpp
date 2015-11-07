@@ -157,19 +157,16 @@ QColor *MidiChannel::color(){
 	return _color;
 }
 
-void MidiChannel::insertNote(int note, int startTick, int endTick,int velocity, int track){
+void MidiChannel::insertNote(int note, int startTick, int endTick,int velocity, MidiTrack *track){
 	ProtocolEntry *toCopy = copy();
-	NoteOnEvent *onEvent = new NoteOnEvent(note, velocity, number());
+	NoteOnEvent *onEvent = new NoteOnEvent(note, velocity, number(), track);
 
-	OffEvent *off = new OffEvent(number(), 127-note);
+	OffEvent *off = new OffEvent(number(), 127-note, track);
 
 	off->setFile(file());
 	off->setMidiTime(endTick, false);
 	onEvent->setFile(file());
 	onEvent->setMidiTime(startTick, false);
-
-	onEvent->setTrack(track, false);
-	off->setTrack(track, false);
 
 	protocol(toCopy, this);
 }
@@ -184,8 +181,8 @@ void MidiChannel::removeEvent(MidiEvent *event){
 	}
 
 	// remove from track if its the trackname
-	if(number() == 16 && (MidiEvent*)(file()->tracks()->at(event->track())->nameEvent()) == event){
-		file()->tracks()->at(event->track())->setNameEvent(0);
+	if(number() == 16 && (MidiEvent*)(event->track()->nameEvent()) == event){
+		event->track()->setNameEvent(0);
 	}
 
 	ProtocolEntry *toCopy = copy();

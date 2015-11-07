@@ -25,7 +25,7 @@ class QWdiget;
 class UnknownEvent : public MidiEvent{
 
 	public:
-		UnknownEvent(int channel, int type, QByteArray data);
+		UnknownEvent(int channel, int type, QByteArray data, MidiTrack *track);
 		QByteArray data();
 		int line();
 		QByteArray save();

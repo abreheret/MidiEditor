@@ -22,8 +22,8 @@
 #include <QLabel>
 #include <QLayout>
 
-KeyPressureEvent::KeyPressureEvent(int channel, int value, int note) :
-		MidiEvent(channel)
+KeyPressureEvent::KeyPressureEvent(int channel, int value, int note, MidiTrack *track) :
+		MidiEvent(channel, track)
 {
 	_value = value;
 	_note = note;

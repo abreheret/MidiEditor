@@ -26,7 +26,7 @@ class QWdiget;
 class SysExEvent : public MidiEvent{
 
 	public:
-		SysExEvent(int channel, QByteArray data);
+		SysExEvent(int channel, QByteArray data, MidiTrack *track);
 		QByteArray data();
 		int line();
 		QByteArray save();

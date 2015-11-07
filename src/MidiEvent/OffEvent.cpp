@@ -21,7 +21,7 @@
 
 QMultiMap<int, OnEvent*> *OffEvent::onEvents = new QMultiMap<int, OnEvent*>();
 
-OffEvent::OffEvent(int ch, int l) : MidiEvent(ch) {
+OffEvent::OffEvent(int ch, int l, MidiTrack *track) : MidiEvent(ch, track) {
 	_line = l;
 	_onEvent = 0;
 	QList<OnEvent*> eventsToClose = onEvents->values(line());

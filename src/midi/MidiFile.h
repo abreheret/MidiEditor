@@ -84,7 +84,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 		ProtocolEntry *copy();
 		void reloadState(ProtocolEntry *entry);
 		MidiFile *file();
-		bool removeTrack(int number);
+		bool removeTrack(MidiTrack *track);
 		MidiTrack *track(int number);
 
 		int tonalityAt(int tick);

@@ -29,7 +29,7 @@
 class KeySignatureEvent  : public MidiEvent {
 
 	public:
-		KeySignatureEvent(int channel, int tonality, bool minor);
+		KeySignatureEvent(int channel, int tonality, bool minor, MidiTrack *track);
 		KeySignatureEvent(KeySignatureEvent &other);
 
 		virtual int line();

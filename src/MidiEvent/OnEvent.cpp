@@ -21,8 +21,9 @@
 #include "OffEvent.h"
 #include <QBoxLayout>
 #include "../midi/MidiFile.h"
+#include "../midi/MidiTrack.h"
 
-OnEvent::OnEvent(int ch) : MidiEvent(ch){
+OnEvent::OnEvent(int ch, MidiTrack *track) : MidiEvent(ch, track){
 	_offEvent = 0;
 
 	return;
@@ -116,8 +117,8 @@ void OnEvent::editByWidget(){
 	if(off->midiTime()!=_off_tick_box->value()){
 		off->setMidiTime(_off_tick_box->value(), true);
 	}
-	if(off->track()!=_track_spinBox->value()){
-		off->setTrack(_track_spinBox->value());
+	if(off->track()->number()!=_track_spinBox->value()){
+		off->setTrack(file()->track(_track_spinBox->value()));
 	}
 	if(off->channel()!=_channel_spinBox->value()){
 		off->setChannel(_channel_spinBox->value());

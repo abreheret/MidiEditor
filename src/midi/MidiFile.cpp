@@ -59,15 +59,13 @@ MidiFile::MidiFile(){
 	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 
 	// add timesig
-	TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8);
+	TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8, track);
 	timeSig->setFile(this);
-	timeSig->setTrack(0, false);
 	channel(18)->eventMap()->insert(0, timeSig);
 
 	// create tempo change
-	TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000);
+	TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000, track);
 	tempoEv->setFile(this);
-	tempoEv->setTrack(0, false);
 	channel(17)->eventMap()->insert(0, tempoEv);
 
 	playerMap = new QMultiMap<int, MidiEvent*>;
@@ -213,7 +211,7 @@ bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 
 		position+=deltaTime(content);
 
-		MidiEvent *event = MidiEvent::loadMidiEvent(content, &ok, &endEvent);
+		MidiEvent *event = MidiEvent::loadMidiEvent(content, &ok, &endEvent, track);
 		if(!ok){
 			return false;
 		}
@@ -244,7 +242,7 @@ bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 		}
 
 		event->setFile(this);
-		event->setTrack(num, false);
+
 		// also inserts to the Map of the channel
 		event->setMidiTime(position, false);
 	}
@@ -258,7 +256,7 @@ bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 	// this will be done after reading the first track
 	if(!channel(18)->eventMap()->contains(0)){
 		log->append("Warning: no TimeSignatureEvent detected at tick 0. Adding default value.");
-		TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8);
+		TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8, track);
 		timeSig->setFile(this);
 		timeSig->setTrack(0, false);
 		channel(18)->eventMap()->insert(0, timeSig);
@@ -267,7 +265,7 @@ bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 	// check whether TempoChangeEvent at tick 0 is given. If not, create one.
 	if(!channel(17)->eventMap()->contains(0)){
 		log->append("Warning: no TempoChangeEvent detected at tick 0. Adding default value.");
-		TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000);
+		TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000, track);
 		tempoEv->setFile(this);
 		tempoEv->setTrack(0, false);
 		channel(17)->eventMap()->insert(0, tempoEv);
@@ -858,7 +856,7 @@ void MidiFile::preparePlayerData(int tickFrom){
 			if(tick>=tickFrom){
 				// all Events after cursorTick are added
 				int ms = msOfTick(tick);
-				if(!track(event->track())->muted()){
+				if(!event->track()->muted()){
 					playerMap->insert(ms, event);
 				}
 			} else {
@@ -976,7 +974,7 @@ bool MidiFile::save(QString path){
 			MidiEvent *event = it.value();
 			int tick = it.key();
 
-			if(num == event->track()){
+			if(_tracks->at(num) == event->track()){
 
 				// write the deltaTime before the event
 				int time = tick-currentTick;
@@ -1114,7 +1112,9 @@ void MidiFile::addTrack(){
 	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 }
 
-bool MidiFile::removeTrack(int number){
+bool MidiFile::removeTrack(MidiTrack *track){
+
+	// TODO
 
 	if(numTracks()<2){
 		return false;
@@ -1134,16 +1134,12 @@ bool MidiFile::removeTrack(int number){
 	QMultiMap<int, MidiEvent*>::iterator it=allEvents.begin();
 	while(it!=allEvents.end()){
 		MidiEvent *event = it.value();
-		if(event->track() == number){
+		if(event->track() == track){
 			channels[event->channel()]->removeEvent(event);
-		}
-		if(event->track() > number){
-			event->setTrack(event->track()-1, false);
 		}
 		it++;
 	}
 
-	MidiTrack *track = _tracks->at(number);
 	_tracks->removeAll(track);
 
 	ProtocolEntry::protocol(toCopy, this);
@@ -1152,7 +1148,11 @@ bool MidiFile::removeTrack(int number){
 }
 
 MidiTrack *MidiFile::track(int number){
-	return _tracks->at(number);
+	if(_tracks->size()>number){
+		return _tracks->at(number);
+	} else {
+		return 0;
+	}
 }
 
 int MidiFile::tonalityAt(int tick){

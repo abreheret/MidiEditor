@@ -30,6 +30,7 @@ class MidiEvent;
 class RtMidiIn;
 class RtMidiOut;
 class QStringList;
+class MidiTrack;
 
 class MidiInput : public QObject {
 
@@ -45,7 +46,7 @@ class MidiInput : public QObject {
 		static QString inputPort();
 
 		static void startInput();
-		static QMultiMap<int, MidiEvent*> endInput();
+		static QMultiMap<int, MidiEvent*> endInput(MidiTrack *track);
 
 		static void receiveMessage(double deltatime,
 				std::vector< unsigned char > *message, void *userData = 0);
