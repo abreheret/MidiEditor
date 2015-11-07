@@ -76,7 +76,7 @@ void InstrumentChooser::accept(){
 
 	int program = _box->currentIndex();
 	bool removeOthers = _removeOthers->isChecked();
-	int track = 0;
+	MidiTrack *track = 0;
 
 	// get events
 	QList<ProgChangeEvent*> events;
@@ -95,9 +95,8 @@ void InstrumentChooser::accept(){
 		event = events.first();
 		event->setProgram(program);
 	} else {
-		event = new ProgChangeEvent(_channel, program);
+		event = new ProgChangeEvent(_channel, program, track);
 		_file->channel(_channel)->insertEvent(event, 0);
-		event->setTrack(track, false);
 	}
 
 	if(removeOthers){

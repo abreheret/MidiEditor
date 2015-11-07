@@ -49,7 +49,7 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PaintWidget(parent) {
 	endLineY = 0;
 	file = 0;
 	scaleX = 1;
-	pianoEvent = new NoteOnEvent(0,100,0);
+	pianoEvent = new NoteOnEvent(0,100,0, 0);
     scaleY = 1;
     lineNameWidth = 110;
     timeHeight = 50;
@@ -550,9 +550,9 @@ void MatrixWidget::paintChannel(QPainter *painter, int channel){
 			event->setWidth(width);
 			event->setHeight(height);
 
-			if(!event->file()->track(event->track())->hidden()){
+			if(!event->track()->hidden()){
 				if(!_colorsByChannels){
-					cC = *file->track(event->track())->color();
+					cC = *event->track()->color();
 				}
 				event->draw(painter, cC);
 			}

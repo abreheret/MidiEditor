@@ -23,7 +23,7 @@
 #include <QLayout>
 #include "../midi/MidiFile.h"
 
-ProgChangeEvent::ProgChangeEvent(int channel, int prog) : MidiEvent(channel){
+ProgChangeEvent::ProgChangeEvent(int channel, int prog, MidiTrack *track) : MidiEvent(channel, track){
 	_program = prog;
 }
 

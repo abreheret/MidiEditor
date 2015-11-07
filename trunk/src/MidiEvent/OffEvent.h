@@ -28,7 +28,7 @@ class OnEvent;
 class OffEvent : public MidiEvent{
 
 	public:
-		OffEvent(int ch, int line);
+		OffEvent(int ch, int line, MidiTrack *track);
 		OffEvent(OffEvent &other);
 
 		void setOnEvent(OnEvent *event);

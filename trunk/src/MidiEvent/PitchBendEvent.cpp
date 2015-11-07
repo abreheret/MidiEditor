@@ -26,8 +26,8 @@
 #include <QLayout>
 #include "../midi/MidiFile.h"
 
-PitchBendEvent::PitchBendEvent(int channel, int value) :
-		MidiEvent(channel)
+PitchBendEvent::PitchBendEvent(int channel, int value, MidiTrack *track) :
+		MidiEvent(channel, track)
 {
 	_value = value;
 }

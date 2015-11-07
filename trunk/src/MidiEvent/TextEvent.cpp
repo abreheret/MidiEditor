@@ -25,7 +25,7 @@
 #include <QSpinBox>
 #include <QMessageBox>
 
-TextEvent::TextEvent(int channel) : MidiEvent(channel) {
+TextEvent::TextEvent(int channel, MidiTrack *track) : MidiEvent(channel, track) {
 	_type = TEXT;
 	_text = "";
 }
@@ -155,18 +155,18 @@ void TextEvent::generateWidget(QWidget *widget){
 
 void TextEvent::editByWidget(){
 
-	int oldTrack = track();
+	MidiTrack *oldTrack = track();
 	int oldType = type();
 
 	// only one trackname event accepted per track
-	if(_type_combo->currentIndex() != _type-1|| _track_spinBox->value() != track()){
+	if(_type_combo->currentIndex() != _type-1|| _track_spinBox->value() != track()->number()){
 		if(_type_combo->currentIndex() == TextEvent::TRACKNAME-1){
 			if(file()->tracks()->size()>_track_spinBox->value() && file()->tracks()->at(_track_spinBox->value())->nameEvent()){
 				QMessageBox::warning(0,	"Error", QString("The track "+
 								QString::number(_track_spinBox->value())+
 								" already has a trackname TextEvent! Abort!"));
 				_type_combo->setCurrentIndex(_type-1);
-				_track_spinBox->setValue(track());
+				_track_spinBox->setValue(track()->number());
 				return;
 			}
 		}
@@ -184,11 +184,11 @@ void TextEvent::editByWidget(){
 
 	// set this event to the new track
 	if(oldType == TextEvent::TRACKNAME && _type != TextEvent::TRACKNAME){
-		file()->tracks()->at(oldTrack)->setNameEvent(0);
+		oldTrack->setNameEvent(0);
 	} else if(oldType == TextEvent::TRACKNAME && oldTrack != track()){
-		file()->tracks()->at(oldTrack)->setNameEvent(0);
-		file()->tracks()->at(track())->setNameEvent(this);
+		oldTrack->setNameEvent(0);
+		track()->setNameEvent(this);
 	} else if(_type == TextEvent::TRACKNAME){
-		file()->tracks()->at(track())->setNameEvent(this);
+		track()->setNameEvent(this);
 	}
 }

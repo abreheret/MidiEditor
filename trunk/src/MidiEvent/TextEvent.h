@@ -31,7 +31,7 @@ class TextEvent : public MidiEvent {
 
 	public:
 
-		TextEvent(int channel);
+		TextEvent(int channel, MidiTrack *track);
 		TextEvent(TextEvent &other);
 
 		QString text();

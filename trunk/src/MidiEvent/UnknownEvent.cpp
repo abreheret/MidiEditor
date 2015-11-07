@@ -23,7 +23,7 @@
 
 #include "../midi/MidiFile.h"
 
-UnknownEvent::UnknownEvent(int channel, int type, QByteArray data) : MidiEvent(channel){
+UnknownEvent::UnknownEvent(int channel, int type, QByteArray data, MidiTrack *track) : MidiEvent(channel, track){
 	_data = data;
 	_type = type;
 }

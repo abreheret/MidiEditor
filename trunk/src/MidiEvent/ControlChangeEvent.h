@@ -29,7 +29,7 @@ class QSpinBox;
 class ControlChangeEvent : public MidiEvent {
 
 	public:
-		ControlChangeEvent(int channel, int contr, int val);
+		ControlChangeEvent(int channel, int contr, int val, MidiTrack *track);
 		ControlChangeEvent(ControlChangeEvent &other);
 
 		virtual int line();

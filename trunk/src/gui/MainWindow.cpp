@@ -493,6 +493,7 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 	disconnect(MidiPlayer::playerThread(),
 			SIGNAL(playerStopped()), this,	SLOT(stop()));
 
+
 	if(resetPause){
 		file->setPauseTick(-1);
 		mw_matrixWidget->update();
@@ -511,6 +512,11 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		panic();
 	}
 
+	MidiTrack *track = file->track(NewNoteTool::editTrack());
+	if(!track){
+		return;
+	}
+
 	if(MidiInput::recording()){
 		MidiPlayer::stop();
 		panic();
@@ -520,7 +526,8 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		mw_matrixWidget->setEnabled(true);
 		_trackWidget->setEnabled(true);
 		_remoteServer->stop();
-		QMultiMap<int, MidiEvent*> events = MidiInput::endInput();
+
+		QMultiMap<int, MidiEvent*> events = MidiInput::endInput(track);
 
 		RecordDialog *dialog = new RecordDialog(file, events, this);
 		dialog->setModal(true);
@@ -1131,17 +1138,16 @@ void MainWindow::moveSelectedEventsToTrack(QAction *action){
 	}
 
 	int num = action->data().toInt();
-	MidiChannel *channel = file->channel(num);
+	MidiTrack *track = file->track(num);
 
     if (EventTool::selectedEventList()->size()>0){
     	file->protocol()->startNewAction("Move selected events to track "+QString::number(num));
 		foreach(MidiEvent *ev, *EventTool::selectedEventList()){
-			ev->setTrack(num, true);
+			ev->setTrack(track, true);
 			OnEvent *onevent = dynamic_cast<OnEvent*>(ev);
 			if(onevent){
-				onevent->offEvent()->setTrack(num);
+				onevent->offEvent()->setTrack(track);
 			}
-			channel->insertEvent(ev, ev->midiTime());
 		}
 
     	file->protocol()->endAction();
@@ -1430,9 +1436,9 @@ void MainWindow::removeTrack(int tracknumber){
 	if(!file){
 		return;
 	}
-
+	MidiTrack *track = file->track(tracknumber);
 	file->protocol()->startNewAction("Remove Track");
-	if(!file->removeTrack(tracknumber)){
+	if(!file->removeTrack(track)){
 		QMessageBox::warning(this, "Error", QString("The selected Track can\'t be removed!\n It\'s the last Track of the File!"));
 	}
 	file->protocol()->endAction();

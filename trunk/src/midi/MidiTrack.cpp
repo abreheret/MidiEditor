@@ -55,11 +55,10 @@ QString MidiTrack::name(){
 void MidiTrack::setName(QString name){
 
 	if(!_nameEvent){
-		_nameEvent = new TextEvent(16);
+		_nameEvent = new TextEvent(16, this);
 		_nameEvent->setFile(_file);
 		_nameEvent->setMidiTime(0, false);
 		_nameEvent->setType(TextEvent::TRACKNAME);
-		_nameEvent->setTrack(number(), true);
 		_file->channel(16)->insertEvent(_nameEvent, 0);
 	}
 

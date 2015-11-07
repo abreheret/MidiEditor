@@ -27,7 +27,7 @@ class QLabel;
 class ProgChangeEvent : public MidiEvent {
 
 	public:
-		ProgChangeEvent(int channel, int prog);
+		ProgChangeEvent(int channel, int prog, MidiTrack *track);
 		ProgChangeEvent(ProgChangeEvent &other);
 
 		virtual int line();

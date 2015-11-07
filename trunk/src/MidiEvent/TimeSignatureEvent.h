@@ -30,7 +30,7 @@ class TimeSignatureEvent : public MidiEvent {
 
 	public:
 		TimeSignatureEvent(int channel, int num, int denom, int midiClocks,
-				int num32In4);
+				int num32In4, MidiTrack *track);
 		TimeSignatureEvent(TimeSignatureEvent &other);
 		int num();
 		int denom();

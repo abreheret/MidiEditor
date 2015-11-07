@@ -28,7 +28,7 @@
 class TempoChangeEvent : public MidiEvent {
 
 	public:
-		TempoChangeEvent(int channel, int value);
+		TempoChangeEvent(int channel, int value, MidiTrack *track);
 		TempoChangeEvent(TempoChangeEvent &other);
 
 		int beatsPerQuarter();

@@ -30,15 +30,16 @@ class QSpinBox;
 class QLabel;
 class QWidget;
 class EventWidget;
+class MidiTrack;
 
 class MidiEvent : public ProtocolEntry, public GraphicObject{
 
 	public:
-		MidiEvent(int channel);
+		MidiEvent(int channel, MidiTrack *track);
 		MidiEvent(MidiEvent &other);
 
 		static MidiEvent *loadMidiEvent(QDataStream *content,
-				bool *ok, bool *endEvent, quint8 startByte = 0,
+				bool *ok, bool *endEvent, MidiTrack *track, quint8 startByte = 0,
 				quint8 secondByte = 0);
 
 		static EventWidget *eventWidget();
@@ -57,8 +58,8 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 			SYSEX_LINE,
 			UNKNOWN_LINE
 		};
-		void setTrack(int num, bool toProtocol=true);
-		int track();
+		void setTrack(MidiTrack *track, bool toProtocol=true);
+		MidiTrack *track();
 		void setChannel(int channel, bool toProtocol=true);
 		int channel();
 		virtual void setMidiTime(int t, bool toProtocol = true);
@@ -82,7 +83,7 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		virtual bool isOnEvent();
 
 	protected:
-		int numTrack, numChannel, timePos;
+		int numChannel, timePos;
 		static QSpinBox *_channel_spinBox, *_track_spinBox, *_timePos_spinBox;
 		static QLabel *_channel_label, *_track_label, *_timePos_label,
 			*_title_label;
@@ -90,7 +91,7 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		MidiFile *midiFile;
 		static quint8 _startByte;
 		static EventWidget *_eventWidget;
-
+		MidiTrack *_track;
 };
 
 #endif

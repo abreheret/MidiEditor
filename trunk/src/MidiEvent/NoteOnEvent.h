@@ -29,7 +29,7 @@ class OffEvent;
 class NoteOnEvent : public OnEvent{
 
 	public:
-		NoteOnEvent(int note, int velocity, int ch);
+		NoteOnEvent(int note, int velocity, int ch, MidiTrack *track);
 		NoteOnEvent(NoteOnEvent &other);
 
 		int note();

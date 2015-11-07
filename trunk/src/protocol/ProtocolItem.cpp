@@ -19,6 +19,7 @@
 #include "ProtocolItem.h"
 #include "ProtocolEntry.h"
 #include "../midi/MidiFile.h"
+#include "../midi/MidiTrack.h"
 
 ProtocolItem::ProtocolItem(ProtocolEntry *oldObj, ProtocolEntry *newObj){
 	_oldObject = oldObj;
@@ -31,9 +32,10 @@ ProtocolItem *ProtocolItem::release(){
 	_newObject->reloadState(_oldObject);
 
 	//files can be protocolled too but they must not be deleted
-	if(_oldObject->file()!=_oldObject){
-		delete _oldObject;
+	if(!dynamic_cast<MidiTrack*>(entry)){
+		if(_oldObject->file()!=_oldObject){
+			delete _oldObject;
+		}
 	}
-
 	return new ProtocolItem(entry, _newObject);
 }

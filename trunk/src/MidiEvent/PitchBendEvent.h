@@ -29,7 +29,7 @@ class QSpinBox;
 class PitchBendEvent : public MidiEvent {
 
 	public:
-		PitchBendEvent(int channel, int val);
+		PitchBendEvent(int channel, int val, MidiTrack *track);
 		PitchBendEvent(PitchBendEvent &other);
 
 		virtual int line();
