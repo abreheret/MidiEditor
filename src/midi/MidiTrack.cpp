@@ -31,7 +31,7 @@ MidiTrack::MidiTrack(MidiFile *file) : ProtocolEntry() {
 	_color = new QColor(Qt::red);
 }
 
-MidiTrack::MidiTrack(MidiTrack &other) : ProtocolEntry(other) {
+MidiTrack::MidiTrack(MidiTrack &other) : QObject(), ProtocolEntry(other) {
 	_number = other._number;
 	_nameEvent = other._nameEvent;
 	_file = other._file;
@@ -40,6 +40,9 @@ MidiTrack::MidiTrack(MidiTrack &other) : ProtocolEntry(other) {
 	_color = other._color;
 }
 
+MidiTrack::~MidiTrack(){
+
+}
 
 MidiFile *MidiTrack::file(){
 	return _file;
@@ -149,4 +152,15 @@ bool MidiTrack::muted(){
 
 QColor *MidiTrack::color(){
 	return _color;
+}
+
+MidiTrack *MidiTrack::copyToFile(MidiFile *file){
+
+	file->addTrack();
+	MidiTrack *newTrack = file->tracks()->last();
+	newTrack->setName(this->name());
+
+	file->registerCopiedTrack(this, newTrack, this->file());
+
+	return newTrack;
 }

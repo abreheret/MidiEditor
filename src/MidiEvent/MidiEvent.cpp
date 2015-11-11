@@ -45,14 +45,14 @@
 quint8 MidiEvent::_startByte = 0;
 EventWidget *MidiEvent::_eventWidget = 0;
 
-MidiEvent::MidiEvent(int channel, MidiTrack *track) : GraphicObject(), ProtocolEntry(){
+MidiEvent::MidiEvent(int channel, MidiTrack *track) : ProtocolEntry(), GraphicObject(){
 	_track = track;
 	numChannel = channel;
 	timePos = 0;
 	midiFile = 0;
 }
 
-MidiEvent::MidiEvent(MidiEvent &other) : GraphicObject(), ProtocolEntry(other) {
+MidiEvent::MidiEvent(MidiEvent &other) : ProtocolEntry(other), GraphicObject() {
 	_track = other._track;
 	numChannel = other.numChannel;
 	timePos = other.timePos;

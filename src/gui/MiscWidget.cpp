@@ -97,6 +97,12 @@ void MiscWidget::paintEvent(QPaintEvent *event){
         painter->drawLine(0, (i*height())/8, width(), (i*height())/8);
     }
 
+	// divs
+	typedef QPair<int, int> TMPPair;
+	foreach(TMPPair p, matrixWidget->divs()){
+		painter->drawLine(p.first-LEFT_BORDER_MATRIX_WIDGET, 0, p.first-LEFT_BORDER_MATRIX_WIDGET, height());
+	}
+
     // draw contents
     if(mode == VelocityEditor){
 

@@ -66,6 +66,7 @@ class MatrixWidget : public PaintWidget {
 
         int msOfTick(int tick);
         int xPosOfMs(int ms);
+		QList<QPair<int, int> > divs();
 
 	public slots:
 		void scrollXChanged(int scrollPositionX);
@@ -79,6 +80,7 @@ class MatrixWidget : public PaintWidget {
 		void calcSizes();
 		void takeKeyPressEvent(QKeyEvent *event);
 		void takeKeyReleaseEvent(QKeyEvent *event);
+		void setDiv(int div);
 
 	signals:
 		void sizeChanged(int maxScrollTime, int maxScrollLine, int valueX,
@@ -123,11 +125,13 @@ class MatrixWidget : public PaintWidget {
 
 		// All Events to show in the velocityWidget are saved in velocityObjects
 		QList<MidiEvent*> *objects, *velocityObjects;
+		QList<QPair<int, int> > currentDivs;
 
 		// To play the pianokeys, there is one NoteOnEvent
 		NoteOnEvent *pianoEvent;
 
 		bool _colorsByChannels;
+		int _div;
 };
 
 #endif

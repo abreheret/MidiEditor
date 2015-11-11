@@ -383,6 +383,7 @@ void MainWindow::setFile(MidiFile *file){
 
 	NewNoteTool::setEditTrack(0);
 	NewNoteTool::setEditChannel(0);
+	EventTool::clearSelection();
 
 	protocolWidget->setFile(file);
 	channelWidget->setFile(file);
@@ -554,7 +555,7 @@ void MainWindow::forward(){
 		oldTick = file->tick(MidiPlayer::timeMs());
 		stop(true);
 	}
-	int measure = file->measure(oldTick, oldTick, &eventlist, &ticksleft);
+	file->measure(oldTick, oldTick, &eventlist, &ticksleft);
 
 	int newTick = oldTick - ticksleft + eventlist->last()->ticksPerMeasure();
 	file->setPauseTick(-1);
@@ -578,14 +579,14 @@ void MainWindow::back(){
 		oldTick = file->tick(MidiPlayer::timeMs());
 		stop(true);
 	}
-	int measure = file->measure(oldTick, oldTick, &eventlist, &ticksleft);
+	file->measure(oldTick, oldTick, &eventlist, &ticksleft);
 	int newTick = oldTick;
 	if(ticksleft > 0){
 		newTick -= ticksleft;
 	} else {
 		newTick -= eventlist->last()->ticksPerMeasure();
 	}
-	measure = file->measure(newTick, newTick, &eventlist, &ticksleft);
+	file->measure(newTick, newTick, &eventlist, &ticksleft);
 	if(ticksleft > 0){
 		newTick -= ticksleft;
 	}
@@ -765,10 +766,12 @@ void MainWindow::openFile(QString filePath){
 
 void MainWindow::redo(){
 	if(file) file->protocol()->redo(true);
+	updateTrackMenu();
 }
 
 void MainWindow::undo(){
 	if(file) file->protocol()->undo(true);
+	updateTrackMenu();
 }
 
 EventWidget *MainWindow::eventWidget(){
@@ -1349,6 +1352,34 @@ void MainWindow::updateTrackMenu() {
 		NewNoteTool::setEditTrack(0);
 	}
 	_chooseEditTrack->setCurrentIndex(NewNoteTool::editTrack());
+
+	_pasteToTrackMenu->clear();
+	QActionGroup *pasteTrackGroup = new QActionGroup(this);
+	pasteTrackGroup->setExclusive(true);
+
+	bool checked = false;
+	for(int i = -1; i<file->numTracks(); i++){
+		QVariant variant(i);
+		QString text = QString::number(i);
+		if(i<0){
+			text = "Keep track";
+		} else {
+			text = "Track "+QString::number(i)+": "+file->tracks()->at(i)->name();
+		}
+		QAction *pasteToTrackAction = new QAction(text, this);
+		pasteToTrackAction->setData(variant);
+		pasteToTrackAction->setCheckable(true);
+		_pasteToTrackMenu->addAction(pasteToTrackAction);
+		pasteTrackGroup->addAction(pasteToTrackAction);
+		if(i>-1 && (EventTool::pasteTrack() == file->track(i))){
+			pasteToTrackAction->setChecked(true);
+			checked = true;
+		}
+	}
+	if(!checked){
+		_pasteToTrackMenu->actions().first()->setChecked(true);
+		EventTool::setPasteTrack(0);
+	}
 }
 
 void MainWindow::muteChannel(QAction *action){
@@ -1841,6 +1872,30 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	pasteAction->setShortcut(QKeySequence::Paste);
 	pasteAction->setIcon(QIcon("graphics/tool/paste.png"));
     connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
+	_pasteToTrackMenu = new QMenu("Paste events to track...");
+	_pasteToChannelMenu = new QMenu("Paste events to channel...");
+	QMenu *pasteOptionsMenu = new QMenu();
+	pasteOptionsMenu->addMenu(_pasteToChannelMenu);
+	QActionGroup *pasteChannelGroup = new QActionGroup(this);
+	pasteChannelGroup->setExclusive(true);
+	connect(_pasteToChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT(pasteToChannel(QAction*)));
+	connect(_pasteToTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(pasteToTrack(QAction*)));
+
+	for(int i = -1; i<16; i++){
+		QVariant variant(i);
+		QString text = QString::number(i);
+		if(i<0){
+			text = "Keep channel";
+		}
+		QAction *pasteToChannelAction = new QAction(text, this);
+		pasteToChannelAction->setData(variant);
+		pasteToChannelAction->setCheckable(true);
+		_pasteToChannelMenu->addAction(pasteToChannelAction);
+		pasteChannelGroup->addAction(pasteToChannelAction);
+		pasteToChannelAction->setChecked(i<0);
+	}
+	pasteOptionsMenu->addMenu(_pasteToTrackMenu);
+	pasteAction->setMenu(pasteOptionsMenu);
     editMB->addAction(pasteAction);
 
     editMB->addSeparator();
@@ -1896,6 +1951,15 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     QAction *transposeAction = new QAction("Transpose Selection...", this);
     connect(transposeAction, SIGNAL(triggered()), this, SLOT(transposeNSemitones()));
     editMB->addAction(transposeAction);
+
+	editMB->addSeparator();
+
+	QAction *magnetAction = new QAction("Magnet", editMB);
+	editMB->addAction(magnetAction);
+	magnetAction->setIcon(QIcon("graphics/tool/magnet.png"));
+	magnetAction->setCheckable(true);
+	magnetAction->setChecked(false);
+	connect(magnetAction, SIGNAL(toggled(bool)), this, SLOT(enableMagnet(bool)));
 
     // channels
     QAction *allChannelsVisible = new QAction("Show all Channels", this);
@@ -2089,6 +2153,36 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     viewMB->addMenu(colorMenu);
     colorsByChannel();
 
+	viewMB->addSeparator();
+
+	QMenu *divMenu = new QMenu("Raster", viewMB);
+	QActionGroup *divGroup = new QActionGroup(viewMB);
+	divGroup->setExclusive(true);
+
+	for(int i = -1; i<=5; i++){
+		QVariant variant(i);
+		QString text = "Off";
+		if(i>=0){
+			if(i == 0){
+				text = "Whole note";
+			} else if(i == 1){
+				text = "Half note";
+			} else if(i == 2){
+				text = "Quarter note";
+			} else {
+				text = QString::number((int)qPow(2, i))+"th note";
+			}
+		}
+		QAction *a = new QAction(text, this);
+		a->setData(variant);
+		divGroup->addAction(a);
+		divMenu->addAction(a);
+		a->setCheckable(true);
+		a->setChecked(i == 2);
+	}
+	connect(divMenu, SIGNAL(triggered(QAction*)), this, SLOT(divChanged(QAction*)));
+	viewMB->addMenu(divMenu);
+
     // Playback
     QAction *playAction = new QAction("Play", this);
     playAction->setIcon(QIcon("graphics/tool/play.png"));
@@ -2259,9 +2353,32 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     upperTB->addAction(new ToolButton(new NewNoteTool()));
     upperTB->addAction(new ToolButton(new EraserTool()));
 
-   // upperTB->addSeparator();
+	upperTB->addSeparator();
+	upperTB->addAction(magnetAction);
 
     btnLayout->setColumnStretch(3, 1);
 
     return buttonBar;
+}
+
+void MainWindow::pasteToChannel(QAction *action){
+	EventTool::setPasteChannel(action->data().toInt());
+}
+
+void MainWindow::pasteToTrack(QAction *action){
+	int track = action->data().toInt();
+	if(track <0){
+		EventTool::setPasteTrack(0);
+		return;
+	}
+	MidiTrack *t = file->track(track);
+	EventTool::setPasteTrack(t);
+}
+
+void MainWindow::divChanged(QAction* action){
+	mw_matrixWidget->setDiv(action->data().toInt());
+}
+
+void MainWindow::enableMagnet(bool enable){
+	EventTool::enableMagnet(enable);
 }

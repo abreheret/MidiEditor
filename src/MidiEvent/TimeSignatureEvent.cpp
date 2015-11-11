@@ -74,6 +74,7 @@ int TimeSignatureEvent::measures(int ticks, int *ticksLeft){
 ProtocolEntry *TimeSignatureEvent::copy(){
 	return new TimeSignatureEvent(*this);
 }
+
 void TimeSignatureEvent::reloadState(ProtocolEntry *entry){
 	TimeSignatureEvent *other = dynamic_cast<TimeSignatureEvent*>(entry);
 	if(!other){

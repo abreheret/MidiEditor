@@ -45,6 +45,9 @@ class EventMoveTool : public EventTool {
 	protected:
 		bool moveUpDown, moveLeftRight, inDrag;
 		int startX, startY;
+
+	private:
+		int computeRaster();
 };
 
 #endif

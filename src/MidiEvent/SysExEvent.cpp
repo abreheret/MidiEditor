@@ -25,6 +25,10 @@ SysExEvent::SysExEvent(int channel, QByteArray data, MidiTrack *track) : MidiEve
 	_data = data;
 }
 
+SysExEvent::SysExEvent(SysExEvent &other) : MidiEvent(other) {
+	_data = other._data;
+}
+
 QByteArray SysExEvent::data(){
 	return _data;
 }
@@ -54,4 +58,8 @@ void SysExEvent::generateWidget(QWidget *widget){
 
 QString SysExEvent::typeString(){
 	return "System Exclusive Message (SysEx)";
+}
+
+ProtocolEntry *SysExEvent::copy(){
+	return new SysExEvent(*this);
 }

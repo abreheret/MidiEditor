@@ -28,6 +28,11 @@ UnknownEvent::UnknownEvent(int channel, int type, QByteArray data, MidiTrack *tr
 	_type = type;
 }
 
+UnknownEvent::UnknownEvent(UnknownEvent &other) : MidiEvent(other) {
+	_data = other._data;
+	_type = other._type;
+}
+
 QByteArray UnknownEvent::data(){
 	return _data;
 }
@@ -58,4 +63,8 @@ void UnknownEvent::generateWidget(QWidget *widget){
 		layout->addWidget(l);
 		i++;
 	}
+}
+
+ProtocolEntry *UnknownEvent::copy(){
+	return new UnknownEvent(*this);
 }

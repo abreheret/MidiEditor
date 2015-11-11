@@ -36,6 +36,7 @@ class MidiTrack : public QObject, public ProtocolEntry{
 
 		MidiTrack(MidiFile *file);
 		MidiTrack(MidiTrack &other);
+		virtual ~MidiTrack();
 
 		QString name();
 		void setName(QString name);
@@ -58,6 +59,8 @@ class MidiTrack : public QObject, public ProtocolEntry{
 		virtual void reloadState(ProtocolEntry *entry);
 
 		QColor *color();
+
+		MidiTrack *copyToFile(MidiFile *file);
 
 	signals:
 		void trackChanged();

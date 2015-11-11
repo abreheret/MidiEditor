@@ -26,12 +26,13 @@ class UnknownEvent : public MidiEvent{
 
 	public:
 		UnknownEvent(int channel, int type, QByteArray data, MidiTrack *track);
+		UnknownEvent(UnknownEvent &other);
 		QByteArray data();
 		int line();
 		QByteArray save();
 
 		void generateWidget(QWidget *widget);
-
+		virtual ProtocolEntry *copy();
 	private:
 		QByteArray _data;
 		int _type;

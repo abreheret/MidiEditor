@@ -135,6 +135,12 @@ class MainWindow : public QMainWindow {
         void changeMiscMode(int mode);
         void selectModeChanged(QAction *action);
 
+		void pasteToChannel(QAction *action);
+		void pasteToTrack(QAction *action);
+		void divChanged(QAction* action);
+
+		void enableMagnet(bool enable);
+
 	protected:
 		void closeEvent(QCloseEvent *event);
 		void keyPressEvent(QKeyEvent* e);
@@ -154,7 +160,7 @@ class MainWindow : public QMainWindow {
 		QStringList _recentFilePaths;
 		QMenu *_recentPathsMenu, *_channelVisibilityMenu, *_channelMuteMenu, *_channelInstrumentMenu, *_deleteChannelMenu,
 			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu, *_moveSelectedEventsToChannelMenu,
-			*_trackVisibilityMenu, *_trackMuteMenu;
+			*_trackVisibilityMenu, *_trackMuteMenu, *_pasteToTrackMenu, *_pasteToChannelMenu;
 		QTabWidget *lowerTabWidget;
 		QAction *_colorsByChannel, *_colorsByTracks;
 
