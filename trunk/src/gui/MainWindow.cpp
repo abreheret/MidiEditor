@@ -278,18 +278,15 @@ MainWindow::MainWindow() : QMainWindow() {
 	QGridLayout *trackLayout = new QGridLayout(trackWidget);
 	trackWidget->setLayout(trackLayout);
 
-	QScrollArea *trackScroll = new QScrollArea(trackWidget);
-	_trackWidget = new TrackListWidget(trackScroll);
+	_trackWidget = new TrackListWidget(trackWidget);
 	connect(_trackWidget, SIGNAL(trackRenameClicked(int)), this, SLOT(renameTrack(int)), Qt::QueuedConnection);
 	connect(_trackWidget, SIGNAL(trackRemoveClicked(int)), this, SLOT(removeTrack(int)), Qt::QueuedConnection);
-	trackScroll->setWidget(_trackWidget);
-	trackLayout->addWidget(trackScroll, 0, 0, 1, 2);
+	trackLayout->addWidget(_trackWidget, 0, 0, 1, 2);
 
 	QPushButton *addTrackButton = new QPushButton("Add Track", trackWidget);
 	connect(addTrackButton, SIGNAL(clicked()), this, SLOT(addTrack()));
 	trackLayout->addWidget(addTrackButton, 1, 1, 1, 1);
 
-	trackScroll->setWidgetResizable(true);
 	upperTabWidget->addTab(trackWidget, "Tracks");
 
 	// terminal

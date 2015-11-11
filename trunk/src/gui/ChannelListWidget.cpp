@@ -164,16 +164,15 @@ void ChannelListItem::onBeforeUpdate() {
 ChannelListWidget::ChannelListWidget(QWidget *parent) : QListWidget(parent) {
 
 	setSelectionMode(QAbstractItemView::NoSelection);
+	setStyleSheet( "QListWidget::item { border-bottom: 1px solid lightGray; }" );
 
 	for(int channel = 0; channel <17; channel++){
 		ChannelListItem *widget = new ChannelListItem(channel, this);
 		QListWidgetItem *item = new QListWidgetItem();
-		item->setSizeHint(QSize(0,ROW_HEIGHT));
+		item->setSizeHint(QSize(0, ROW_HEIGHT));
 		addItem(item);
 		setItemWidget(item,widget);
 		items.append(widget);
-
-		setStyleSheet( "QListWidget::item { border-bottom: 1px solid lightGray; }" );
 
 		connect(widget, SIGNAL(channelStateChanged()), this, SIGNAL(channelStateChanged()));
 		connect(widget, SIGNAL(selectInstrumentClicked(int)), this, SIGNAL(selectInstrumentClicked(int)));
