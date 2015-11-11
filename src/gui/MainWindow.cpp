@@ -268,13 +268,10 @@ MainWindow::MainWindow() : QMainWindow() {
     leftSplitter->setStretchFactor(1, 1);
 
 	// Channels
-	QScrollArea *channelScroll = new QScrollArea(upperTabWidget);
-	channelWidget = new ChannelListWidget(channelScroll);
+	channelWidget = new ChannelListWidget(upperTabWidget);
 	connect(channelWidget, SIGNAL(channelStateChanged()), this, SLOT(updateChannelMenu()), Qt::QueuedConnection);
 	connect(channelWidget, SIGNAL(selectInstrumentClicked(int)), this, SLOT(setInstrumentForChannel(int)), Qt::QueuedConnection);
-	channelScroll->setWidget(channelWidget);
-	channelScroll->setWidgetResizable(true);
-	upperTabWidget->addTab(channelScroll, "Channels");
+	upperTabWidget->addTab(channelWidget, "Channels");
 
 	// Track
 	QWidget *trackWidget = new QWidget(upperTabWidget);
