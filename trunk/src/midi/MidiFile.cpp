@@ -1082,6 +1082,7 @@ void MidiFile::setMaxLengthMs(int ms){
 ProtocolEntry *MidiFile::copy(){
 	MidiFile *file = new MidiFile(midiTicks, protocol());
 	file->_tracks = new QList<MidiTrack*>(*(_tracks));
+	file->pasteTracks = pasteTracks;
 	return file;
 }
 
@@ -1090,6 +1091,7 @@ void MidiFile::reloadState(ProtocolEntry *entry){
 	if(file){
 		midiTicks=file->midiTicks;
 		_tracks = new QList<MidiTrack*>(*(file->_tracks));
+		pasteTracks = file->pasteTracks;
 	}
 	calcMaxTime();
 }
@@ -1113,8 +1115,6 @@ void MidiFile::addTrack(){
 }
 
 bool MidiFile::removeTrack(MidiTrack *track){
-
-	// TODO
 
 	if(numTracks()<2){
 		return false;
@@ -1142,6 +1142,20 @@ bool MidiFile::removeTrack(MidiTrack *track){
 
 	_tracks->removeAll(track);
 
+	// remove links from pasted tracks
+	foreach(MidiFile *fileFrom, pasteTracks.keys()){
+		QList<MidiTrack*> sourcesToRemove;
+		foreach(MidiTrack *source, pasteTracks.value(fileFrom).keys()){
+			if(pasteTracks.value(fileFrom).value(source) == track){
+				sourcesToRemove.append(source);
+			}
+		}
+		QMap<MidiTrack*, MidiTrack*> tracks = pasteTracks.value(fileFrom);
+		foreach(MidiTrack *source, sourcesToRemove){
+			tracks.remove(source);
+		}
+		pasteTracks.insert(fileFrom, tracks);
+	}
 	ProtocolEntry::protocol(toCopy, this);
 
 	return true;
@@ -1208,4 +1222,36 @@ void MidiFile::printLog(QStringList *log){
 	foreach(QString str, *log){
 		qWarning(str.toUtf8().constData());
 	}
+}
+
+void MidiFile::registerCopiedTrack(MidiTrack *source, MidiTrack *destination, MidiFile *fileFrom){
+
+//	if(fileFrom == this){
+//		return;
+//	}
+
+	ProtocolEntry *toCopy = copy();
+
+	QMap<MidiTrack*, MidiTrack*> list;
+	if(pasteTracks.contains(fileFrom)){
+		list = pasteTracks.value(fileFrom);
+	}
+
+	list.insert(source, destination);
+	pasteTracks.insert(fileFrom, list);
+
+	ProtocolEntry::protocol(toCopy, this);
+}
+
+MidiTrack *MidiFile::getPasteTrack(MidiTrack *source, MidiFile *fileFrom){
+
+//	if(fileFrom == this){
+//		return source;
+//	}
+
+	if(!pasteTracks.contains(fileFrom) || !pasteTracks.value(fileFrom).contains(source)){
+		return 0;
+	}
+
+	return pasteTracks.value(fileFrom).value(source);
 }

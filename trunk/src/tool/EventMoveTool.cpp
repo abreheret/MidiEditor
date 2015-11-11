@@ -72,8 +72,10 @@ void EventMoveTool::reloadState(ProtocolEntry *entry){
 
 void EventMoveTool::draw(QPainter *painter){
 	paintSelectedEvents(painter);
+	int currentX = computeRaster();
+
 	if(inDrag){
-		int shiftX = startX-mouseX;
+		int shiftX = startX-currentX;
 		if(!moveLeftRight){
 			shiftX = 0;
 		}
@@ -84,10 +86,14 @@ void EventMoveTool::draw(QPainter *painter){
 		int lineHeight = matrixWidget->lineHeight();
 		shiftY = shiftY/lineHeight*lineHeight;
 		foreach(MidiEvent *event, *selectedEvents){
+			int customShiftY = shiftY;
+			if(event->line()>127){
+				customShiftY = 0;
+			}
 			if(event->shown()){
                 painter->setPen(Qt::lightGray);
                 painter->setBrush(Qt::darkBlue);
-                painter->drawRoundedRect(event->x()-shiftX, event->y()-shiftY,
+				painter->drawRoundedRect(event->x()-shiftX, event->y()-customShiftY,
                         event->width(), event->height(), 1, 1);
 				painter->setPen(Qt::gray);
 				painter->drawLine(event->x()-shiftX, 0, event->x()-shiftX,
@@ -120,7 +126,8 @@ bool EventMoveTool::press(bool leftClick){
 bool EventMoveTool::release(){
 	inDrag = false;
 	matrixWidget->setCursor(Qt::ArrowCursor);
-	int shiftX = startX-mouseX;
+	int currentX = computeRaster();
+	int shiftX = startX-currentX;
 	if(!moveLeftRight){
 		shiftX = 0;
 	}
@@ -198,4 +205,77 @@ void EventMoveTool::setDirections(bool upDown, bool leftRight){
 
 bool EventMoveTool::showsSelection(){
 	return true;
+}
+
+int EventMoveTool::computeRaster(){
+
+	if(!moveLeftRight){
+		return mouseX;
+	}
+
+	// get all selected events and search for first event / last event
+	int firstTick = -1;
+	int lastTick = -1;
+
+	foreach(MidiEvent *event, *selectedEvents){
+
+		if((firstTick == -1) || (event->midiTime() < firstTick)){
+			firstTick = event->midiTime();
+		}
+
+		NoteOnEvent *onEvent = dynamic_cast<NoteOnEvent*>(event);
+		if(onEvent){
+			if((lastTick == -1) || (onEvent->offEvent()->midiTime() > lastTick)){
+				lastTick = onEvent->offEvent()->midiTime();
+			}
+		}
+	}
+
+	// compute x positions and compute raster
+	bool useLast = (lastTick >=0) && lastTick<=matrixWidget->maxVisibleMidiTime() && lastTick>=matrixWidget->minVisibleMidiTime();
+	bool useFirst = (firstTick >=0) && firstTick<=matrixWidget->maxVisibleMidiTime() && firstTick>=matrixWidget->minVisibleMidiTime();
+
+	if(!useFirst && !useLast){
+		return mouseX;
+	}
+
+	int firstX, distFirst;
+	int lastX, distLast;
+
+	if(useFirst){
+		int firstXReal = matrixWidget->xPosOfMs(file()->msOfTick(firstTick))+mouseX-startX;
+		firstX = rasteredX(firstXReal);
+		distFirst = firstX - firstXReal;
+		if(distFirst == 0){
+			useFirst = false;
+		}
+	}
+	if(useLast){
+		int lastXReal = matrixWidget->xPosOfMs(file()->msOfTick(lastTick))+mouseX-startX;
+		lastX = rasteredX(lastXReal);
+		distLast = lastX-lastXReal;
+		if(distLast == 0){
+			useLast = false;
+		}
+	}
+
+	if(useFirst && useLast){
+		if(qAbs(distFirst) < qAbs(distLast)){
+			useLast = false;
+		} else {
+			useFirst = false;
+		}
+	}
+
+	int dist;
+	if(useFirst){
+		dist = distFirst;
+	} else if(useLast){
+		dist = distLast;
+	} else {
+		dist = 0;
+	}
+
+	return mouseX + dist;
+
 }

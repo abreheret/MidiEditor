@@ -92,6 +92,10 @@ class MidiFile : public QObject, public ProtocolEntry {
 
 		static int variableLengthvalue(QDataStream *content);
 		static QByteArray writeVariableLengthValue(int value);
+
+		void registerCopiedTrack(MidiTrack *source, MidiTrack *destination, MidiFile *fileFrom);
+		MidiTrack *getPasteTrack(MidiTrack *source, MidiFile *fileFrom);
+
 	signals:
 		void cursorPositionChanged();
 		void recalcWidgetSize();
@@ -111,6 +115,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 		QMultiMap<int, MidiEvent*> *playerMap;
 		bool _saved;
 		QList<MidiTrack*> *_tracks;
+		QMap<MidiFile*, QMap<MidiTrack*, MidiTrack*> > pasteTracks;
 
 		void printLog(QStringList *log);
 };

@@ -23,6 +23,7 @@
 
 #include <QList>
 class MidiEvent;
+class MidiTrack;
 
 class EventTool: public EditorTool {
 
@@ -44,10 +45,22 @@ class EventTool: public EditorTool {
 
 		virtual bool showsSelection();
 
+		static void setPasteTrack(MidiTrack *track);
+		static MidiTrack *pasteTrack();
+		static void setPasteChannel(int channel);
+		static int pasteChannel();
+
+		int rasteredX(int x);
+
+		static void enableMagnet(bool enable);
+
 	protected:
 		static QList<MidiEvent*> *selectedEvents, *copiedEvents;
 		QList<MidiEvent*> *ownSelectedEvents;
 		static bool isCutAction;
+		static int _pasteChannel;
+		static MidiTrack *_pasteTrack;
+		static bool _magnet;
 };
 
 #endif

@@ -52,21 +52,24 @@ void SizeChangeTool::reloadState(ProtocolEntry *entry){
 }
 
 void SizeChangeTool::draw(QPainter *painter){
+
+	int currentX = rasteredX(mouseX);
+
 	matrixWidget->setCursor(Qt::ArrowCursor);
 	if(!inDrag){
 		paintSelectedEvents(painter);
 		return;
 	} else {
 		painter->setPen(Qt::gray);
-		painter->drawLine(mouseX, 0, mouseX, matrixWidget->height());
+		painter->drawLine(currentX, 0, currentX, matrixWidget->height());
 		painter->setPen(Qt::black);
 	}
 	int endEventShift = 0;
 	int startEventShift = 0;
 	if(dragsOnEvent){
-		startEventShift = mouseX-xPos;
+		startEventShift = currentX-xPos;
 	} else {
-		endEventShift = mouseX-xPos;
+		endEventShift = currentX-xPos;
 	}
 	foreach(MidiEvent* event, *selectedEvents){
 		bool show = event->shown();
@@ -118,16 +121,20 @@ bool SizeChangeTool::press(bool leftClick){
 			return true;
 		}
 	}
+
+	return false;
 }
 
 bool SizeChangeTool::release(){
+
+	int currentX = rasteredX(mouseX);
 	inDrag = false;
 	int endEventShift = 0;
 	int startEventShift = 0;
 	if(dragsOnEvent){
-		startEventShift = mouseX-xPos;
+		startEventShift = currentX-xPos;
 	} else {
-		endEventShift = mouseX-xPos;
+		endEventShift = currentX-xPos;
 	}
 	xPos = 0;
 	if(selectedEvents->count()>0) {
@@ -163,6 +170,7 @@ bool SizeChangeTool::release(){
 		_standardTool->move(mouseX, mouseY);
 		_standardTool->release();
 	}
+	return true;
 }
 
 bool SizeChangeTool::move(int mouseX, int mouseY){

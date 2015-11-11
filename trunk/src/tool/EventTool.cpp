@@ -31,8 +31,13 @@
 #include "../gui/MainWindow.h"
 #include "../gui/EventWidget.h"
 
+#include <QtCore/qmath.h>
+
 QList<MidiEvent*> *EventTool::selectedEvents = new QList<MidiEvent*>;
 QList<MidiEvent*> *EventTool::copiedEvents = new QList<MidiEvent*>;
+int EventTool::_pasteChannel = -1;
+MidiTrack *EventTool::_pasteTrack = 0;
+bool EventTool::_magnet = false;
 
 EventTool::EventTool() : EditorTool() {
 	ownSelectedEvents = 0;
@@ -162,7 +167,11 @@ void EventTool::copyAction(){
 		// add the current Event
 		MidiEvent *ev = dynamic_cast<MidiEvent*>(event->copy());
 		if(ev){
-			copiedEvents->append(ev);
+			// do not append off event here
+			OffEvent *off = dynamic_cast<OffEvent*>(ev);
+			if(!off){
+				copiedEvents->append(ev);
+			}
 		}
 
 		// if its onEvent, add a copy of the OffEvent
@@ -177,51 +186,114 @@ void EventTool::copyAction(){
 
 void EventTool::pasteAction(){
 
-	if(copiedEvents->count()>0){
+	// TODO what happends to TempoEvents??
 
-		// check whether channles / tracks exist which differ from the channel / track to assign new notes to
-		bool multipleTracks = false;
-		bool multipleChannels = false;
-		bool allTracksExist = true;
-		int lastChannel = -1;
-		MidiTrack *lastTrack = 0;
+	// copy copied events to insert unique events
+	QList<MidiEvent*> copiedCopiedEvents;
+	foreach(MidiEvent *event, *copiedEvents){
 
+		// add the current Event
+		MidiEvent *ev = dynamic_cast<MidiEvent*>(event->copy());
+		if(ev){
+			// do not append off event here
+			OffEvent *off = dynamic_cast<OffEvent*>(ev);
+			if(!off){
+				copiedCopiedEvents.append(ev);
+			}
+		}
 
+		// if its onEvent, add a copy of the OffEvent
+		OnEvent *onEv = dynamic_cast<OnEvent*>(ev);
+		if(onEv){
+			OffEvent *offEv = dynamic_cast<OffEvent*>(onEv->offEvent()->copy());
+			offEv->setOnEvent(onEv);
+			copiedCopiedEvents.append(offEv);
+		}
+	}
+
+	if(copiedCopiedEvents.count()>0){
 
 		// Begin a new ProtocolAction
 		currentFile()->protocol()->startNewAction("Paste "+
-				QString::number(copiedEvents->count())+" Events");
+				QString::number(copiedCopiedEvents.count())+" Events");
 
 		// get first Tick of the copied events
 		int firstTick = -1;
-		foreach(MidiEvent *event, *copiedEvents){
+		foreach(MidiEvent *event, copiedCopiedEvents){
 			if(event->midiTime()<firstTick || firstTick<0){
 				firstTick = event->midiTime();
 			}
 		}
+
 		if(firstTick<0) firstTick = 0;
 
 		// calculate the difference of old/new events in MidiTicks
 		int diff = currentFile()->cursorTick()-firstTick;
 
-		// set the Positions and add the Events to the channels, select Events
-		selectedEvents->clear();
-		foreach(MidiEvent *event, *copiedEvents){
-			currentFile()->channel(event->channel())->insertEvent(event,
-					event->midiTime()+diff);
-			NoteOnEvent *ev = dynamic_cast<NoteOnEvent*>(event);
-			if(ev){
-				selectedEvents->append(ev);
+		// set the Positions and add the Events to the channels
+		foreach(MidiEvent *event, copiedCopiedEvents){
+
+			// get channel
+			int channel = event->channel();
+			if((_pasteChannel >= 0) && (channel < 16)){
+				channel = _pasteChannel;
 			}
+
+			// get track
+			MidiTrack *track = event->track();
+			if(pasteTrack()){
+				track = pasteTrack();
+			} else if(event->file() != currentFile() || !currentFile()->tracks()->contains(track)){
+				track = currentFile()->getPasteTrack(event->track(), event->file());
+				if(!track){
+					track = event->track()->copyToFile(currentFile());
+				}
+			}
+
+			event->setFile(currentFile());
+			event->setChannel(channel, false);
+			event->setTrack(track, false);
+			currentFile()->channel(channel)->insertEvent(event,
+					event->midiTime()+diff);
 		}
 		currentFile()->protocol()->endAction();
-
-		// copy the selected Events so the user can call paste() more than
-		// one time
-		copyAction();
 	}
 }
 
 bool EventTool::showsSelection(){
 	return false;
+}
+
+void EventTool::setPasteTrack(MidiTrack *track){
+	_pasteTrack = track;
+}
+
+MidiTrack *EventTool::pasteTrack(){
+	return _pasteTrack;
+}
+
+void EventTool::setPasteChannel(int channel){
+	_pasteChannel = channel;
+}
+
+int EventTool::pasteChannel(){
+	return _pasteChannel;
+}
+
+int EventTool::rasteredX(int x){
+	if(!_magnet){
+		return x;
+	}
+	typedef QPair<int, int> TMPPair;
+	foreach(TMPPair p, matrixWidget->divs()){
+		int xt = p.first;
+		if(qAbs(xt-x)<=5){
+			return xt;
+		}
+	}
+	return x;
+}
+
+void EventTool::enableMagnet(bool enable){
+	_magnet = enable;
 }

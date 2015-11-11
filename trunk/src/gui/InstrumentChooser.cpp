@@ -87,6 +87,9 @@ void InstrumentChooser::accept(){
 			track = prg->track();
 		}
 	}
+	if(!track){
+		track = _file->track(0);
+	}
 
 	ProgChangeEvent *event = 0;
 

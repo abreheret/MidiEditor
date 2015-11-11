@@ -27,12 +27,16 @@ class SysExEvent : public MidiEvent{
 
 	public:
 		SysExEvent(int channel, QByteArray data, MidiTrack *track);
+		SysExEvent(SysExEvent &other);
+
 		QByteArray data();
 		int line();
 		QByteArray save();
 
 		void generateWidget(QWidget *widget);
 		QString typeString();
+		ProtocolEntry *copy();
+
 	private:
 		QByteArray _data;
 

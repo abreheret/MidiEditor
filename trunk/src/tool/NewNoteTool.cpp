@@ -65,20 +65,21 @@ void NewNoteTool::reloadState(ProtocolEntry *entry){
 }
 
 void NewNoteTool::draw(QPainter *painter){
+	int currentX = rasteredX(mouseX);
 	if(inDrag){
 		if(line<=127) {
 			int y = matrixWidget->yPosOfLine(line);
-			painter->fillRect(xPos, y, mouseX-xPos, matrixWidget->lineHeight(), Qt::black);
+			painter->fillRect(xPos, y, currentX-xPos, matrixWidget->lineHeight(), Qt::black);
 			painter->setPen(Qt::gray);
 			painter->drawLine(xPos, 0, xPos, matrixWidget->height());
-			painter->drawLine(mouseX, 0, mouseX, matrixWidget->height());
+			painter->drawLine(currentX, 0, currentX, matrixWidget->height());
 			painter->setPen(Qt::black);
 		} else {
 			int y = matrixWidget->yPosOfLine(line);
-			painter->fillRect(mouseX, y, 15, matrixWidget->lineHeight(), Qt::black);
+			painter->fillRect(currentX, y, 15, matrixWidget->lineHeight(), Qt::black);
 			painter->setPen(Qt::gray);
-			painter->drawLine(mouseX, 0, mouseX, matrixWidget->height());
-			painter->drawLine(mouseX+15, 0, mouseX+15, matrixWidget->height());
+			painter->drawLine(currentX, 0, currentX, matrixWidget->height());
+			painter->drawLine(currentX+15, 0, currentX+15, matrixWidget->height());
 			painter->setPen(Qt::black);
 		}
 	}
@@ -88,19 +89,20 @@ bool NewNoteTool::press(bool leftClick){
 	Q_UNUSED(leftClick);
 	inDrag = true;
 	line = matrixWidget->lineAtY(mouseY);
-	xPos = mouseX;
+	xPos = rasteredX(mouseX);
 	return true;
 }
 
 bool NewNoteTool::release(){
+	int currentX = rasteredX(mouseX);
 	inDrag = false;
-	if(mouseX<xPos || line>127){
-		int temp = mouseX;
-		mouseX = xPos;
+	if(currentX<xPos || line>127){
+		int temp = currentX;
+		currentX = xPos;
 		xPos = temp;
 	}
 	MidiTrack *track = file()->track(_track);
-	if(mouseX-xPos>2 || line>127){
+	if(currentX-xPos>2 || line>127){
 
 		// note
 		if(line>=0 && line<=127){
@@ -110,7 +112,7 @@ bool NewNoteTool::release(){
 			int startMs = matrixWidget->msOfXPos(xPos);
 			int startTick = file()->tick(startMs);
 
-			int endMs = matrixWidget->msOfXPos(mouseX);
+			int endMs = matrixWidget->msOfXPos(currentX);
 			int endTick = file()->tick(endMs);
 
 			file()->channel(_channel)->insertNote(127-line,
@@ -210,7 +212,7 @@ bool NewNoteTool::release(){
 				textEvent->setType(TextEvent::TEXT);
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
-				file()->channel(_channel)->insertEvent(event, startTick);
+				file()->channel(16)->insertEvent(event, startTick);
 
 				currentProtocol()->endAction();
 			} else {

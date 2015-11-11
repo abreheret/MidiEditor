@@ -34,6 +34,7 @@
 #include "../midi/MidiTrack.h"
 
 #include <QList>
+#include <QtCore/qmath.h>
 
 #define NUM_LINES 139
 #define PIXEL_PER_S 100
@@ -70,6 +71,7 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PaintWidget(parent) {
 			this, SLOT(timeMsChanged(int)));
 
 	pixmap = 0;
+	_div = 2;
 }
 
 void MatrixWidget::setScreenLocked(bool b){
@@ -184,6 +186,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 		velocityObjects->clear();
 		currentTempoEvents->clear();
 		currentTimeSignatureEvents->clear();
+		currentDivs.clear();
 
 		startTick = file->tick(startTimeX, endTimeX, &currentTempoEvents,
 				&endTick, &msOfFirstEventInList);
@@ -296,8 +299,11 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 			tick += currentEvent->ticksPerMeasure();
 		}
 		while(tick<endTick){
+			TimeSignatureEvent *measureEvent = currentTimeSignatureEvents->at(i);
             int xfrom = xPosOfMs(msOfTick(tick));
+			currentDivs.append(QPair<int, int>(xfrom, tick));
 			measure++;
+			int measureStartTick = tick;
 			tick += currentEvent->ticksPerMeasure();
 			if(i<currentTimeSignatureEvents->length()-1){
 				if(currentTimeSignatureEvents->at(i+1)->midiTime()<=tick){
@@ -322,6 +328,23 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
                 int pos = (xfrom+xto)/2;
                 pixpainter->setPen(Qt::white);
                 pixpainter->drawText(pos-textlength/2, timeHeight-9, text);
+
+				if(_div>=0){
+					double metronomeDiv = 4/(double)qPow(2, _div);
+					int ticksPerDiv = metronomeDiv*file->ticksPerQuarter();
+					int startTickDiv = ticksPerDiv;
+					QPen oldPen = pixpainter->pen();
+					QPen dashPen = QPen(Qt::lightGray, 1, Qt::DashLine);
+					pixpainter->setPen(dashPen);
+					while(startTickDiv<measureEvent->ticksPerMeasure()){
+						int divTick = startTickDiv+measureStartTick;
+						int xDiv = xPosOfMs(msOfTick(divTick));
+						currentDivs.append(QPair<int, int>(xDiv, divTick));
+						pixpainter->drawLine(xDiv, timeHeight, xDiv, height());
+						startTickDiv+=ticksPerDiv;
+					}
+					pixpainter->setPen(oldPen);
+				}
             }
 		}
 
@@ -329,9 +352,6 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
         pixpainter->setPen(Qt::gray);
 		pixpainter->drawLine(0, timeHeight, width(), timeHeight);
         pixpainter->drawLine(lineNameWidth, timeHeight, lineNameWidth, height());
-
-		// line between time text and measure text
-        //pixpainter->drawLine(0, timeHeight/2, width(), timeHeight/2);
 
         pixpainter->setPen(Qt::black);
 
@@ -416,9 +436,6 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
             painter->drawText(lineNameWidth-15-textlength, startLine+
                     lineHeight(), text);
 		}
-        //if(i==129){
-         //   painter->drawLine(lineNameWidth, startLine, width(), startLine);
-        //}
 	}
 	if(Tool::currentTool()){
 		painter->setClipping(true);
@@ -479,8 +496,6 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 	}
 
 	// border
-    /*painter->drawLine(0,0,width(), 0);
-    painter->drawLine(0,0,0,height());*/
     painter->setPen(Qt::gray);
     painter->drawLine(width()-1, height()-1, lineNameWidth, height()-1);
     painter->drawLine(width()-1, height()-1, width()-1, 2);
@@ -1067,4 +1082,14 @@ void MatrixWidget::setColorsByTracks(){
 
 bool MatrixWidget::colorsByChannel(){
 	return _colorsByChannels;
+}
+
+void MatrixWidget::setDiv(int div){
+	_div = div;
+	registerRelayout();
+	update();
+}
+
+QList<QPair<int, int> > MatrixWidget::divs(){
+	return currentDivs;
 }
