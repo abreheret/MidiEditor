@@ -19,28 +19,66 @@
 #ifndef TRACKLISTWIDGET_H_
 #define TRACKLISTWIDGET_H_
 
-#include "PaintWidget.h"
+#include <QWidget>
+#include <QListWidget>
 #include <QPaintEvent>
+#include <QList>
+#include <QColor>
 
+class QAction;
 class MidiFile;
+class QLabel;
+class MidiTrack;
 
-class TrackListWidget : public PaintWidget {
+class TrackListWidget;
+class ColoredWidget;
+
+class TrackListItem : public QWidget {
+
+	Q_OBJECT
+
+	public:
+		TrackListItem(MidiTrack *track, TrackListWidget *parent);
+		void onBeforeUpdate();
+
+	signals:
+		void trackRenameClicked(int tracknumber);
+		void trackRemoveClicked(int tracknumber);
+
+	public slots:
+		void toggleVisibility(bool visible);
+		void toggleAudibility(bool audible);
+		void removeTrack();
+		void renameTrack();
+
+	private:
+		QLabel *trackNameLabel;
+		TrackListWidget *trackList;
+		MidiTrack *track;
+		ColoredWidget *colored;
+		QAction *visibleAction, *loudAction;
+};
+
+class TrackListWidget : public QListWidget {
 
 	Q_OBJECT
 
 	public:
 		TrackListWidget(QWidget *parent = 0);
 		void setFile(MidiFile *f);
+		MidiFile *midiFile();
 
 	signals:
 		void trackRenameClicked(int tracknumber);
 		void trackRemoveClicked(int tracknumber);
 
+	public slots:
+		void update();
+
 	private:
 		MidiFile *file;
-
-	protected:
-		void paintEvent(QPaintEvent *event);
+		QMap<MidiTrack*, TrackListItem*> items;
+		QList<MidiTrack*> trackorder;
 };
 
 #endif
