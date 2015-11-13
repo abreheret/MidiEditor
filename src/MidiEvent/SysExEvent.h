@@ -22,7 +22,6 @@
 #include "MidiEvent.h"
 #include <QByteArray>
 
-class QWdiget;
 class SysExEvent : public MidiEvent{
 
 	public:
@@ -33,9 +32,11 @@ class SysExEvent : public MidiEvent{
 		int line();
 		QByteArray save();
 
-		void generateWidget(QWidget *widget);
 		QString typeString();
 		ProtocolEntry *copy();
+		virtual void reloadState(ProtocolEntry *entry);
+
+		void setData(QByteArray d);
 
 	private:
 		QByteArray _data;

@@ -18,12 +18,6 @@
 
 #include "ControlChangeEvent.h"
 
-#include <QSpinBox>
-#include <QBoxLayout>
-#include <QWidget>
-#include <QComboBox>
-#include <QLabel>
-#include <QLayout>
 #include "../midi/MidiFile.h"
 
 ControlChangeEvent::ControlChangeEvent(int channel, int control, int value, MidiTrack *track) :
@@ -88,7 +82,7 @@ void ControlChangeEvent::setValue(int v){
 	_value = v;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_value_box->setValue(v);
+		eventWidget()->reload();
 	}
 }
 
@@ -97,88 +91,10 @@ void ControlChangeEvent::setControl(int c){
 	_control = c;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_control_combo->setCurrentIndex(c);
+		eventWidget()->reload();
 	}
-}
-
-// Widgets for EventWidget
-QWidget *ControlChangeEvent::_value_widget = 0;
-QSpinBox *ControlChangeEvent::_value_box = 0;
-QLabel *ControlChangeEvent::_value_label = 0;
-QComboBox *ControlChangeEvent::_control_combo = 0;
-QLabel *ControlChangeEvent::_control_label = 0;
-
-void ControlChangeEvent::generateWidget(QWidget *widget){
-
-	// general data
-	MidiEvent::generateWidget(widget);
-
-	// first call
-	if(_value_widget == 0) _value_widget = new QWidget();
-	if(_value_box == 0) _value_box = new QSpinBox();
-	if(_value_label == 0) _value_label = new QLabel();
-	if(_control_label == 0) _control_label = new QLabel();
-
-	if(_control_combo == 0){
-		_control_combo = new QComboBox();
-		for(int i = 0; i<128; i++){
-			_control_combo->addItem(QString::number(i)+" "+
-					file()->controlChangeName(i));
-		}
-	}
-
-	// set Parents
-	_value_widget->setParent(widget);
-	_value_box->setParent(_value_widget);
-	_value_label->setParent(_value_widget);
-	_control_combo->setParent(widget);
-	_control_label->setParent(widget);
-
-	// unhide
-	_value_widget->setHidden(false);
-	_value_box->setHidden(false);
-	_value_label->setHidden(false);
-	_control_combo->setHidden(false);
-	_control_label->setHidden(false);
-
-	// Control
-	_control_label->setText("Controller:");
-	_control_combo->setCurrentIndex(_control);
-
-
-	// value
-	_value_label->setText("Value: ");
-	QLayout *valL = _value_widget->layout();
-	if(!valL){
-		valL = new QBoxLayout(QBoxLayout::LeftToRight, _value_widget);
-		_value_widget->setLayout(valL);
-	}
-	valL->addWidget(_value_label);
-
-	// box
-	_value_box->setMaximum(127);
-	_value_box->setMinimum(0);
-	_value_box->setValue(_value);
-	valL->addWidget(_value_box);
-
-	// Add Widgets
-	QLayout *layout = widget->layout();
-	layout->addWidget(_control_label);
-	layout->addWidget(_control_combo);
-	layout->addWidget(_value_widget);
-}
-
-void ControlChangeEvent::editByWidget(){
-	if(_value_box->value()!=value()){
-		setValue(_value_box->value());
-	}
-	if(_control_combo->currentIndex()!=control()){
-		setControl(_control_combo->currentIndex());
-	}
-	MidiEvent::editByWidget();
 }
 
 bool ControlChangeEvent::isOnEvent(){
-//	return (_control < 64 && _control> 69) || _value > 64;
 	return false;
 }

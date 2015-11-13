@@ -79,23 +79,19 @@ void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 	} else if(QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) && !ignoreStr){
 		selectedEvents->removeAll(event);
 	}
-	if(selectedEvents->count() == 1){
-		_mainWindow->eventWidget()->setEvent(event);
-	} else {
-		_mainWindow->eventWidget()->setEvent(0);
-	}
+	_mainWindow->eventWidget()->setEvents(*selectedEvents);
 }
 
 void EventTool::deselectEvent(MidiEvent *event){
 	selectedEvents->removeAll(event);
-	if(selectedEvents->count()==0){
-		_mainWindow->eventWidget()->setEvent(0);
+	if(_mainWindow->eventWidget()->events().contains(event)){
+		_mainWindow->eventWidget()->removeEvent(event);
 	}
 }
 
 void EventTool::clearSelection(){
 	selectedEvents->clear();
-	_mainWindow->eventWidget()->setEvent(0);
+	_mainWindow->eventWidget()->setEvents(*selectedEvents);
 }
 
 void EventTool::reloadState(ProtocolEntry *entry){

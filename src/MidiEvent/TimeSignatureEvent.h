@@ -21,11 +21,6 @@
 
 #include "MidiEvent.h"
 
-class QWidget;
-class QLabel;
-class QSpinBox;
-class QComboBox;
-
 class TimeSignatureEvent : public MidiEvent {
 
 	public:
@@ -48,16 +43,9 @@ class TimeSignatureEvent : public MidiEvent {
 		void setNumerator(int n);
 
 		QString typeString();
-		void generateWidget(QWidget *widget);
-		void editByWidget();
 
 	private:
 		int numerator, denominator, midiClocksPerMetronome, num32In4th;
-
-		static QSpinBox *_num_box;
-		static QLabel *_num_label, *_denom_label;
-		static QWidget *_num_widget, *_denom_widget;
-		static QComboBox *_denom_combo;
 };
 
 #endif

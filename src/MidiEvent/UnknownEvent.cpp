@@ -18,9 +18,6 @@
 
 #include "UnknownEvent.h"
 
-#include <QLabel>
-#include <QLayout>
-
 #include "../midi/MidiFile.h"
 
 UnknownEvent::UnknownEvent(int channel, int type, QByteArray data, MidiTrack *track) : MidiEvent(channel, track){
@@ -50,21 +47,38 @@ QByteArray UnknownEvent::save(){
 	return s;
 }
 
-void UnknownEvent::generateWidget(QWidget *widget){
-	MidiEvent::generateWidget(widget);
-	QLayout *layout = widget->layout();
-	QLabel *t = new QLabel("Type: 0x"+QString::number(_type, 16));
-	layout->addWidget(t);
-	t = new QLabel("Data:");
-	layout->addWidget(t);
-	int i = 0;
-	foreach(unsigned char b,_data){
-		QLabel *l = new QLabel("0x"+QString::number(i, 16)+"   0x"+QString::number(b, 16));
-		layout->addWidget(l);
-		i++;
+void UnknownEvent::reloadState(ProtocolEntry *entry){
+	UnknownEvent *other = dynamic_cast<UnknownEvent*>(entry);
+	if(!other){
+		return;
 	}
+	MidiEvent::reloadState(entry);
+	_type = other->_type;
+	_data = other->_data;
 }
 
 ProtocolEntry *UnknownEvent::copy(){
 	return new UnknownEvent(*this);
+}
+
+int UnknownEvent::type(){
+	return _type;
+}
+
+void UnknownEvent::setType(int type){
+	ProtocolEntry *toCopy = copy();
+	_type = type;
+	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		eventWidget()->reload();
+	}
+}
+
+void UnknownEvent::setData(QByteArray d){
+	ProtocolEntry *toCopy = copy();
+	_data = d;
+	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		eventWidget()->reload();
+	}
 }

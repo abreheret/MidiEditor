@@ -101,8 +101,14 @@ void MidiTrack::setNumber(int number){
 }
 
 void MidiTrack::setNameEvent(TextEvent *nameEvent){
+	if((_nameEvent) && (_nameEvent->type() == TextEvent::TRACKNAME)){
+		_nameEvent->setType(TextEvent::TEXT);
+	}
 	ProtocolEntry *toCopy = copy();
 	_nameEvent = nameEvent;
+	if(_nameEvent){
+		_nameEvent->setType(TextEvent::TRACKNAME);
+	}
 	protocol(toCopy, this);
 	emit trackChanged();
 }

@@ -18,9 +18,6 @@
 
 #include "SysExEvent.h"
 
-#include <QLabel>
-#include <QLayout>
-
 SysExEvent::SysExEvent(int channel, QByteArray data, MidiTrack *track) : MidiEvent(channel, track){
 	_data = data;
 }
@@ -45,21 +42,28 @@ QByteArray SysExEvent::save(){
 	return s;
 }
 
-void SysExEvent::generateWidget(QWidget *widget){
-	MidiEvent::generateWidget(widget);
-	QLayout *layout = widget->layout();
-	int i = 0;
-	foreach(unsigned char b,_data){
-		QLabel *l = new QLabel("0x"+QString::number(i, 16)+"   0x"+QString::number(b, 16));
-		layout->addWidget(l);
-		i++;
-	}
-}
-
 QString SysExEvent::typeString(){
 	return "System Exclusive Message (SysEx)";
 }
 
 ProtocolEntry *SysExEvent::copy(){
 	return new SysExEvent(*this);
+}
+
+void SysExEvent::reloadState(ProtocolEntry *entry){
+	SysExEvent *other = dynamic_cast<SysExEvent*>(entry);
+	if(!other){
+		return;
+	}
+	MidiEvent::reloadState(entry);
+	_data = other->_data;
+}
+
+void SysExEvent::setData(QByteArray d){
+	ProtocolEntry *toCopy = copy();
+	_data = d;
+	protocol(toCopy, this);
+	if(shownInEventWidget()){
+		eventWidget()->reload();
+	}
 }

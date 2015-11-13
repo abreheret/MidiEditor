@@ -20,9 +20,7 @@
 #define ONEVENT_H_
 
 #include "MidiEvent.h"
-#include <QWidget>
-#include <QLabel>
-#include <QSpinBox>
+
 class OffEvent;
 
 class OnEvent : public MidiEvent{
@@ -38,16 +36,10 @@ class OnEvent : public MidiEvent{
 		virtual ProtocolEntry *copy();
 		virtual void reloadState(ProtocolEntry *entry);
 
-		void generateWidget(QWidget *widget);
-		void editByWidget();
-
 		static QSpinBox *_off_tick_box;
 
 	protected:
 		OffEvent *_offEvent;
-
-		static QWidget *_off_tick_widget;
-		static QLabel *_off_tick_label;
 
 };
 

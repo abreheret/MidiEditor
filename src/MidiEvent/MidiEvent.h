@@ -24,6 +24,7 @@
 #include "../gui/GraphicObject.h"
 #include "../protocol/ProtocolEntry.h"
 #include <QWidget>
+#include "../gui/EventWidget.h"
 
 class MidiFile;
 class QSpinBox;
@@ -77,17 +78,13 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		virtual void reloadState(ProtocolEntry *entry);
 
 		virtual QString typeString();
-		virtual void generateWidget(QWidget *widget);
-		virtual void editByWidget();
 
 		virtual bool isOnEvent();
 
+		static QMap<int, QString> knownMetaTypes();
+
 	protected:
 		int numChannel, timePos;
-		static QSpinBox *_channel_spinBox, *_track_spinBox, *_timePos_spinBox;
-		static QLabel *_channel_label, *_track_label, *_timePos_label,
-			*_title_label;
-		static QWidget *_channel_widget, *_track_widget, *_timePos_widget;
 		MidiFile *midiFile;
 		static quint8 _startByte;
 		static EventWidget *_eventWidget;

@@ -165,7 +165,7 @@ bool NewNoteTool::release(){
 			}  else if(line == MidiEvent::KEY_SIGNATURE_EVENT_LINE){
 				currentProtocol()->startNewAction("Create Key Signature Event",
 						image());
-				event = new KeySignatureEvent(16, 0, true, generalTrack);
+				event = new KeySignatureEvent(16, 0, false, generalTrack);
 
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);

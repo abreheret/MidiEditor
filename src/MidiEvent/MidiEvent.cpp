@@ -35,11 +35,7 @@
 #include "../midi/MidiTrack.h"
 
 #include <QByteArray>
-#include <QSpinBox>
-#include <QLabel>
-#include <QLayout>
-#include <QWidget>
-#include <QBoxLayout>
+
 #include "../midi/MidiChannel.h"
 
 quint8 MidiEvent::_startByte = 0;
@@ -356,7 +352,7 @@ void MidiEvent::setTrack(MidiTrack *track, bool toProtocol){
 	}
 
 	if(shownInEventWidget()){
-		_track_spinBox->setValue(_track->number());
+		eventWidget()->reload();
 	}
 }
 
@@ -377,7 +373,7 @@ void MidiEvent::setChannel(int ch, bool toProtocol){
 		delete toCopy;
 	}
 	if(shownInEventWidget()){
-		_channel_spinBox->setValue(ch);
+		eventWidget()->reload();
 	}
 }
 
@@ -418,7 +414,7 @@ void MidiEvent::setMidiTime(int t, bool toProtocol){
 	file()->channelEvents(numChannel)->insert(timePos, this);
 
 	if(shownInEventWidget()){
-		_timePos_spinBox->setValue(timePos);
+		eventWidget()->reload();
 	}
 }
 
@@ -466,131 +462,6 @@ QString MidiEvent::typeString(){
 	return "Midi Event";
 }
 
-// for generating the Widget
-QSpinBox *MidiEvent::_channel_spinBox = 0;
-QSpinBox *MidiEvent::_track_spinBox = 0;
-QSpinBox *MidiEvent::_timePos_spinBox = 0;
-QLabel *MidiEvent::_channel_label = 0;
-QLabel *MidiEvent::_track_label = 0;
-QLabel *MidiEvent::_timePos_label = 0;
-QLabel *MidiEvent::_title_label = 0;
-QWidget *MidiEvent::_channel_widget = 0;
-QWidget *MidiEvent::_track_widget = 0;
-QWidget *MidiEvent::_timePos_widget = 0;
-
-void MidiEvent::generateWidget(QWidget *widget){
-
-	// first call: content has to be generated
-	if(_channel_spinBox == 0) _channel_spinBox = new QSpinBox();
-	if(_track_spinBox == 0) _track_spinBox = new QSpinBox();
-	if(_timePos_spinBox == 0) _timePos_spinBox = new QSpinBox();
-	if(_channel_label == 0) _channel_label = new QLabel();
-	if(_track_label == 0) _track_label = new QLabel();
-	if(_timePos_label == 0) _timePos_label = new QLabel();
-	if(_title_label == 0) _title_label = new QLabel();
-	if(_channel_widget == 0) _channel_widget = new QWidget();
-	if(_track_widget == 0) _track_widget = new QWidget();
-	if(_timePos_widget == 0) _timePos_widget = new QWidget();
-
-	// set the new parent
-	_channel_spinBox->setParent(_channel_widget);
-	_track_spinBox->setParent(_track_widget);
-	_timePos_spinBox->setParent(_timePos_widget);
-	_channel_label->setParent(_channel_widget);
-	_track_label->setParent(_track_widget);
-	_timePos_label->setParent(_timePos_widget);
-	_timePos_widget->setParent(widget);
-	_channel_widget->setParent(widget);
-	_track_widget->setParent(widget);
-	_title_label->setParent(widget);
-
-	// unhide
-	_timePos_widget->setHidden(false);
-	_channel_widget->setHidden(false);
-	_track_widget->setHidden(false);
-	_title_label->setHidden(false);
-
-	// edit channelSpinBox
-	_channel_spinBox->setMaximum(15);
-	_channel_spinBox->setMinimum(0);
-	_channel_spinBox->setValue(channel());
-	_channel_label->setText("Channel:");
-
-	// edit TrackSpinBox
-	_track_spinBox->setMinimum(0);
-	_track_spinBox->setMaximum(file()->numTracks()-1);
-	_track_spinBox->setValue(track()->number());
-	_track_label->setText("Track:");
-
-	// edit timePosSpinBox
-	_timePos_spinBox->setMaximum(file()->endTick());
-	_timePos_spinBox->setMinimum(0);
-	_timePos_spinBox->setValue(midiTime());
-	_timePos_label->setText("Midi Tick:");
-
-	// edit the title
-	_title_label->setText(typeString());
-
-	// get the Layout
-	QLayout *layout = widget->layout();
-
-	// add the data
-	layout->addWidget(_title_label);
-
-	// time
-	QLayout *timeL = _timePos_widget->layout();
-	if(!timeL){
-		timeL = new QBoxLayout(QBoxLayout::LeftToRight, _timePos_widget);
-		_timePos_widget->setLayout(timeL);
-	}
-	timeL->addWidget(_timePos_label);
-	timeL->addWidget(_timePos_spinBox);
-	layout->addWidget(_timePos_widget);
-
-	// Channel
-	QLayout *channelL = _channel_widget->layout();
-	if(!channelL){
-		channelL = new QBoxLayout(QBoxLayout::LeftToRight,_channel_widget);
-		_channel_widget->setLayout(channelL);
-	}
-	channelL->addWidget(_channel_label);
-
-	if(channel()<16){
-		channelL->addWidget(_channel_spinBox);
-		_channel_spinBox->setVisible(true);
-	} else {
-		_channel_label->setText("Channel: General Channel");
-		_channel_spinBox->hide();
-	}
-	layout->addWidget(_channel_widget);
-
-	// Track
-	QLayout *trackL = _track_widget->layout();
-	if(!trackL){
-		trackL = new QBoxLayout(QBoxLayout::LeftToRight,_track_widget);
-		_track_widget->setLayout(trackL);
-	}
-	trackL->addWidget(_track_label);
-	trackL->addWidget(_track_spinBox);
-
-	layout->addWidget(_track_widget);
-}
-
-void MidiEvent::editByWidget(){
-	if(midiTime()!=_timePos_spinBox->value()){
-		setMidiTime(_timePos_spinBox->value(), true);
-	}
-	if(track()->number()!=_track_spinBox->value()){
-		MidiTrack *track = file()->track(_track_spinBox->value());
-		if(track){
-			setTrack(track);
-		}
-	}
-	if(channel()<16 && channel()!=_channel_spinBox->value()){
-		setChannel(_channel_spinBox->value());
-	}
-}
-
 void MidiEvent::setEventWidget(EventWidget *widget){
 	_eventWidget = widget;
 }
@@ -603,9 +474,21 @@ bool MidiEvent::shownInEventWidget(){
 	if(!_eventWidget){
 		return false;
 	}
-	return _eventWidget->event() == this;
+	return _eventWidget->events().contains(this);
 }
 
 bool MidiEvent::isOnEvent(){
 	return true;
+}
+
+QMap<int, QString> MidiEvent::knownMetaTypes(){
+	QMap<int, QString> meta;
+	for(int i = 1; i<8; i++){
+		meta.insert(i, "Text Event");
+	}
+	meta.insert(0x51, "Tempo Change Event");
+	meta.insert(0x58, "Time Signature Event");
+	meta.insert(0x59, "Key Signature Event");
+	meta.insert(0x2F, "End of Track");
+	return meta;
 }

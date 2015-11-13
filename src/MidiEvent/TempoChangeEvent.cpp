@@ -19,11 +19,6 @@
 #include "TempoChangeEvent.h"
 #include "../midi/MidiFile.h"
 
-#include <QSpinBox>
-#include <QWidget>
-#include <QLabel>
-#include <QLayout>
-
 TempoChangeEvent::TempoChangeEvent(int channel, int value, MidiTrack *track) : MidiEvent(channel, track){
 	_beats = 60000000/value;
 }
@@ -80,62 +75,10 @@ void TempoChangeEvent::setBeats(int beats){
 	file()->calcMaxTime();
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_val_box->setValue(beats);
+		eventWidget()->reload();
 	}
-
 }
 
 QString TempoChangeEvent::typeString(){
 	return "Tempo Change Event";
-}
-
-// Widgets for EventWidget
-QWidget *TempoChangeEvent::_val_widget = 0;
-QSpinBox *TempoChangeEvent::_val_box = 0;
-QLabel *TempoChangeEvent::_val_label = 0;
-
-void TempoChangeEvent::generateWidget(QWidget *widget){
-	// general data
-	MidiEvent::generateWidget(widget);
-
-	// first call
-	if(_val_widget == 0) _val_widget = new QWidget();
-	if(_val_box == 0) _val_box = new QSpinBox();
-	if(_val_label == 0) _val_label = new QLabel();
-
-	// set Parents
-	_val_widget->setParent(widget);
-	_val_label->setParent(_val_widget);
-	_val_box->setParent(_val_widget);
-
-	// unhide
-	_val_widget->setHidden(false);
-	_val_label->setHidden(false);
-	_val_box->setHidden(false);
-
-	// Edit value
-	_val_label->setText("Beats per Minute: ");
-	QLayout *valL = _val_widget->layout();
-	if(!valL){
-		valL = new QBoxLayout(QBoxLayout::LeftToRight, _val_widget);
-		_val_widget->setLayout(valL);
-	}
-	valL->addWidget(_val_label);
-
-	// box
-	_val_box->setMinimum(1);
-	_val_box->setMaximum(1000);
-	_val_box->setValue(beatsPerQuarter());
-	valL->addWidget(_val_box);
-
-	// Add Widgets
-	QLayout *layout = widget->layout();
-	layout->addWidget(_val_widget);
-}
-
-void TempoChangeEvent::editByWidget(){
-	if(beatsPerQuarter()!=_val_box->value()){
-		setBeats(_val_box->value());
-	}
-	MidiEvent::editByWidget();
 }

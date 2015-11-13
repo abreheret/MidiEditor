@@ -21,10 +21,6 @@
 
 #include "MidiEvent.h"
 
-#include <QSpinBox>
-#include <QWidget>
-#include <QLabel>
-
 class TempoChangeEvent : public MidiEvent {
 
 	public:
@@ -40,16 +36,11 @@ class TempoChangeEvent : public MidiEvent {
 		QByteArray save();
 
 		QString typeString();
-		void generateWidget(QWidget *widget);
-		void editByWidget();
 
 		void setBeats(int beats);
 
 	private:
 		int _beats;
-		static QSpinBox *_val_box;
-		static QLabel *_val_label;
-		static QWidget *_val_widget;
 };
 
 #endif

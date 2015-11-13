@@ -21,7 +21,7 @@
 
 #include "MidiEvent.h"
 #include <QByteArray>
-class QWdiget;
+
 class UnknownEvent : public MidiEvent{
 
 	public:
@@ -30,9 +30,13 @@ class UnknownEvent : public MidiEvent{
 		QByteArray data();
 		int line();
 		QByteArray save();
+		int type();
+		void setType(int type);
+		void setData(QByteArray d);
 
-		void generateWidget(QWidget *widget);
 		virtual ProtocolEntry *copy();
+		virtual void reloadState(ProtocolEntry *entry);
+
 	private:
 		QByteArray _data;
 		int _type;

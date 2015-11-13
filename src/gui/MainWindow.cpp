@@ -57,6 +57,7 @@
 #include <QStringList>
 #include <QComboBox>
 #include <QToolButton>
+#include <QLabel>
 
 #include "../midi/MidiChannel.h"
 #include "DonateDialog.h"
@@ -296,20 +297,14 @@ MainWindow::MainWindow() : QMainWindow() {
 	upperTabWidget->addTab(Terminal::terminal()->console(), "Terminal");
 
 	// Protocollist
-	QScrollArea *protocolScroll = new QScrollArea(lowerTabWidget);
-	protocolWidget = new ProtocolWidget(protocolScroll);
-	protocolScroll->setWidget(protocolWidget);
-	protocolScroll->setWidgetResizable(true);
-	lowerTabWidget->addTab(protocolScroll, "Protocol");
+	protocolWidget = new ProtocolWidget(lowerTabWidget);
+	lowerTabWidget->addTab(protocolWidget, "Protocol");
 
 	// EventWidget
-	QScrollArea *eventScroll = new QScrollArea(lowerTabWidget);
-	_eventWidget = new EventWidget(eventScroll);
-	eventScroll->setWidget(_eventWidget);
-	eventScroll->setWidgetResizable(true);
-	lowerTabWidget->addTab(eventScroll, "Event");
+	_eventWidget = new EventWidget(lowerTabWidget);
+	lowerTabWidget->addTab(_eventWidget, "Event");
 	MidiEvent::setEventWidget(_eventWidget);
-	connect(_eventWidget, SIGNAL(eventSelected(MidiEvent*)), this, SLOT(showEventWidget(MidiEvent*)));
+	connect(_eventWidget, SIGNAL(selectionChanged(bool)), this, SLOT(showEventWidget(bool)));
 
 	// below add two rows for choosing track/channel new events shall be assigned to
 	QWidget *chooser = new QWidget(rightSplitter);
@@ -351,8 +346,8 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	QWidget *buttons = setupActions(central);
 
-	rightSplitter->setStretchFactor(0, 15);
-	rightSplitter->setStretchFactor(1, 85);
+	rightSplitter->setStretchFactor(0, 5);
+	rightSplitter->setStretchFactor(1, 5);
 
     // Add the Widgets to the central Layout
     centralLayout->setSpacing(0);
@@ -383,6 +378,8 @@ void MainWindow::setFile(MidiFile *file){
 	channelWidget->setFile(file);
 	_trackWidget->setFile(file);
 	_remoteServer->setFile(file);
+	eventWidget()->setFile(file);
+
 	Tool::setFile(file);
 	this->file = file;
 	connect(file, SIGNAL(trackChanged()), this, SLOT(updateTrackMenu()));
@@ -1418,8 +1415,8 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event){
 	mw_matrixWidget->takeKeyReleaseEvent(event);
 }
 
-void MainWindow::showEventWidget(MidiEvent *event){
-	if(event){
+void MainWindow::showEventWidget(bool show){
+	if(show){
 		lowerTabWidget->setCurrentIndex(1);
 	} else {
 		lowerTabWidget->setCurrentIndex(0);
