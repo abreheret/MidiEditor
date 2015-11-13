@@ -71,6 +71,8 @@ PlayerThread *MidiPlayer::playerThread(){
 }
 
 void MidiPlayer::panic(){
+
+
 	// set all cannels note off / sounds off
 	for(int i = 0; i<16; i++){
 		// value (third number) should be 0, but doesnt work
@@ -86,5 +88,16 @@ void MidiPlayer::panic(){
 		array.append(char(120));
 		array.append(char(0));
 		MidiOutput::sendCommand(array);
+	}
+	if(MidiOutput::isAlternativePlayer){
+		foreach(int channel, MidiOutput::playedNotes.keys()){
+			foreach(int note, MidiOutput::playedNotes.value(channel)){
+				QByteArray array;
+				array.append(0x80 | channel);
+				array.append(char(note));
+				array.append(char(0));
+				MidiOutput::sendCommand(array);
+			}
+		}
 	}
 }

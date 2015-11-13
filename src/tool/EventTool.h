@@ -53,6 +53,7 @@ class EventTool: public EditorTool {
 		int rasteredX(int x);
 
 		static void enableMagnet(bool enable);
+		static bool magnetEnabled();
 
 	protected:
 		static QList<MidiEvent*> *selectedEvents, *copiedEvents;

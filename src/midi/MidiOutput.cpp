@@ -30,10 +30,14 @@
 #include "rtmidi/RtMidi.h"
 
 #include "SenderThread.h"
+#include "../MidiEvent/NoteOnEvent.h"
+#include "../MidiEvent/OffEvent.h"
 
 RtMidiOut *MidiOutput::_midiOut = 0;
 QString MidiOutput::_outPort = "";
 SenderThread *MidiOutput::_sender = new SenderThread();
+QMap<int, QList<int> > MidiOutput::playedNotes = QMap<int, QList<int> >();
+bool MidiOutput::isAlternativePlayer = false;
 
 void MidiOutput::init(){
 
@@ -56,6 +60,23 @@ void MidiOutput::sendCommand(MidiEvent *e){
 
 	if(e->channel() >= 0 && e->channel() < 16){
 		_sender->enqueue(e);
+
+		if(isAlternativePlayer){
+			NoteOnEvent *n = dynamic_cast<NoteOnEvent*>(e);
+			if(n && n->velocity() > 0){
+				playedNotes[n->channel()].append(n->note());
+			} else if(n && n->velocity() == 0){
+				playedNotes[n->channel()].removeOne(n->note());
+			} else {
+				OffEvent *o = dynamic_cast<OffEvent*>(e);
+				if(o){
+					n = dynamic_cast<NoteOnEvent*>(o->onEvent());
+					if(n){
+						playedNotes[n->channel()].removeOne(n->note());
+					}
+				}
+			}
+		}
 	}
 }
 

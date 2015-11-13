@@ -76,6 +76,7 @@ void PlayerThread::run(){
 		array.append(char(0));
 		MidiOutput::sendCommand(array);
 	}
+	MidiOutput::playedNotes.clear();
 
 	// All Events before position should be sent, progChanges and ControlChanges
 	QMultiMap<int, MidiEvent*>::iterator it = events->begin();
@@ -124,7 +125,17 @@ void PlayerThread::timeout(){
 			array.append(char(127));
 			MidiOutput::sendCommand(array);
 		}
-
+		if(MidiOutput::isAlternativePlayer){
+			foreach(int channel, MidiOutput::playedNotes.keys()){
+				foreach(int note, MidiOutput::playedNotes.value(channel)){
+					QByteArray array;
+					array.append(0x80 | channel);
+					array.append(char(note));
+					array.append(char(0));
+					MidiOutput::sendCommand(array);
+				}
+			}
+		}
 		quit();
 
 	} else {

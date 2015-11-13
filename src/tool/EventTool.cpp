@@ -102,6 +102,7 @@ void EventTool::reloadState(ProtocolEntry *entry){
 	EditorTool::reloadState(entry);
 	selectedEvents->clear();
 	selectedEvents->append(*(other->ownSelectedEvents));
+	_mainWindow->eventWidget()->setEvents(*selectedEvents);
 }
 
 bool EventTool::pressKey(int key){
@@ -113,6 +114,7 @@ bool EventTool::pressKey(int key){
 			file()->channel(ev->channel())->removeEvent(ev);
 		}
 		selectedEvents->clear();
+		_mainWindow->eventWidget()->setEvents(*selectedEvents);
 		protocol(toCopy, this);
 		currentFile()->protocol()->endAction();
 		return true;
@@ -292,4 +294,8 @@ int EventTool::rasteredX(int x){
 
 void EventTool::enableMagnet(bool enable){
 	_magnet = enable;
+}
+
+bool EventTool::magnetEnabled(){
+	return _magnet;
 }

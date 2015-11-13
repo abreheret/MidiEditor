@@ -63,30 +63,20 @@ void SelectTool::draw(QPainter *painter){
 	if(SELECTION_TYPE_BOX && (x_rect || y_rect)){
         painter->setPen(Qt::gray);
         painter->setBrush(QColor(0,0,0,100));
-        //painter->drawLine(x_rect, y_rect, mouseX, y_rect);
-        //painter->drawLine(x_rect, y_rect, x_rect, mouseY);
-        //painter->drawLine(mouseX, y_rect, mouseX, mouseY);
-        //painter->drawLine(x_rect, mouseY, mouseX, mouseY);
         painter->drawRect(x_rect, y_rect, mouseX-x_rect, mouseY-y_rect);
 	} else if(stool_type == SELECTION_TYPE_RIGHT ||
 			stool_type == SELECTION_TYPE_LEFT)
 	{
 		if(mouseIn){
             painter->setPen(Qt::black);
-			painter->drawLine(mouseX, 0, mouseX, matrixWidget->height());
-			int fac = 1;
+			painter->setPen(Qt::gray);
+			painter->setBrush(QColor(0,0,0,100));
 			if(stool_type == SELECTION_TYPE_LEFT){
-				fac = -1;
+				painter->drawRect(0, 0, mouseX, matrixWidget->height()-1);
+			} else {
+				painter->drawRect(mouseX, 0, matrixWidget->width()-1, matrixWidget->height()-1);
 			}
-			// draw arrow
-			painter->setPen(Qt::black);
-			int height = 3;
-			int width = 10;
-			int arrowHeight = 5; // up and down
-			painter->fillRect(mouseX, mouseY-(height/2),fac*width,height,Qt::black);
-			painter->drawLine(mouseX+fac*width, mouseY+arrowHeight, mouseX+fac*(width+5), mouseY);
-			painter->drawLine(mouseX+fac*width, mouseY-arrowHeight, mouseX+fac*(width+5), mouseY);
-			painter->drawLine(mouseX+fac*width, mouseY-arrowHeight, mouseX+fac*width, mouseY+arrowHeight);
+
 		}
 	}
 }

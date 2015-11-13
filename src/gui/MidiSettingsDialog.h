@@ -26,6 +26,7 @@ class QWidget;
 class QListWidget;
 class QListWidgetItem;
 class QLineEdit;
+class QCheckBox;
 
 class MidiSettingsDialog : public QDialog {
 
@@ -33,49 +34,21 @@ class MidiSettingsDialog : public QDialog {
 
 	public:
 
-		/**
-		 * \brief Create a new MidiSettingsDialog.
-		 */
 		MidiSettingsDialog(QWidget *parent = 0);
 
 	public slots:
 
-		/**
-		 * \brief reloads the input ports
-		 */
 		void reloadInputPorts();
-
-		/**
-		 * \brief reloads the output ports
-		 */
 		void reloadOutputPorts();
-
-		/**
-		 * \brief called when an inputItem has been checked.
-		 */
 		void inputChanged(QListWidgetItem *item);
-
-		/**
-		 * \brief called when an outputItem has been checked.
-		 */
 		void outputChanged(QListWidgetItem *item);
+		void manualModeToggled(bool enable);
 
 	private:
-
-		/**
-		 * \brief a list of selected input/ output ports
-		 */
 		QStringList *_inputPorts, *_outputPorts;
-
-		/**
-		 * \brief the Lists
-		 */
 		QListWidget *_inList, *_outList;
+		QCheckBox *_alternativePlayerModeBox;
 
-		/**
-		 * \brief the textfield with the startup command.
-		 */
-		QLineEdit *_commandEdit;
 };
 
 #endif
