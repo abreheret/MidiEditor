@@ -18,12 +18,6 @@
 
 #include "PitchBendEvent.h"
 
-#include <QSpinBox>
-#include <QBoxLayout>
-#include <QWidget>
-#include <QComboBox>
-#include <QLabel>
-#include <QLayout>
 #include "../midi/MidiFile.h"
 
 PitchBendEvent::PitchBendEvent(int channel, int value, MidiTrack *track) :
@@ -81,61 +75,8 @@ void PitchBendEvent::setValue(int v){
 	_value = v;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_value_box->setValue(v);
+		eventWidget()->reload();
 	}
-}
-
-// Widgets for EventWidget
-QWidget *PitchBendEvent::_value_widget = 0;
-QSpinBox *PitchBendEvent::_value_box = 0;
-QLabel *PitchBendEvent::_value_label = 0;
-
-void PitchBendEvent::generateWidget(QWidget *widget){
-
-	// general data
-	MidiEvent::generateWidget(widget);
-
-	// first call
-	if(_value_widget == 0) _value_widget = new QWidget();
-	if(_value_box == 0) _value_box = new QSpinBox();
-	if(_value_label == 0) _value_label = new QLabel();
-
-	// set Parents
-	_value_widget->setParent(widget);
-	_value_box->setParent(_value_widget);
-	_value_label->setParent(_value_widget);
-
-	// unhide
-	_value_widget->setHidden(false);
-	_value_box->setHidden(false);
-	_value_label->setHidden(false);
-
-
-	// value
-	_value_label->setText("Value: ");
-	QLayout *valL = _value_widget->layout();
-	if(!valL){
-		valL = new QBoxLayout(QBoxLayout::LeftToRight, _value_widget);
-		_value_widget->setLayout(valL);
-	}
-	valL->addWidget(_value_label);
-
-	// box
-	_value_box->setMaximum(16383);
-	_value_box->setMinimum(0);
-	_value_box->setValue(_value);
-	valL->addWidget(_value_box);
-
-	// Add Widgets
-	QLayout *layout = widget->layout();
-	layout->addWidget(_value_widget);
-}
-
-void PitchBendEvent::editByWidget(){
-	if(_value_box->value()!=value()){
-		setValue(_value_box->value());
-	}
-	MidiEvent::editByWidget();
 }
 
 bool PitchBendEvent::isOnEvent(){

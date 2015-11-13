@@ -21,10 +21,6 @@
 #include "../midi/MidiFile.h"
 #include "../midi/MidiTrack.h"
 
-#include <QLayout>
-#include <QSpinBox>
-#include <QMessageBox>
-
 TextEvent::TextEvent(int channel, MidiTrack *track) : MidiEvent(channel, track) {
 	_type = TEXT;
 	_text = "";
@@ -44,7 +40,7 @@ void TextEvent::setText(QString text){
 	_text = text;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_text_area->setText(_text);
+		eventWidget()->reload();
 	}
 }
 
@@ -57,7 +53,7 @@ void TextEvent::setType(int type){
 	_type = type;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_type_combo->setCurrentIndex(type-1);
+		eventWidget()->reload();
 	}
 }
 
@@ -98,97 +94,14 @@ void TextEvent::reloadState(ProtocolEntry *entry){
 	_type = other->_type;
 }
 
-// Widgets for EventWidget
-QTextEdit *TextEvent::_text_area = 0;
-QLabel *TextEvent::_text_label = 0;
-QComboBox *TextEvent::_type_combo = 0;
-QLabel *TextEvent::_type_label = 0;
-
-void TextEvent::generateWidget(QWidget *widget){
-
-	// general data
-	MidiEvent::generateWidget(widget);
-
-	// first call
-	if(_text_area == 0) _text_area = new QTextEdit();
-	if(_text_label == 0) _text_label = new QLabel();
-	if(_type_label == 0) _type_label = new QLabel();
-
-	if(_type_combo == 0){
-		_type_combo = new QComboBox();
-		_type_combo->addItem("General text");
-		_type_combo->addItem("Copyright");
-		_type_combo->addItem("Trackname");
-		_type_combo->addItem("Instrument name");
-		_type_combo->addItem("Lyric");
-		_type_combo->addItem("Marker");
-		_type_combo->addItem("Comment");
-	}
-
-	// set Parents
-	_type_combo->setParent(widget);
-	_type_label->setParent(widget);
-	_text_label->setParent(widget);
-	_text_area->setParent(widget);
-
-	// unhide
-	_type_combo->setHidden(false);
-	_type_label->setHidden(false);
-	_text_label->setHidden(false);
-	_text_area->setHidden(false);
-
-	// type
-	_type_label->setText("Type:");
-	_type_combo->setCurrentIndex(_type-1);
-
-	// text
-	_text_label->setText("Text:");
-	_text_area->setText(_text);
-
-	// Add Widgets
-	QLayout *layout = widget->layout();
-	layout->addWidget(_type_label);
-	layout->addWidget(_type_combo);
-	layout->addWidget(_text_label);
-	layout->addWidget(_text_area);
-}
-
-void TextEvent::editByWidget(){
-
-	MidiTrack *oldTrack = track();
-	int oldType = type();
-
-	// only one trackname event accepted per track
-	if(_type_combo->currentIndex() != _type-1|| _track_spinBox->value() != track()->number()){
-		if(_type_combo->currentIndex() == TextEvent::TRACKNAME-1){
-			if(file()->tracks()->size()>_track_spinBox->value() && file()->tracks()->at(_track_spinBox->value())->nameEvent()){
-				QMessageBox::warning(0,	"Error", QString("The track "+
-								QString::number(_track_spinBox->value())+
-								" already has a trackname TextEvent! Abort!"));
-				_type_combo->setCurrentIndex(_type-1);
-				_track_spinBox->setValue(track()->number());
-				return;
-			}
-		}
-	}
-
-	MidiEvent::editByWidget();
-
-	if(_text != _text_area->toPlainText()){
-		setText(_text_area->toPlainText());
-	}
-
-	if(_type != _type_combo->currentIndex()+1){
-		setType(_type_combo->currentIndex()+1);
-	}
-
-	// set this event to the new track
-	if(oldType == TextEvent::TRACKNAME && _type != TextEvent::TRACKNAME){
-		oldTrack->setNameEvent(0);
-	} else if(oldType == TextEvent::TRACKNAME && oldTrack != track()){
-		oldTrack->setNameEvent(0);
-		track()->setNameEvent(this);
-	} else if(_type == TextEvent::TRACKNAME){
-		track()->setNameEvent(this);
+QString TextEvent::textTypeString(int type){
+	switch(type){
+		case TEXT: return "General text";
+		case COPYRIGHT: return "Copyright";
+		case TRACKNAME: return "Trackname";
+		case INSTRUMENT_NAME: return "Instrument name";
+		case LYRIK: return "Lyric";
+		case MARKER: return "Marker";
+		case COMMENT: return "Comment";
 	}
 }

@@ -19,31 +19,103 @@
 #ifndef EVENTWIDGET_H_
 #define EVENTWIDGET_H_
 
-#include <QWidget>
+#include <QTableWidget>
+#include <QStyledItemDelegate>
 
 class MidiEvent;
+class EventWidget;
+class MidiFile;
 
-class EventWidget : public QWidget {
+class EventWidgetDelegate : public QStyledItemDelegate {
+
+	Q_OBJECT
+
+	public:
+		EventWidgetDelegate(EventWidget *w, QWidget *parent = 0) : QStyledItemDelegate(parent) {eventWidget = w; }
+		QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+		QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+		void setEditorData(QWidget *editor, const QModelIndex &index) const;
+		void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+
+	private:
+		EventWidget *eventWidget;
+
+};
+
+class EventWidget : public QTableWidget {
 
 	Q_OBJECT
 
 	public:
 		EventWidget(QWidget *parent = 0);
 
-		void setEvent(MidiEvent *event);
-		MidiEvent *event();
+		void setEvents(QList<MidiEvent*> events);
+		QList<MidiEvent*> events();
+		void removeEvent(MidiEvent *event);
+
+		void setFile(MidiFile *file);
+		MidiFile *file();
 
 		void reload();
+		enum EventType {
+			MidiEventType,
+			ChannelPressureEventType,
+			ControlChangeEventType,
+			KeyPressureEventType,
+			KeySignatureEventType,
+			NoteEventType,
+			PitchBendEventType,
+			ProgramChangeEventType,
+			SystemExclusiveEventType,
+			TempoChangeEventType,
+			TextEventType,
+			TimeSignatureEventType,
+			UnknownEventType
+		};
 
-	public slots:
-		void submit();
+		enum EditorField {
+			MidiEventTick,
+			MidiEventTrack,
+			MidiEventChannel,
+			MidiEventNote,
+			NoteEventOffTick,
+			NoteEventVelocity,
+			NoteEventDuration,
+			MidiEventValue,
+			ControlChangeControl,
+			ProgramChangeProgram,
+			KeySignatureKey,
+			TimeSignatureDenom,
+			TimeSignatureNum,
+			TextType,
+			TextText,
+			UnknownType,
+			MidiEventData
+		};
+		QVariant fieldContent(EditorField field);
 
+		EventType type() {return _currentType; }
+
+		QStringList keyStrings();
+		int keyIndex(int tonality, bool minor);
+		void getKey(int index, int *tonality, bool *minor);
+
+		static QString dataToString(QByteArray data);
 	signals:
-		void eventSelected(MidiEvent *event);
+		void selectionChanged(bool);
 
 	private:
-		MidiEvent *_event;
-		QWidget *_central;
+		QList<MidiEvent*> _events;
+
+		EventType _currentType;
+		EventType computeType();
+		QString eventType();
+
+		QList<QPair<QString, EditorField> > getFields();
+
+		MidiFile *_file;
+
+
 };
 
 #endif

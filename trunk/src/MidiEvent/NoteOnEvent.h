@@ -20,9 +20,6 @@
 #define NOTEONEVENT_H_
 
 #include "OnEvent.h"
-#include <QWidget>
-#include <QLabel>
-#include <QSpinBox>
 
 class OffEvent;
 
@@ -45,16 +42,10 @@ class NoteOnEvent : public OnEvent{
 		QByteArray save();
 		QByteArray saveOffEvent();
 
-		void generateWidget(QWidget *widget);
-		void editByWidget();
 		QString typeString();
 
 	protected:
 		int _note, _velocity;
-
-		static QWidget *_note_widget, *_velocity_widget;
-		static QSpinBox *_note_box, *_velocity_box;
-		static QLabel *_note_label, *_velocity_label;
 };
 
 #endif

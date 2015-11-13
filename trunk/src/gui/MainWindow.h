@@ -104,7 +104,7 @@ class MainWindow : public QMainWindow {
 
 		void renameTrackMenuClicked(QAction *action);
 		void removeTrackMenuClicked(QAction *action);
-		void showEventWidget(MidiEvent *event);
+		void showEventWidget(bool show);
 		void showTrackMenuClicked(QAction *action);
 		void muteTrackMenuClicked(QAction *action);
 

@@ -18,8 +18,6 @@
 
 #include "KeySignatureEvent.h"
 
-#include <QLayout>
-
 KeySignatureEvent::KeySignatureEvent(int channel, int tonality, bool minor, MidiTrack *track) : MidiEvent(channel, track){
 	_tonality = tonality;
 	_minor = minor;
@@ -70,81 +68,6 @@ QString KeySignatureEvent::typeString(){
 	return "Key Signature Event";
 }
 
-// Widgets for EventWidget
-QWidget *KeySignatureEvent::_ton_widget = 0;
-QSpinBox *KeySignatureEvent::_ton_box = 0;
-QLabel *KeySignatureEvent::_ton_label = 0;
-QWidget *KeySignatureEvent::_minor_widget = 0;
-QCheckBox *KeySignatureEvent::_minor_check = 0;
-
-void KeySignatureEvent::generateWidget(QWidget *widget){
-	// general data
-	MidiEvent::generateWidget(widget);
-
-	// first call
-	if(_ton_widget == 0) _ton_widget = new QWidget();
-	if(_ton_box == 0) _ton_box = new QSpinBox();
-	if(_ton_label == 0) _ton_label = new QLabel();
-	if(_minor_widget == 0) _minor_widget = new QWidget();
-	if(_minor_check == 0) _minor_check = new QCheckBox();
-
-	// set Parents
-	_ton_widget->setParent(widget);
-	_ton_label->setParent(_ton_widget);
-	_ton_box->setParent(_ton_widget);
-	_minor_widget->setParent(widget);
-	_minor_check->setParent(_minor_widget);
-
-	// unhide
-	_ton_widget->setHidden(false);
-	_ton_label->setHidden(false);
-	_ton_box->setHidden(false);
-	_minor_widget->setHidden(false);
-	_minor_check->setHidden(false);
-
-	// Edit tonality
-	_ton_label->setText("Tonality: ");
-	QLayout *tonL = _ton_widget->layout();
-	if(!tonL){
-		tonL = new QBoxLayout(QBoxLayout::LeftToRight, _ton_widget);
-		_ton_widget->setLayout(tonL);
-	}
-	tonL->addWidget(_ton_label);
-
-	// box
-	_ton_box->setMaximum(7);
-	_ton_box->setMinimum(-7);
-	_ton_box->setValue(tonality());
-	tonL->addWidget(_ton_box);
-
-	// Edit minor
-	QLayout *minorL = _minor_widget->layout();
-	if(!minorL){
-		minorL = new QBoxLayout(QBoxLayout::LeftToRight, _minor_widget);
-		_minor_widget->setLayout(minorL);
-	}
-
-	// box
-	_minor_check->setText("minor");
-	_minor_check->setChecked(minor());
-	minorL->addWidget(_minor_check);
-
-	// Add Widgets
-	QLayout *layout = widget->layout();
-	layout->addWidget(_ton_widget);
-	layout->addWidget(_minor_widget);
-}
-
-void KeySignatureEvent::editByWidget(){
-	if(tonality()!=_ton_box->value()){
-		setTonality(_ton_box->value());
-	}
-	if(minor()!=_minor_check->isChecked()){
-		setMinor(_minor_check->isChecked());
-	}
-	MidiEvent::editByWidget();
-}
-
 int KeySignatureEvent::tonality(){
 	return _tonality;
 }
@@ -158,7 +81,7 @@ void KeySignatureEvent::setTonality(int t){
 	_tonality = t;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_ton_box->setValue(t);
+		eventWidget()->reload();
 	}
 }
 
@@ -167,6 +90,126 @@ void KeySignatureEvent::setMinor(bool minor){
 	_minor = minor;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_minor_check->setChecked(_minor);
+		eventWidget()->reload();
 	}
+}
+
+QString KeySignatureEvent::toString(int tonality, bool minor){
+
+	QString text = "";
+
+	if(!minor){
+		switch(tonality){
+			case 0: {
+				text = "C";
+				break;
+			}
+			case 1: {
+				text = "G";
+				break;
+			}
+			case 2: {
+				text = "D";
+				break;
+			}
+			case 3: {
+				text = "A";
+				break;
+			}
+			case 4: {
+				text = "E";
+				break;
+			}
+			case 5: {
+				text = "B";
+				break;
+			}
+			case 6: {
+				text = "F sharp";
+				break;
+			}
+			case -1: {
+				text = "F";
+				break;
+			}
+			case -2: {
+				text = "B flat";
+				break;
+			}
+			case -3: {
+				text = "E flat";
+				break;
+			}
+			case -4: {
+				text = "A flat";
+				break;
+			}
+			case -5: {
+				text = "D flat";
+				break;
+			}
+			case -6: {
+				text = "G flat";
+				break;
+			}
+		}
+		text += " major";
+	} else {
+		switch(tonality){
+			case 0: {
+				text = "a";
+				break;
+			}
+			case 1: {
+				text = "e";
+				break;
+			}
+			case 2: {
+				text = "b";
+				break;
+			}
+			case 3: {
+				text = "f sharp";
+				break;
+			}
+			case 4: {
+				text = "c sharp";
+				break;
+			}
+			case 5: {
+				text = "g sharp";
+				break;
+			}
+			case 6: {
+				text = "d sharp";
+				break;
+			}
+			case -1: {
+				text = "d";
+				break;
+			}
+			case -2: {
+				text = "g";
+				break;
+			}
+			case -3: {
+				text = "c";
+				break;
+			}
+			case -4: {
+				text = "f";
+				break;
+			}
+			case -5: {
+				text = "b flat";
+				break;
+			}
+			case -6: {
+				text = "e flat";
+				break;
+			}
+		}
+		text += " minor";
+	}
+	return text;
 }

@@ -28,96 +28,122 @@
 #define LINE_HEIGHT 20
 #define BORDER 2
 
-ProtocolWidget::ProtocolWidget(QWidget *parent) : PaintWidget(parent) {
-	setRepaintOnMouseMove(true);
-	setRepaintOnMousePress(true);
-	setRepaintOnMouseRelease(true);
-
+ProtocolWidget::ProtocolWidget(QWidget *parent) : QListWidget(parent) {
 	file = 0;
+	setSelectionMode(QAbstractItemView::NoSelection);
+	protocolHasChanged = false;
+	nextChangeFromList = false;
+	setStyleSheet( "QListWidget::item { border-bottom: 1px solid lightGray; }" );
+	setIconSize(QSize(30, 30));
+	connect(this, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(stepClicked(QListWidgetItem*)));
 }
 
 void ProtocolWidget::setFile(MidiFile *f){
 	file = f;
+	protocolHasChanged = true;
+	nextChangeFromList = false;
 	connect(file->protocol(), SIGNAL(protocolChanged()), this, SLOT(protocolChanged()));
 	update();
-
 }
 
 void ProtocolWidget::protocolChanged(){
-	int num = file->protocol()->stepsBack()+file->protocol()->stepsForward();
-	setMinimumHeight(LINE_HEIGHT*num);
+	protocolHasChanged = true;
 	update();
 }
 
-void ProtocolWidget::paintEvent(QPaintEvent *event){
+void ProtocolWidget::update(){
+
+	if(protocolHasChanged){
+
+		clear();
+
+		if(!file){
+			QListWidget::update();
+			return;
+		}
+
+		// construct list
+		int stepsBack = file->protocol()->stepsBack();
+		int stepsForward = file->protocol()->stepsForward();
+
+		QFont undoFont;
+		QFont redoFont;
+		redoFont.setItalic(true);
+		QFont currentFont;
+		currentFont.setBold(true);
+
+		QListWidgetItem *firstToRedo = 0;
+
+		for(int i = 0; i<stepsBack+stepsForward; i++){
+			ProtocolStep *step;
+			QColor bg = Qt::black;
+			QFont f = undoFont;
+			if(i<stepsBack){
+				step = file->protocol()->undoStep(i);
+				if(i == stepsBack-1){
+					f = currentFont;
+				}
+			} else {
+				step = file->protocol()->redoStep(stepsForward-i+stepsBack-1);
+				bg = Qt::lightGray;
+				f = redoFont;
+			}
+
+			// construct item
+			QListWidgetItem *item = new QListWidgetItem(step->description());
+			item->setSizeHint(QSize(0, 40));
+			item->setFont(f);
+			if(step->image()){
+				item->setIcon(QIcon(QPixmap::fromImage(*(step->image()))));
+			} else {
+				//item->setIcon(QIcon("graphics/tool/noicon.png"));
+			}
+			QVariant v;
+			v.setValue(i);
+			item->setData(Qt::UserRole, v);
+			item->setForeground(bg);
+			addItem(item);
+
+			if(i>=stepsBack && !firstToRedo){
+				firstToRedo = item;
+			}
+		}
+
+
+		protocolHasChanged = false;
+
+		if(!nextChangeFromList){
+			if(!firstToRedo){
+				scrollToBottom();
+			} else {
+				scrollToItem(firstToRedo, QAbstractItemView::PositionAtCenter);
+			}
+		}
+		nextChangeFromList = false;
+	}
+
+	QListWidget::update();
+}
+
+void ProtocolWidget::stepClicked(QListWidgetItem *item){
+
 	if(!file){
 		return;
 	}
 
-	QPainter *painter = new QPainter(this);
-	QFont f = painter->font();
-	f.setPixelSize(12);
-	painter->setFont(f);
-	painter->fillRect(0, 0, width(), height(), Qt::white);
+	nextChangeFromList = true;
 
-	int num = file->protocol()->stepsBack()+file->protocol()->stepsForward();
+	int num = item->data(Qt::UserRole).toInt();
 
-	ProtocolStep *toGo = 0;
-	for(int i = 0; i<num; i++){
+	int stepsBack = file->protocol()->stepsBack();
+	int stepsForward = file->protocol()->stepsForward();
 
-		ProtocolStep *step;
-		QColor color = QColor(0,0,0,0);
-		if(i<file->protocol()->stepsBack()){
-			step = file->protocol()->undoStep(i);
-		} else {
-			color = QColor(0, 0, 0, 60);
-			step = file->protocol()->redoStep(file->protocol()->
-					stepsForward()-i+file->protocol()->stepsBack()-1);
-		}
-		bool mouseIn = mouseInRect(0, LINE_HEIGHT*i, width(), LINE_HEIGHT);
-		if(enabled && mouseIn){
-			painter->fillRect(0, LINE_HEIGHT*i, width(), LINE_HEIGHT,
-					QColor(234,246,255));
-			toGo = step;
-		} else {
-			painter->fillRect(0, LINE_HEIGHT*i, width(), LINE_HEIGHT,
-					QColor(194,230,255));
-		}
-		painter->drawLine(0,LINE_HEIGHT*i, width(), LINE_HEIGHT*i);
-		painter->drawLine(0,LINE_HEIGHT*(i+1), width(), LINE_HEIGHT*(i+1));
-		if(step->image()){
-			painter->drawImage(QRectF(BORDER,LINE_HEIGHT*i+BORDER,
-					LINE_HEIGHT-2*BORDER, LINE_HEIGHT-2*BORDER), *step->image(),
-					QRectF(0,0,32,32));
-		}
-		painter->fillRect(BORDER,LINE_HEIGHT*i+BORDER, LINE_HEIGHT-2*BORDER, LINE_HEIGHT-2*BORDER, color);
-		painter->drawLine(BORDER,LINE_HEIGHT*i+BORDER, LINE_HEIGHT-BORDER, LINE_HEIGHT*i+BORDER);
-		painter->drawLine(BORDER,LINE_HEIGHT*(i+1)-BORDER, LINE_HEIGHT-BORDER, LINE_HEIGHT*(i+1)-BORDER);
-		painter->drawLine(BORDER,LINE_HEIGHT*i+BORDER, BORDER, LINE_HEIGHT*(i+1)-BORDER);
-		painter->drawLine(LINE_HEIGHT-BORDER,LINE_HEIGHT*i+BORDER, LINE_HEIGHT-BORDER, LINE_HEIGHT*(i+1)-BORDER);
-
-		painter->drawText(LINE_HEIGHT+BORDER, LINE_HEIGHT*(i+1)-5, step->description());
+	ProtocolStep *step;
+	if(num<stepsBack){
+		step = file->protocol()->undoStep(num);
+	} else {
+		step = file->protocol()->redoStep(stepsForward-num+stepsBack-1);
 	}
 
-	if(mouseReleased && enabled){
-		mouseReleased = false;
-		delete painter;
-		if(toGo){
-			file->protocol()->goTo(toGo);
-		} else {
-			update();
-		}
-		return;
-	}
-
-	painter->drawLine(0,0,width()-1,0);
-	painter->drawLine(width()-1, 0, width()-1, height()-1);
-	painter->drawLine(width()-1, height()-1, 0, height()-1);
-	painter->drawLine(0, height()-1, 0, 0);
-
-	if(!enabled){
-		painter->fillRect(0,0,width(), height(), QColor(110, 110, 110, 100));
-	}
-
-	delete painter;
+	file->protocol()->goTo(step);
 }

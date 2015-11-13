@@ -21,10 +21,6 @@
 
 #include "MidiEvent.h"
 
-#include <QSpinBox>
-#include <QWidget>
-#include <QLabel>
-
 class ChannelPressureEvent : public MidiEvent {
 
 	public:
@@ -40,16 +36,12 @@ class ChannelPressureEvent : public MidiEvent {
 		virtual void reloadState(ProtocolEntry *entry);
 
 		QString typeString();
-		void generateWidget(QWidget *widget);
-		void editByWidget();
+
 		int value();
 		void setValue(int v);
 
 	private:
 		int _value;
-		static QSpinBox *_val_box;
-		static QLabel *_val_label;
-		static QWidget *_val_widget;
 };
 
 #endif

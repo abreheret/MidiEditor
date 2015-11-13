@@ -21,11 +21,6 @@
 
 #include "MidiEvent.h"
 #include <QByteArray>
-#include <QTextEdit>
-#include <QLabel>
-#include <QComboBox>
-
-class QWdiget;
 
 class TextEvent : public MidiEvent {
 
@@ -58,18 +53,11 @@ class TextEvent : public MidiEvent {
 		};
 
 		QString typeString();
-		void generateWidget(QWidget *widget);
-		void editByWidget();
+		static QString textTypeString(int type);
 
 	private:
-
 		int _type;
 		QString _text;
-
-		static QTextEdit *_text_area;
-		static QLabel *_text_label;
-		static QComboBox *_type_combo;
-		static QLabel *_type_label;
 };
 
 #endif

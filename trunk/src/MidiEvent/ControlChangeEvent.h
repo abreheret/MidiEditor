@@ -21,11 +21,6 @@
 
 #include "MidiEvent.h"
 
-class QComboBox;
-class QLabel;
-class QWidget;
-class QSpinBox;
-
 class ControlChangeEvent : public MidiEvent {
 
 	public:
@@ -45,16 +40,11 @@ class ControlChangeEvent : public MidiEvent {
 		virtual void reloadState(ProtocolEntry *entry);
 
 		QString typeString();
-		void generateWidget(QWidget *widget);
-		void editByWidget();
 
 		virtual bool isOnEvent();
 	private:
 		int _control, _value;
-		static QComboBox *_control_combo;
-		static QSpinBox *_value_box;
-		static QLabel *_control_label, *_value_label;
-		static QWidget *_value_widget;
+
 };
 
 #endif

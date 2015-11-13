@@ -18,10 +18,6 @@
 
 #include "ChannelPressureEvent.h"
 
-#include <QWidget>
-#include <QLabel>
-#include <QLayout>
-
 ChannelPressureEvent::ChannelPressureEvent(int channel, int value, MidiTrack *track) :
 		MidiEvent(channel, track)
 {
@@ -66,63 +62,12 @@ QString ChannelPressureEvent::typeString(){
 	return "Channel Pressure Event";
 }
 
-// Widgets for EventWidget
-QWidget *ChannelPressureEvent::_val_widget = 0;
-QSpinBox *ChannelPressureEvent::_val_box = 0;
-QLabel *ChannelPressureEvent::_val_label = 0;
-
-void ChannelPressureEvent::generateWidget(QWidget *widget){
-	// general data
-	MidiEvent::generateWidget(widget);
-
-	// first call
-	if(_val_widget == 0) _val_widget = new QWidget();
-	if(_val_box == 0) _val_box = new QSpinBox();
-	if(_val_label == 0) _val_label = new QLabel();
-
-	// set Parents
-	_val_widget->setParent(widget);
-	_val_label->setParent(_val_widget);
-	_val_box->setParent(_val_widget);
-
-	// unhide
-	_val_widget->setHidden(false);
-	_val_label->setHidden(false);
-	_val_box->setHidden(false);
-
-	// Edit value
-	_val_label->setText("Value: ");
-	QLayout *valL = _val_widget->layout();
-	if(!valL){
-		valL = new QBoxLayout(QBoxLayout::LeftToRight, _val_widget);
-		_val_widget->setLayout(valL);
-	}
-	valL->addWidget(_val_label);
-
-	// box
-	_val_box->setMaximum(127);
-	_val_box->setMinimum(0);
-	_val_box->setValue(value());
-	valL->addWidget(_val_box);
-
-	// Add Widgets
-	QLayout *layout = widget->layout();
-	layout->addWidget(_val_widget);
-}
-
-void ChannelPressureEvent::editByWidget(){
-	if(value()!=_val_box->value()){
-		setValue(_val_box->value());
-	}
-	MidiEvent::editByWidget();
-}
-
 void ChannelPressureEvent::setValue(int v){
 	ProtocolEntry *toCopy = copy();
 	_value = v;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_val_box->setValue(v);
+		eventWidget()->reload();
 	}
 }
 

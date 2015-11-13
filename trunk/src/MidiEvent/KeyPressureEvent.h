@@ -40,8 +40,6 @@ class KeyPressureEvent : public MidiEvent {
 		virtual void reloadState(ProtocolEntry *entry);
 
 		QString typeString();
-		void generateWidget(QWidget *widget);
-		void editByWidget();
 
 		int value();
 		int note();
@@ -50,9 +48,6 @@ class KeyPressureEvent : public MidiEvent {
 
 	private:
 		int _value, _note;
-		static QSpinBox *_val_box, *_note_box;
-		static QLabel *_val_label, *_note_label;
-		static QWidget *_val_widget, *_note_widget;
 };
 
 #endif

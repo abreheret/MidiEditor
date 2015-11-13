@@ -21,11 +21,6 @@
 
 #include "MidiEvent.h"
 
-#include <QWidget>
-#include <QLabel>
-#include <QSpinBox>
-#include <QCheckBox>
-
 class KeySignatureEvent  : public MidiEvent {
 
 	public:
@@ -41,21 +36,17 @@ class KeySignatureEvent  : public MidiEvent {
 		virtual void reloadState(ProtocolEntry *entry);
 
 		QString typeString();
-		void generateWidget(QWidget *widget);
-		void editByWidget();
 
 		int tonality();
 		bool minor();
 		void setTonality(int t);
 		void setMinor(bool minor);
 
-		private:
-			int _tonality;
-			bool _minor;
-			static QSpinBox *_ton_box;
-			static QLabel *_ton_label;
-			static QCheckBox *_minor_check;
-			static QWidget *_ton_widget, *_minor_widget;
+		static QString toString(int tonality, bool minor);
+
+	private:
+		int _tonality;
+		bool _minor;
 };
 
 #endif

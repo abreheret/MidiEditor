@@ -19,12 +19,13 @@
 #ifndef PROTOCOLWIDGET_H_
 #define PROTOCOLWIDGET_H_
 
-#include "PaintWidget.h"
+#include <QListWidget>
 #include <QPaintEvent>
 
 class MidiFile;
+class ProtocolStep;
 
-class ProtocolWidget : public PaintWidget {
+class ProtocolWidget : public QListWidget {
 
 	Q_OBJECT
 
@@ -34,12 +35,15 @@ class ProtocolWidget : public PaintWidget {
 
 	public slots:
 		void protocolChanged();
+		void update();
+		void stepClicked(QListWidgetItem *item);
 
 	private:
 		MidiFile *file;
+		bool protocolHasChanged, nextChangeFromList;
 
-	protected:
-		void paintEvent(QPaintEvent *event);
+	//protected:
+	//	void paintEvent(QPaintEvent *event);
 };
 
 #endif

@@ -67,7 +67,7 @@ void OffEvent::setMidiTime(int t, bool toProtocol){
 	MidiEvent::setMidiTime(t, toProtocol);
 	if(_onEvent){
 		if(_onEvent->shownInEventWidget()){
-			OnEvent::_off_tick_box->setValue(t);
+			eventWidget()->reload();
 		}
 	}
 }

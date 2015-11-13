@@ -19,7 +19,6 @@
 #include "NoteOnEvent.h"
 
 #include "OffEvent.h"
-#include <QBoxLayout>
 
 NoteOnEvent::NoteOnEvent(int note, int velocity, int ch, MidiTrack *track) : OnEvent(ch, track){
 	_note = note;
@@ -53,7 +52,7 @@ void NoteOnEvent::setVelocity(int v){
 	_velocity = v;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_velocity_box->setValue(v);
+		eventWidget()->reload();
 	}
 }
 
@@ -66,7 +65,7 @@ void NoteOnEvent::setNote(int n){
 	_note = n;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_note_box->setValue(n);
+		eventWidget()->reload();
 	}
 }
 
@@ -113,87 +112,4 @@ QByteArray NoteOnEvent::saveOffEvent(){
 
 QString NoteOnEvent::typeString(){
 	return "Note On Event";
-}
-
-QWidget *NoteOnEvent::_note_widget = 0;
-QSpinBox *NoteOnEvent::_note_box = 0;
-QLabel *NoteOnEvent::_note_label = 0;
-QWidget *NoteOnEvent::_velocity_widget = 0;
-QSpinBox *NoteOnEvent::_velocity_box = 0;
-QLabel *NoteOnEvent::_velocity_label = 0;
-
-void NoteOnEvent::generateWidget(QWidget *widget){
-
-	// general data
-	OnEvent::generateWidget(widget);
-
-	// first call
-	if(_note_widget == 0) _note_widget = new QWidget();
-	if(_note_box == 0) _note_box = new QSpinBox();
-	if(_note_label == 0) _note_label = new QLabel();
-	if(_velocity_widget == 0) _velocity_widget = new QWidget();
-	if(_velocity_box == 0) _velocity_box = new QSpinBox();
-	if(_velocity_label == 0) _velocity_label = new QLabel();
-
-	// set Parents
-	_note_widget->setParent(widget);
-	_note_label->setParent(_note_widget);
-	_note_box->setParent(_note_widget);
-	_velocity_widget->setParent(widget);
-	_velocity_label->setParent(_velocity_widget);
-	_velocity_box->setParent(_velocity_widget);
-
-	// unhide
-	_note_widget->setHidden(false);
-	_note_label->setHidden(false);
-	_note_box->setHidden(false);
-	_velocity_widget->setHidden(false);
-	_velocity_label->setHidden(false);
-	_velocity_box->setHidden(false);
-
-
-	// Edit note
-	_note_label->setText("Note value: ");
-	QLayout *noteL = _note_widget->layout();
-	if(!noteL){
-		noteL = new QBoxLayout(QBoxLayout::LeftToRight, _note_widget);
-		_note_widget->setLayout(noteL);
-	}
-	noteL->addWidget(_note_label);
-
-	// box
-	_note_box->setMaximum(127);
-	_note_box->setMinimum(0);
-	_note_box->setValue(note());
-	noteL->addWidget(_note_box);
-
-	// Edit velocity
-	_velocity_label->setText("Velocity: ");
-	QLayout *velocityL = _velocity_widget->layout();
-	if(!velocityL){
-		velocityL = new QBoxLayout(QBoxLayout::LeftToRight, _velocity_widget);
-		_velocity_widget->setLayout(velocityL);
-	}
-	velocityL->addWidget(_velocity_label);
-
-	// box
-	_velocity_box->setMaximum(127);
-	_velocity_box->setMinimum(0);
-	_velocity_box->setValue(velocity());
-	velocityL->addWidget(_velocity_box);
-
-	// Add Widgets
-	QLayout *layout = widget->layout();
-	layout->addWidget(_note_widget);
-	layout->addWidget(_velocity_widget);
-}
-
-void NoteOnEvent::editByWidget(){
-	if(velocity()!=_velocity_box->value()){
-		setVelocity(_velocity_box->value());
-	}
-	if(note()!=_note_box->value()){
-		setNote(_note_box->value());
-	}
-	OnEvent::editByWidget();
 }

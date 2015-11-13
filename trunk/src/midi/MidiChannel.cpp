@@ -193,8 +193,8 @@ void MidiChannel::removeEvent(MidiEvent *event){
 	}
 	protocol(toCopy, this);
 
-	if(MidiEvent::eventWidget()->event()==event){
-		MidiEvent::eventWidget()->setEvent(0);
+	if(MidiEvent::eventWidget()->events().contains(event)){
+		MidiEvent::eventWidget()->removeEvent(event);
 	}
 }
 

@@ -18,10 +18,6 @@
 
 #include "KeyPressureEvent.h"
 
-#include <QWidget>
-#include <QLabel>
-#include <QLayout>
-
 KeyPressureEvent::KeyPressureEvent(int channel, int value, int note, MidiTrack *track) :
 		MidiEvent(channel, track)
 {
@@ -71,7 +67,7 @@ void KeyPressureEvent::setValue(int v){
 	_value = v;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_val_box->setValue(v);
+		eventWidget()->reload();
 	}
 }
 
@@ -80,94 +76,12 @@ void KeyPressureEvent::setNote(int n){
 	_note = n;
 	protocol(toCopy, this);
 	if(shownInEventWidget()){
-		_note_box->setValue(n);
+		eventWidget()->reload();
 	}
 }
 
 QString KeyPressureEvent::typeString(){
 	return "Key Pressure Event";
-}
-
-// Widgets for EventWidget
-QWidget *KeyPressureEvent::_val_widget = 0;
-QSpinBox *KeyPressureEvent::_val_box = 0;
-QLabel *KeyPressureEvent::_val_label = 0;
-QWidget *KeyPressureEvent::_note_widget = 0;
-QSpinBox *KeyPressureEvent::_note_box = 0;
-QLabel *KeyPressureEvent::_note_label = 0;
-
-void KeyPressureEvent::generateWidget(QWidget *widget){
-	// general data
-	MidiEvent::generateWidget(widget);
-
-	// first call
-	if(_val_widget == 0) _val_widget = new QWidget();
-	if(_val_box == 0) _val_box = new QSpinBox();
-	if(_val_label == 0) _val_label = new QLabel();
-	if(_note_widget == 0) _note_widget = new QWidget();
-	if(_note_box == 0) _note_box = new QSpinBox();
-	if(_note_label == 0) _note_label = new QLabel();
-
-	// set Parents
-	_val_widget->setParent(widget);
-	_val_label->setParent(_val_widget);
-	_val_box->setParent(_val_widget);
-	_note_widget->setParent(widget);
-	_note_label->setParent(_note_widget);
-	_note_box->setParent(_note_widget);
-
-	// unhide
-	_val_widget->setHidden(false);
-	_val_label->setHidden(false);
-	_val_box->setHidden(false);
-	_note_widget->setHidden(false);
-	_note_label->setHidden(false);
-	_note_box->setHidden(false);
-
-	// Edit Note
-	_note_label->setText("Note: ");
-	QLayout *noteL = _note_widget->layout();
-	if(!noteL){
-		noteL = new QBoxLayout(QBoxLayout::LeftToRight, _note_widget);
-		_note_widget->setLayout(noteL);
-	}
-	noteL->addWidget(_note_label);
-
-	// box
-	_note_box->setMaximum(127);
-	_note_box->setMinimum(0);
-	_note_box->setValue(note());
-	noteL->addWidget(_note_box);
-
-	// Edit value
-	_val_label->setText("Value: ");
-	QLayout *valL = _val_widget->layout();
-	if(!valL){
-		valL = new QBoxLayout(QBoxLayout::LeftToRight, _val_widget);
-		_val_widget->setLayout(valL);
-	}
-	valL->addWidget(_val_label);
-
-	// box
-	_val_box->setMaximum(127);
-	_val_box->setMinimum(0);
-	_val_box->setValue(value());
-	valL->addWidget(_val_box);
-
-	// Add Widgets
-	QLayout *layout = widget->layout();
-	layout->addWidget(_note_widget);
-	layout->addWidget(_val_widget);
-}
-
-void KeyPressureEvent::editByWidget(){
-	if(note()!=_note_box->value()){
-		setNote(_note_box->value());
-	}
-	if(value()!=_val_box->value()){
-		setValue(_val_box->value());
-	}
-	MidiEvent::editByWidget();
 }
 
 int KeyPressureEvent::value(){
