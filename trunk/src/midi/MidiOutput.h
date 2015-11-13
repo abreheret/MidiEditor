@@ -20,6 +20,8 @@
 #define MIDIOUTPUT_H_
 
 #include <QObject>
+#include <QList>
+#include <QMap>
 
 class MidiEvent;
 class RtMidiIn;
@@ -37,6 +39,8 @@ class MidiOutput : public QObject {
 		static bool setOutputPort(QString name);
 		static QString outputPort();
 		static void sendEnqueuedCommand(QByteArray array);
+		static bool isAlternativePlayer;
+		static QMap<int, QList<int> > playedNotes;
 
 	private:
 		static QString _outPort;

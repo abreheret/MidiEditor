@@ -24,6 +24,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QGridLayout>
+#include <QCheckBox>
 
 #include "../midi/MidiOutput.h"
 #include "../midi/MidiInput.h"
@@ -66,10 +67,21 @@ MidiSettingsDialog::MidiSettingsDialog(QWidget *parent) : QDialog(parent) {
 	f0->setFrameStyle( QFrame::HLine | QFrame::Sunken );
 	layout->addWidget( f0, 3, 0, 1, 6);
 
+	_alternativePlayerModeBox = new QCheckBox("Manually stop notes\n(only required if the stop button does not stop playback)", this);
+	_alternativePlayerModeBox->setChecked(MidiOutput::isAlternativePlayer);
+
+	connect(_alternativePlayerModeBox, SIGNAL(toggled(bool)), this, SLOT(manualModeToggled(bool)));
+	layout->addWidget(_alternativePlayerModeBox, 4, 0, 1, 6);
+
+	// horizontal line
+	QFrame *f1 = new QFrame( this );
+	f1->setFrameStyle( QFrame::HLine | QFrame::Sunken );
+	layout->addWidget( f1, 5, 0, 1, 6);
+
 	// ok button
 	QPushButton *okButton = new QPushButton("Ok", this);
 	connect(okButton, SIGNAL(clicked()), this, SLOT(hide()));
-	layout->addWidget(okButton, 4, 5, 1, 1);
+	layout->addWidget(okButton, 6, 5, 1, 1);
 }
 
 void MidiSettingsDialog::reloadInputPorts(){
@@ -142,4 +154,8 @@ void MidiSettingsDialog::outputChanged(QListWidgetItem *item){
 
 		reloadOutputPorts();
 	}
+}
+
+void MidiSettingsDialog::manualModeToggled(bool enable){
+	MidiOutput::isAlternativePlayer = enable;
 }

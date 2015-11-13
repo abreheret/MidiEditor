@@ -84,7 +84,7 @@ class MainWindow : public QMainWindow {
 		void record();
 		void newFile();
 		void panic();
-		void toggleScreenLock();
+		void screenLockPressed(bool enable);
 		void scaleSelection();
 		void alignLeft();
 		void alignRight();
@@ -156,7 +156,6 @@ class MainWindow : public QMainWindow {
 		QString startDirectory;
 		EventWidget *_eventWidget;
 		QSettings *_settings;
-		QAction *_lockAction;
 		QStringList _recentFilePaths;
 		QMenu *_recentPathsMenu, *_channelVisibilityMenu, *_channelMuteMenu, *_channelInstrumentMenu, *_deleteChannelMenu,
 			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu, *_moveSelectedEventsToChannelMenu,

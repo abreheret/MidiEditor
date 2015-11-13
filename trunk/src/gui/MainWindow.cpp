@@ -94,6 +94,10 @@ MainWindow::MainWindow() : QMainWindow() {
 	int port = _settings->value("udp_client_port", -1).toInt(&ok);
 	QString ip = _settings->value("udp_client_ip", "").toString();
 
+	bool alternativeStop = _settings->value("alt_stop", false).toBool();
+	MidiOutput::isAlternativePlayer = alternativeStop;
+	bool magnet = _settings->value("magnet", false).toBool();
+	EventTool::enableMagnet(magnet);
 
 	 _remoteServer = new RemoteServer();
 	 _remoteServer->setIp(ip);
@@ -181,6 +185,11 @@ MainWindow::MainWindow() : QMainWindow() {
     matrixAreaLayout->addWidget(vert, 1, 1, 1, 1);
 	matrixAreaLayout->setColumnStretch(0, 1);
 	matrixArea->setLayout(matrixAreaLayout);
+
+	bool screenLocked = _settings->value("screen_locked", false).toBool();
+	mw_matrixWidget->setScreenLocked(screenLocked);
+	int div = _settings->value("div", 2).toInt();
+	mw_matrixWidget->setDiv(div);
 
 	// VelocityArea
 	QWidget *velocityArea = new QWidget(leftSplitter);
@@ -414,6 +423,7 @@ void MainWindow::play(){
 		protocolWidget->setEnabled(false);
 		mw_matrixWidget->setEnabled(false);
 		_trackWidget->setEnabled(false);
+		eventWidget()->setEnabled(false);
 
 	    MidiPlayer::play(file);
 		connect(MidiPlayer::playerThread(),
@@ -451,6 +461,7 @@ void MainWindow::record(){
 			protocolWidget->setEnabled(false);
 			mw_matrixWidget->setEnabled(false);
 			_trackWidget->setEnabled(false);
+			eventWidget()->setEnabled(false);
 
 			_remoteServer->record();
 
@@ -497,6 +508,7 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		_trackWidget->setEnabled(true);
 		protocolWidget->setEnabled(true);
 		mw_matrixWidget->setEnabled(true);
+		eventWidget()->setEnabled(true);
 		mw_matrixWidget->timeMsChanged(MidiPlayer::timeMs(), true);
 		_trackWidget->setEnabled(true);
 		_remoteServer->stop();
@@ -517,6 +529,7 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		protocolWidget->setEnabled(true);
 		mw_matrixWidget->setEnabled(true);
 		_trackWidget->setEnabled(true);
+		eventWidget()->setEnabled(true);
 		_remoteServer->stop();
 
 		QMultiMap<int, MidiEvent*> events = MidiInput::endInput(track);
@@ -758,11 +771,15 @@ void MainWindow::openFile(QString filePath){
 void MainWindow::redo(){
 	if(file) file->protocol()->redo(true);
 	updateTrackMenu();
+	eventWidget()->reload();
+	//showEventWidget(false);
 }
 
 void MainWindow::undo(){
 	if(file) file->protocol()->undo(true);
 	updateTrackMenu();
+	eventWidget()->reload();
+	//showEventWidget(false);
 }
 
 EventWidget *MainWindow::eventWidget(){
@@ -862,6 +879,11 @@ void MainWindow::closeEvent(QCloseEvent *event){
 
 	// save the current Path
 	_settings->setValue("open_path", startDirectory);
+	_settings->setValue("alt_stop", MidiOutput::isAlternativePlayer);
+	_settings->setValue("screen_locked", mw_matrixWidget->screenLocked());
+	_settings->setValue("magnet", EventTool::magnetEnabled());
+
+	_settings->setValue("div", mw_matrixWidget->div());
 }
 
 void MainWindow::donate(){
@@ -949,16 +971,8 @@ void MainWindow::panic(){
 	MidiPlayer::panic();
 }
 
-void MainWindow::toggleScreenLock() {
-	if(mw_matrixWidget->screenLocked()){
-		_lockAction->setIcon(QIcon("graphics/tool/screen_unlocked.png"));
-		_lockAction->setToolTip("Do not scroll automatically while playing/recording");
-		mw_matrixWidget->setScreenLocked(false);
-	} else {
-		_lockAction->setIcon(QIcon("graphics/tool/screen_locked.png"));
-		_lockAction->setToolTip("Scroll automatically while playing/recording");
-		mw_matrixWidget->setScreenLocked(true);
-	}
+void MainWindow::screenLockPressed(bool enable) {
+	mw_matrixWidget->setScreenLocked(enable);
 }
 
 void MainWindow::scaleSelection(){
@@ -1950,6 +1964,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	magnetAction->setIcon(QIcon("graphics/tool/magnet.png"));
 	magnetAction->setCheckable(true);
 	magnetAction->setChecked(false);
+	magnetAction->setChecked(EventTool::magnetEnabled());
 	connect(magnetAction, SIGNAL(toggled(bool)), this, SLOT(enableMagnet(bool)));
 
     // channels
@@ -2169,10 +2184,18 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 		divGroup->addAction(a);
 		divMenu->addAction(a);
 		a->setCheckable(true);
-		a->setChecked(i == 2);
+		a->setChecked(i == mw_matrixWidget->div());
 	}
 	connect(divMenu, SIGNAL(triggered(QAction*)), this, SLOT(divChanged(QAction*)));
 	viewMB->addMenu(divMenu);
+
+	viewMB->addSeparator();
+	QAction *lockAction = new QAction("Lock screen while playing", this);
+	lockAction->setIcon(QIcon("graphics/tool/screen_unlocked.png"));
+	lockAction->setCheckable(true);
+	connect(lockAction, SIGNAL(toggled(bool)), this, SLOT(screenLockPressed(bool)));
+	viewMB->addAction(lockAction);
+	lockAction->setChecked(mw_matrixWidget->screenLocked());
 
     // Playback
     QAction *playAction = new QAction("Play", this);
@@ -2311,10 +2334,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	lowerTB->addAction(forwAction);
 	lowerTB->addSeparator();
 
-	_lockAction = new QAction("Lock screen while playing", this);
-	_lockAction->setIcon(QIcon("graphics/tool/screen_unlocked.png"));
-	lowerTB->addAction(_lockAction);
-	connect(_lockAction, SIGNAL(triggered()), this, SLOT(toggleScreenLock()));
+	lowerTB->addAction(lockAction);
 
     StandardTool *tool = new StandardTool();
     Tool::setCurrentTool(tool);
@@ -2334,7 +2354,6 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     upperTB->addAction(new ToolButton(new SizeChangeTool()));
 
     upperTB->addSeparator();
-
 
 	upperTB->addAction(alignLeftAction);
 	upperTB->addAction(alignRightAction);

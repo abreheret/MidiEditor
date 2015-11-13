@@ -33,6 +33,8 @@
 #include "../MidiEvent/KeySignatureEvent.h"
 #include "../MidiEvent/PitchBendEvent.h"
 #include "../MidiEvent/TextEvent.h"
+#include "../MidiEvent/UnknownEvent.h"
+#include "../MidiEvent/SysExEvent.h"
 #include "StandardTool.h"
 
 int NewNoteTool::_channel = 0;
@@ -215,7 +217,25 @@ bool NewNoteTool::release(){
 				file()->channel(16)->insertEvent(event, startTick);
 
 				currentProtocol()->endAction();
-			} else {
+			} else if(line == MidiEvent::UNKNOWN_LINE){
+				currentProtocol()->startNewAction(
+						"Create Unknown Event", image());
+				event = new UnknownEvent(16, 0x52, QByteArray(), track);
+				int startMs = matrixWidget->msOfXPos(xPos);
+				int startTick = file()->tick(startMs);
+				file()->channel(16)->insertEvent(event, startTick);
+
+				currentProtocol()->endAction();
+			} else if(line == MidiEvent::SYSEX_LINE){
+				currentProtocol()->startNewAction(
+						"Create SysEx Event", image());
+				event = new SysExEvent(16, QByteArray(), track);
+				int startMs = matrixWidget->msOfXPos(xPos);
+				int startTick = file()->tick(startMs);
+				file()->channel(16)->insertEvent(event, startTick);
+
+				currentProtocol()->endAction();
+			}  else {
 				if(_standardTool){
 					Tool::setCurrentTool(_standardTool);
 					_standardTool->move(mouseX, mouseY);

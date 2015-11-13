@@ -1093,3 +1093,7 @@ void MatrixWidget::setDiv(int div){
 QList<QPair<int, int> > MatrixWidget::divs(){
 	return currentDivs;
 }
+
+int MatrixWidget::div(){
+	return _div;
+}
