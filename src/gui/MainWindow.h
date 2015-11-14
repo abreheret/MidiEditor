@@ -75,12 +75,9 @@ class MainWindow : public QMainWindow {
 		void allTracksInvisible();
 		void donate();
 		void about();
-		void showRemoteDialog();
 		void setFileLengthMs();
 		void scrollPositionsChanged(int startMs, int maxMs, int startLine,
 				int maxLine);
-		void setStartupCmd();
-		void midiSettings();
 		void record();
 		void newFile();
 		void panic();
@@ -141,6 +138,8 @@ class MainWindow : public QMainWindow {
 
 		void enableMagnet(bool enable);
 
+		void openConfig();
+
 	protected:
 		void closeEvent(QCloseEvent *event);
 		void keyPressEvent(QKeyEvent* e);
@@ -157,9 +156,9 @@ class MainWindow : public QMainWindow {
 		EventWidget *_eventWidget;
 		QSettings *_settings;
 		QStringList _recentFilePaths;
-		QMenu *_recentPathsMenu, *_channelVisibilityMenu, *_channelMuteMenu, *_channelInstrumentMenu, *_deleteChannelMenu,
-			*_channelSoloMenu, *_renameTrackMenu, *_removeTrackMenu, *_moveSelectedEventsToTrackMenu, *_moveSelectedEventsToChannelMenu,
-			*_trackVisibilityMenu, *_trackMuteMenu, *_pasteToTrackMenu, *_pasteToChannelMenu;
+		QMenu *_recentPathsMenu, *_deleteChannelMenu,
+			*_moveSelectedEventsToTrackMenu, *_moveSelectedEventsToChannelMenu,
+			*_pasteToTrackMenu, *_pasteToChannelMenu;
 		QTabWidget *lowerTabWidget;
 		QAction *_colorsByChannel, *_colorsByTracks;
 
@@ -170,7 +169,8 @@ class MainWindow : public QMainWindow {
         QGridLayout *_miscControlLayout;
 
         QComboBox *_miscMode, *_miscController, *_miscChannel;
-        QAction *setSingleMode, *setLineMode, *setFreehandMode;
+		QAction *setSingleMode, *setLineMode, *setFreehandMode, *_allChannelsVisible, *_allChannelsInvisible, *_allTracksAudible, *_allTracksMute,
+			*_allChannelsAudible, *_allChannelsMute, *_allTracksVisible, *_allTracksInvisible;
         MiscWidget *_miscWidget;
 
 		QWidget *setupActions(QWidget *parent);

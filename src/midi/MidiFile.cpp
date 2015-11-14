@@ -52,19 +52,26 @@ MidiFile::MidiFile(){
 	_midiFormat = 1;
 
 	_tracks = new QList<MidiTrack*>();
-	MidiTrack *track = new MidiTrack(this);
-	track->setName("New Track");
-	track->setNumber(0);
-	_tracks->append(track);
-	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
+	MidiTrack *tempoTrack = new MidiTrack(this);
+	tempoTrack->setName("Tempo Track");
+	tempoTrack->setNumber(0);
+	_tracks->append(tempoTrack);
+
+	MidiTrack *instrumentTrack = new MidiTrack(this);
+	instrumentTrack->setName("New Instrument");
+	instrumentTrack->setNumber(1);
+	_tracks->append(instrumentTrack);
+
+	connect(tempoTrack, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
+	connect(instrumentTrack, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 
 	// add timesig
-	TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8, track);
+	TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8, tempoTrack);
 	timeSig->setFile(this);
 	channel(18)->eventMap()->insert(0, timeSig);
 
 	// create tempo change
-	TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000, track);
+	TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000, tempoTrack);
 	tempoEv->setFile(this);
 	channel(17)->eventMap()->insert(0, tempoEv);
 

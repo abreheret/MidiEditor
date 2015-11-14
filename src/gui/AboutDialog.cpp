@@ -22,6 +22,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QGridLayout>
+#include <QApplication>
+#include <QVariant>
 
 AboutDialog::AboutDialog(QWidget *parent):QDialog(parent)
 {
@@ -30,7 +32,7 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent)
 	QGridLayout *layout = new QGridLayout;
 
 	//Label starttext
-	QLabel *title = new QLabel("<h2><b>MidiEditor</b></h2>"
+	QLabel *title = new QLabel("<h2><b>"+QApplication::applicationName()+" "+QApplication::applicationVersion()+"</b></h2>"
 		"Copyright by Markus Schwenk"
 		 " (kontakt@markus-schwenk.de)<br>Visit my Homepage: <a href=\""
 		 "http://www.markus-schwenk.de\">www.markus-schwenk.de</a>"
@@ -52,10 +54,10 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent)
 	layout->addWidget( f0, 1, 0, 1, 4);
 
 
-	QLabel *version = new QLabel("Version: MidiEditor, v. 2.5.0");
+	QLabel *version = new QLabel("Version: "+QApplication::applicationName()+" "+QApplication::applicationVersion());
 	layout->addWidget(version, 2,0,1,4);
 
-	QLabel *date = new QLabel("(11.04.2013)");
+	QLabel *date = new QLabel(QApplication::instance()->property("date_published").toString());
 	layout->addWidget(date, 3, 0, 1, 4);
 
 	QFrame *f3 = new QFrame( this );

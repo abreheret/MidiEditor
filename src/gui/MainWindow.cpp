@@ -19,30 +19,6 @@
 
 #include <QGridLayout>
 #include <QProcess>
-
-#include "MatrixWidget.h"
-#include "../midi/MidiFile.h"
-#include "../midi/MidiTrack.h"
-#include "ChannelListWidget.h"
-#include "TrackListWidget.h"
-#include "../tool/Tool.h"
-#include "../tool/SelectTool.h"
-#include "../tool/SizeChangeTool.h"
-#include "../tool/EraserTool.h"
-#include "../tool/StandardTool.h"
-#include "../tool/NewNoteTool.h"
-#include "../tool/EventMoveTool.h"
-#include "../tool/EventTool.h"
-#include "EventWidget.h"
-#include "../tool/ToolButton.h"
-#include <QScrollArea>
-#include "../protocol/Protocol.h"
-#include "ProtocolWidget.h"
-#include "ClickButton.h"
-#include "../midi/MidiPlayer.h"
-#include "../midi/PlayerThread.h"
-#include "InstrumentChooser.h"
-
 #include <QFile>
 #include <QFileInfo>
 #include <QFileDialog>
@@ -58,32 +34,55 @@
 #include <QComboBox>
 #include <QToolButton>
 #include <QLabel>
+#include <QTextStream>
+#include <QMultiMap>
+#include <QSettings>
+#include <QInputDialog>
+#include <QTextEdit>
+#include <QToolBar>
+#include <QScrollArea>
 
-#include "../midi/MidiChannel.h"
 #include "DonateDialog.h"
 #include "AboutDialog.h"
 #include "FileLengthDialog.h"
-#include <QTextStream>
+#include "RecordDialog.h"
+#include "MiscWidget.h"
+#include "TransposeDialog.h"
+#include "MatrixWidget.h"
+#include "ChannelListWidget.h"
+#include "TrackListWidget.h"
+#include "EventWidget.h"
+#include "ProtocolWidget.h"
+#include "ClickButton.h"
+#include "InstrumentChooser.h"
+#include "SettingsDialog.h"
+
+#include "../tool/Tool.h"
+#include "../tool/SelectTool.h"
+#include "../tool/SizeChangeTool.h"
+#include "../tool/EraserTool.h"
+#include "../tool/StandardTool.h"
+#include "../tool/NewNoteTool.h"
+#include "../tool/EventMoveTool.h"
+#include "../tool/EventTool.h"
+#include "../tool/ToolButton.h"
+
+#include "../protocol/Protocol.h"
+#include "../Terminal.h"
+#include "../remote/RemoteServer.h"
+
+#include "../midi/MidiFile.h"
+#include "../midi/MidiTrack.h"
+#include "../midi/MidiPlayer.h"
+#include "../midi/PlayerThread.h"
+#include "../midi/MidiChannel.h"
 #include "../midi/MidiOutput.h"
-#include <QInputDialog>
-#include "MidiSettingsDialog.h"
 #include "../midi/MidiInput.h"
-#include <QMultiMap>
 #include "../MidiEvent/MidiEvent.h"
 #include "../MidiEvent/TimeSignatureEvent.h"
 #include "../MidiEvent/OffEvent.h"
-#include "RecordDialog.h"
-#include <QSettings>
-#include "../Terminal.h"
-#include <QTextEdit>
-#include <QToolBar>
-#include <QInputDialog>
 #include "../MidiEvent/OnEvent.h"
-#include "TransposeDialog.h"
 #include "../MidiEvent/NoteOnEvent.h"
-#include "../remote/RemoteServer.h"
-#include "RemoteDialog.h"
-#include "MiscWidget.h"
 
 MainWindow::MainWindow() : QMainWindow() {
 
@@ -135,7 +134,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	EditorTool::setMainWindow(this);
 
-	setWindowTitle("MidiEditor 2.5.0");
+	setWindowTitle(QApplication::applicationName()+" "+QApplication::applicationVersion());
 	setWindowIcon(QIcon("graphics/icon.png"));
 
 	QWidget *central = new QWidget(this);
@@ -277,33 +276,100 @@ MainWindow::MainWindow() : QMainWindow() {
     leftSplitter->setStretchFactor(0, 8);
     leftSplitter->setStretchFactor(1, 1);
 
-	// Channels
-	channelWidget = new ChannelListWidget(upperTabWidget);
-	connect(channelWidget, SIGNAL(channelStateChanged()), this, SLOT(updateChannelMenu()), Qt::QueuedConnection);
-	connect(channelWidget, SIGNAL(selectInstrumentClicked(int)), this, SLOT(setInstrumentForChannel(int)), Qt::QueuedConnection);
-	upperTabWidget->addTab(channelWidget, "Channels");
-
 	// Track
-	QWidget *trackWidget = new QWidget(upperTabWidget);
-	QGridLayout *trackLayout = new QGridLayout(trackWidget);
-	trackWidget->setLayout(trackLayout);
+	QWidget *tracks = new QWidget(upperTabWidget);
+	QGridLayout *tracksLayout = new QGridLayout(tracks);
+	tracks->setLayout(tracksLayout);
+	QToolBar *tracksTB = new QToolBar(tracks);
+	tracksTB->setIconSize(QSize(20, 20));
+	tracksLayout->addWidget(tracksTB, 0, 0, 1, 1);
 
-	_trackWidget = new TrackListWidget(trackWidget);
+	QAction *newTrack = new QAction("Add track", this);
+	newTrack->setIcon(QIcon("graphics/tool/add.png"));
+	connect(newTrack, SIGNAL(triggered()), this,
+			SLOT(addTrack()));
+	tracksTB->addAction(newTrack);
+
+	tracksTB->addSeparator();
+
+	_allTracksAudible = new QAction("Unmute all tracks", this);
+	_allTracksAudible->setIcon(QIcon("graphics/tool/all_audible.png"));
+	connect(_allTracksAudible, SIGNAL(triggered()), this,
+			SLOT(unmuteAllTracks()));
+	tracksTB->addAction(_allTracksAudible);
+
+	_allTracksMute = new QAction("Mute all tracks", this);
+	_allTracksMute->setIcon(QIcon("graphics/tool/all_mute.png"));
+	connect(_allTracksMute, SIGNAL(triggered()), this,
+			SLOT(muteAllTracks()));
+	tracksTB->addAction(_allTracksMute);
+
+	tracksTB->addSeparator();
+
+	_allTracksVisible = new QAction("Show all tracks", this);
+	_allTracksVisible->setIcon(QIcon("graphics/tool/all_visible.png"));
+	connect(_allTracksVisible, SIGNAL(triggered()), this,
+			SLOT(allTracksVisible()));
+	tracksTB->addAction(_allTracksVisible);
+
+	_allTracksInvisible = new QAction("Hide all tracks", this);
+	_allTracksInvisible->setIcon(QIcon("graphics/tool/all_invisible.png"));
+	connect(_allTracksInvisible, SIGNAL(triggered()), this,
+			SLOT(allTracksInvisible()));
+	tracksTB->addAction(_allTracksInvisible);
+
+	_trackWidget = new TrackListWidget(tracks);
 	connect(_trackWidget, SIGNAL(trackRenameClicked(int)), this, SLOT(renameTrack(int)), Qt::QueuedConnection);
 	connect(_trackWidget, SIGNAL(trackRemoveClicked(int)), this, SLOT(removeTrack(int)), Qt::QueuedConnection);
-	trackLayout->addWidget(_trackWidget, 0, 0, 1, 2);
+	tracksLayout->addWidget(_trackWidget, 1, 0, 1, 1);
+	upperTabWidget->addTab(tracks, "Tracks");
 
-	QPushButton *addTrackButton = new QPushButton("Add Track", trackWidget);
-	connect(addTrackButton, SIGNAL(clicked()), this, SLOT(addTrack()));
-	trackLayout->addWidget(addTrackButton, 1, 1, 1, 1);
+	// Channels
+	QWidget *channels = new QWidget(upperTabWidget);
+	QGridLayout *channelsLayout = new QGridLayout(channels);
+	channels->setLayout(channelsLayout);
+	QToolBar *channelsTB = new QToolBar(channels);
+	channelsTB->setIconSize(QSize(20, 20));
+	channelsLayout->addWidget(channelsTB, 0, 0, 1, 1);
 
-	upperTabWidget->addTab(trackWidget, "Tracks");
+	_allChannelsAudible = new QAction("Unmute all channels", this);
+	_allChannelsAudible->setIcon(QIcon("graphics/tool/all_audible.png"));
+	connect(_allChannelsAudible, SIGNAL(triggered()), this,
+			SLOT(unmuteAllChannels()));
+	channelsTB->addAction(_allChannelsAudible);
+
+	_allChannelsMute = new QAction("Mute all channels", this);
+	_allChannelsMute->setIcon(QIcon("graphics/tool/all_mute.png"));
+	connect(_allChannelsMute, SIGNAL(triggered()), this,
+			SLOT(muteAllChannels()));
+	channelsTB->addAction(_allChannelsMute);
+
+	channelsTB->addSeparator();
+
+	_allChannelsVisible = new QAction("Show all channels", this);
+	_allChannelsVisible->setIcon(QIcon("graphics/tool/all_visible.png"));
+	connect(_allChannelsVisible, SIGNAL(triggered()), this,
+			SLOT(allChannelsVisible()));
+	channelsTB->addAction(_allChannelsVisible);
+
+	_allChannelsInvisible = new QAction("Hide all channels", this);
+	_allChannelsInvisible->setIcon(QIcon("graphics/tool/all_invisible.png"));
+	connect(_allChannelsInvisible, SIGNAL(triggered()), this,
+			SLOT(allChannelsInvisible()));
+	channelsTB->addAction(_allChannelsInvisible);
+
+	channelWidget = new ChannelListWidget(channels);
+	connect(channelWidget, SIGNAL(channelStateChanged()), this, SLOT(updateChannelMenu()), Qt::QueuedConnection);
+	connect(channelWidget, SIGNAL(selectInstrumentClicked(int)), this, SLOT(setInstrumentForChannel(int)), Qt::QueuedConnection);
+	channelsLayout->addWidget(channelWidget, 1, 0, 1, 1);
+	upperTabWidget->addTab(channels, "Channels");
+
 
 	// terminal
 	Terminal::initTerminal(_settings->value("start_cmd", "").toString(),
 			_settings->value("in_port", "").toString(),
 			_settings->value("out_port", "").toString());
-	upperTabWidget->addTab(Terminal::terminal()->console(), "Terminal");
+	//upperTabWidget->addTab(Terminal::terminal()->console(), "Terminal");
 
 	// Protocollist
 	protocolWidget = new ProtocolWidget(lowerTabWidget);
@@ -365,6 +431,12 @@ MainWindow::MainWindow() : QMainWindow() {
     centralLayout->setRowStretch(1, 1);
     central->setLayout(centralLayout);
 
+	if(_settings->value("colors_from_channel", false).toBool()){
+		colorsByChannel();
+	} else {
+		colorsByTrack();
+	}
+
     this->newFile();
 }
 
@@ -392,7 +464,7 @@ void MainWindow::setFile(MidiFile *file){
 	Tool::setFile(file);
 	this->file = file;
 	connect(file, SIGNAL(trackChanged()), this, SLOT(updateTrackMenu()));
-	setWindowTitle("MidiEditor - " +file->path()+"[*]");
+	setWindowTitle(QApplication::applicationName()+" - " +file->path()+"[*]");
 	connect(file,SIGNAL(cursorPositionChanged()),channelWidget,SLOT(update()));
 	connect(file,SIGNAL(recalcWidgetSize()),mw_matrixWidget,SLOT(calcSizes()));
 	connect(file->protocol(), SIGNAL(protocolChanged()), this, SLOT(markEdited()));
@@ -693,7 +765,7 @@ void MainWindow::saveas(){
 		}
 
 		file->setPath(newPath);
-		setWindowTitle("MidiEditor - " +file->path()+"[*]");
+		setWindowTitle(QApplication::applicationName()+" - " +file->path()+"[*]");
 		updateRecentPathsList();
 		setWindowModified(false);
 	} else {
@@ -884,6 +956,7 @@ void MainWindow::closeEvent(QCloseEvent *event){
 	_settings->setValue("magnet", EventTool::magnetEnabled());
 
 	_settings->setValue("div", mw_matrixWidget->div());
+	_settings->setValue("colors_from_channel", mw_matrixWidget->colorsByChannel());
 }
 
 void MainWindow::donate(){
@@ -908,23 +981,6 @@ void MainWindow::setFileLengthMs(){
 
 void MainWindow::setStartDir(QString dir){
 	startDirectory = dir;
-}
-
-void MainWindow::setStartupCmd(){
-    bool ok;
-    QString text = QInputDialog::getText(this, "Set Start Command",
-                                         "Start Command", QLineEdit::Normal,
-                                         _settings->value("start_cmd", "").
-                                         toString(), &ok);
-    if (ok && !text.isEmpty()){
-    	_settings->setValue("start_cmd", text);
-    }
-}
-
-void MainWindow::midiSettings(){
-	MidiSettingsDialog *d = new MidiSettingsDialog(this);
-	d->setModal(true);
-	d->show();
 }
 
 void MainWindow::newFile(){
@@ -957,8 +1013,11 @@ void MainWindow::newFile(){
 
 	// create new File
 	MidiFile *f = new MidiFile();
+
 	setFile(f);
-	setWindowTitle("MidiEditor - Untitled Document[*]");
+
+	editTrack(1);
+	setWindowTitle(QApplication::applicationName()+" - Untitled Document[*]");
 
 	bool ok;
 	int numStart = _settings->value("numStart", -1).toInt(&ok);
@@ -1031,10 +1090,12 @@ void MainWindow::alignRight(){
         int maxTime = 0;
         foreach(MidiEvent *e, *EventTool::selectedEventList()){
                 OnEvent *on = dynamic_cast<OnEvent*>(e);
-                MidiEvent *off = on->offEvent();
-                if(off->midiTime() > maxTime){
-                        maxTime = off->midiTime();
-                }
+				if(on){
+					MidiEvent *off = on->offEvent();
+					if(off->midiTime() > maxTime){
+							maxTime = off->midiTime();
+					}
+				}
         }
 
         file->protocol()->startNewAction("Align Right events", 0);
@@ -1060,23 +1121,27 @@ void MainWindow::equalize()
         int count = 0;
         foreach(MidiEvent *e, *EventTool::selectedEventList()){
                 OnEvent *on = dynamic_cast<OnEvent*>(e);
-                MidiEvent *off = on->offEvent();
-                avgStart += e->midiTime();
-                avgTime += (off->midiTime() - e->midiTime());
-                count++;
+				if(on){
+					MidiEvent *off = on->offEvent();
+					avgStart += e->midiTime();
+					avgTime += (off->midiTime() - e->midiTime());
+					count++;
+				}
         }
-        avgStart /= count;
-        avgTime /= count;
+		if(count > 1){
+			avgStart /= count;
+			avgTime /= count;
 
-        file->protocol()->startNewAction("Equalize events", 0);
-        foreach(MidiEvent *e, *EventTool::selectedEventList()){
-                OnEvent *on = dynamic_cast<OnEvent*>(e);
-                if(on){
-                        MidiEvent *off = on->offEvent();
-                        e->setMidiTime(avgStart);
-                        off->setMidiTime(avgStart + avgTime);
-                }
-        }
+			file->protocol()->startNewAction("Equalize events", 0);
+			foreach(MidiEvent *e, *EventTool::selectedEventList()){
+					OnEvent *on = dynamic_cast<OnEvent*>(e);
+					if(on){
+							MidiEvent *off = on->offEvent();
+							e->setMidiTime(avgStart);
+							off->setMidiTime(avgStart + avgTime);
+					}
+			}
+		}
         file->protocol()->endAction();
     }
 }
@@ -1237,50 +1302,8 @@ void MainWindow::openRecent(QAction *action){
 
 void MainWindow::updateChannelMenu() {
 
-
-	// visibilitymenu
-	foreach(QAction *action, _channelVisibilityMenu->actions()){
-		int channel = action->data().toInt();
-		if(file){
-			action->setChecked(file->channel(channel)->visible());
-			action->setText(QString::number(channel)+" "+MidiFile::instrumentName(file->channel(channel)->progAtTick(0)));
-		} else {
-			action->setChecked(false);
-		}
-	}
-
-	// mute menu
-	foreach(QAction *action, _channelMuteMenu->actions()){
-		int channel = action->data().toInt();
-		if(file){
-			action->setChecked(file->channel(channel)->mute());
-			action->setText(QString::number(channel)+" "+MidiFile::instrumentName(file->channel(channel)->progAtTick(0)));
-		} else {
-			action->setChecked(false);
-		}
-	}
-
-	// solo menu
-	foreach(QAction *action, _channelSoloMenu->actions()){
-		int channel = action->data().toInt();
-		if(file){
-			action->setChecked(file->channel(channel)->solo());
-			action->setText(QString::number(channel)+" "+MidiFile::instrumentName(file->channel(channel)->progAtTick(0)));
-		} else {
-			action->setChecked(false);
-		}
-	}
-
 	// delete channel events menu
 	foreach(QAction *action, _deleteChannelMenu->actions()){
-		int channel = action->data().toInt();
-		if(file){
-			action->setText(QString::number(channel)+" "+MidiFile::instrumentName(file->channel(channel)->progAtTick(0)));
-		}
-	}
-
-	// channel Instrument Menu
-	foreach(QAction *action, _channelInstrumentMenu->actions()){
 		int channel = action->data().toInt();
 		if(file){
 			action->setText(QString::number(channel)+" "+MidiFile::instrumentName(file->channel(channel)->progAtTick(0)));
@@ -1300,11 +1323,7 @@ void MainWindow::updateChannelMenu() {
 
 void MainWindow::updateTrackMenu() {
 
-	_renameTrackMenu->clear();
-	_removeTrackMenu->clear();
 	_moveSelectedEventsToTrackMenu->clear();
-	_trackMuteMenu->clear();
-	_trackVisibilityMenu->clear();
 	_chooseEditTrack->clear();
 
 	if(!file){
@@ -1313,41 +1332,9 @@ void MainWindow::updateTrackMenu() {
 
 	for(int i = 0; i<file->numTracks(); i++){
 		QVariant variant(i);
-		QAction *renameTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
-		renameTrackAction->setData(variant);
-		_renameTrackMenu->addAction(renameTrackAction);
-	}
-
-	for(int i = 0; i<file->numTracks(); i++){
-		QVariant variant(i);
-		QAction *removeTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
-		removeTrackAction->setData(variant);
-		_removeTrackMenu->addAction(removeTrackAction);
-	}
-
-	for(int i = 0; i<file->numTracks(); i++){
-		QVariant variant(i);
 		QAction *moveToTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
 		moveToTrackAction->setData(variant);
 		_moveSelectedEventsToTrackMenu->addAction(moveToTrackAction);
-	}
-
-	for(int i = 0; i<file->numTracks(); i++){
-		QVariant variant(i);
-		QAction *muteTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
-		muteTrackAction->setData(variant);
-		_trackMuteMenu->addAction(muteTrackAction);
-		muteTrackAction->setCheckable(true);
-		muteTrackAction->setChecked(file->track(i)->muted());
-	}
-
-	for(int i = 0; i<file->numTracks(); i++){
-		QVariant variant(i);
-		QAction *showTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
-		showTrackAction->setData(variant);
-		_trackVisibilityMenu->addAction(showTrackAction);
-		showTrackAction->setCheckable(true);
-		showTrackAction->setChecked(!(file->track(i)->hidden()));
 	}
 
 	for(int i = 0; i<file->numTracks(); i++){
@@ -1595,6 +1582,10 @@ void MainWindow::transposeNSemitones(){
 		}
 	}
 
+	if(events.isEmpty()){
+		return;
+	}
+
 	TransposeDialog *d = new TransposeDialog(events, file, this);
 	d->setModal(true);
 	d->show();
@@ -1603,6 +1594,7 @@ void MainWindow::transposeNSemitones(){
 void MainWindow::copy(){
 	EventTool::copyAction();
 }
+
 void MainWindow::paste(){
 	EventTool::pasteAction();
 }
@@ -1726,12 +1718,6 @@ void MainWindow::spreadSelection(){
 	QMessageBox::information(this, "Spreading done", QString("Spreaded "+QString::number(numSpreads)+" Events"));
 }
 
-void MainWindow::showRemoteDialog(){
-	RemoteDialog *remoteDialog = new RemoteDialog(_remoteServer, this);
-	remoteDialog->setModal(true);
-	remoteDialog->show();
-}
-
 void MainWindow::manual(){
 
 	QProcess *process = new QProcess;
@@ -1793,29 +1779,26 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     // Menubar
     QMenu *fileMB = menuBar()->addMenu("File");
     QMenu *editMB = menuBar()->addMenu("Edit");
-    QMenu *channelsMB = menuBar()->addMenu("Channels");
-    QMenu *tracksMB = menuBar()->addMenu("Tracks");
-    QMenu *timingMB = menuBar()->addMenu("Timing");
+	QMenu *toolsMB = menuBar()->addMenu("Tools");
     QMenu *viewMB = menuBar()->addMenu("View");
-    QMenu *playbackMB = menuBar()->addMenu("Playback");
-    QMenu *remoteMB = menuBar()->addMenu("Remote");
+	QMenu *playbackMB = menuBar()->addMenu("Playback");
     QMenu *midiMB = menuBar()->addMenu("Midi");
-    QMenu *helpMB = menuBar()->addMenu("Help");
+	QMenu *helpMB = menuBar()->addMenu("Help");
 
     // File
-    QAction *newAction = new QAction("New File", this);
+	QAction *newAction = new QAction("New", this);
 	newAction->setShortcut(QKeySequence::New);
     newAction->setIcon(QIcon("graphics/tool/new.png"));
     connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
     fileMB->addAction(newAction);
 
-    QAction *loadAction = new QAction("Open File...", this);
+	QAction *loadAction = new QAction("Open...", this);
 	loadAction->setShortcut(QKeySequence::Open);
     loadAction->setIcon(QIcon("graphics/tool/load.png"));
     connect(loadAction, SIGNAL(triggered()), this, SLOT(load()));
     fileMB->addAction(loadAction);
 
-    _recentPathsMenu = new QMenu("Open Recent..", this);
+	_recentPathsMenu = new QMenu("Open recent..", this);
 	_recentPathsMenu->setIcon(QIcon("graphics/tool/noicon.png"));
     fileMB->addMenu(_recentPathsMenu);
     connect(_recentPathsMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecent(QAction*)));
@@ -1824,13 +1807,13 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     fileMB->addSeparator();
 
-    QAction *saveAction = new QAction("Save File", this);
+	QAction *saveAction = new QAction("Save", this);
 	saveAction->setShortcut(QKeySequence::Save);
     saveAction->setIcon(QIcon("graphics/tool/save.png"));
     connect(saveAction, SIGNAL(triggered()), this, SLOT(save()));
     fileMB->addAction(saveAction);
 
-    QAction *saveAsAction = new QAction("Save As...", this);
+	QAction *saveAsAction = new QAction("Save as...", this);
 	saveAsAction->setShortcut(QKeySequence::SaveAs);
     saveAsAction->setIcon(QIcon("graphics/tool/saveas.png"));
     connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveas()));
@@ -1859,27 +1842,29 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     editMB->addSeparator();
 
-    QAction *selectAllAction = new QAction("Select all Visible Events", this);
+	QAction *selectAllAction = new QAction("Select all", this);
+	selectAllAction->setToolTip("Select all visible events");
 	selectAllAction->setShortcut(QKeySequence::SelectAll);
     connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
     editMB->addAction(selectAllAction);
 
-
     editMB->addSeparator();
 
-    QAction *copyAction = new QAction("Copy Events to Clipboard", this);
+	QAction *copyAction = new QAction("Copy events", this);
 	copyAction->setIcon(QIcon("graphics/tool/copy.png"));
 	copyAction->setShortcut(QKeySequence::Copy);
     connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
     editMB->addAction(copyAction);
 
-    QAction *pasteAction = new QAction("Paste Events, beginning at the Cursor Position", this);
+	QAction *pasteAction = new QAction("Paste events", this);
+	pasteAction->setToolTip("Paste events at cursor position");
 	pasteAction->setShortcut(QKeySequence::Paste);
 	pasteAction->setIcon(QIcon("graphics/tool/paste.png"));
-    connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
-	_pasteToTrackMenu = new QMenu("Paste events to track...");
-	_pasteToChannelMenu = new QMenu("Paste events to channel...");
-	QMenu *pasteOptionsMenu = new QMenu();
+	connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
+
+	_pasteToTrackMenu = new QMenu("Paste to track...");
+	_pasteToChannelMenu = new QMenu("Paste to channel...");
+	QMenu *pasteOptionsMenu = new QMenu("Paste options...");
 	pasteOptionsMenu->addMenu(_pasteToChannelMenu);
 	QActionGroup *pasteChannelGroup = new QActionGroup(this);
 	pasteChannelGroup->setExclusive(true);
@@ -1900,44 +1885,107 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 		pasteToChannelAction->setChecked(i<0);
 	}
 	pasteOptionsMenu->addMenu(_pasteToTrackMenu);
-	pasteAction->setMenu(pasteOptionsMenu);
-    editMB->addAction(pasteAction);
+	editMB->addAction(pasteAction);
+	editMB->addMenu(pasteOptionsMenu);
 
-    editMB->addSeparator();
+	editMB->addSeparator();
 
-    QAction *deleteAction = new QAction("Remove selected Events", this);
+	QAction *configAction = new QAction("Settings...", this);
+	configAction->setIcon(QIcon("graphics/tools/config.png"));
+	connect(configAction, SIGNAL(triggered()), this, SLOT(openConfig()));
+	editMB->addAction(configAction);
+
+	// Tools
+	QMenu *toolsToolsMenu = new QMenu("Current tool...", toolsMB);
+
+	StandardTool *tool = new StandardTool();
+	Tool::setCurrentTool(tool);
+	QAction *stdToolAction = new ToolButton(tool, QKeySequence(Qt::Key_F1), toolsToolsMenu);
+	toolsToolsMenu->addAction(stdToolAction);
+	tool->buttonClick();
+
+	QAction *selectSingleAction = new ToolButton(new SelectTool(SELECTION_TYPE_SINGLE), QKeySequence(Qt::Key_F2), toolsToolsMenu);
+	toolsToolsMenu->addAction(selectSingleAction);
+	QAction *selectBoxAction = new ToolButton(new SelectTool(SELECTION_TYPE_BOX), QKeySequence(Qt::Key_F3), toolsToolsMenu);
+	toolsToolsMenu->addAction(selectBoxAction);
+	QAction *selectLeftAction = new ToolButton(new SelectTool(SELECTION_TYPE_LEFT), QKeySequence(Qt::Key_F4), toolsToolsMenu);
+	toolsToolsMenu->addAction(selectLeftAction);
+	QAction *selectRightAction = new ToolButton(new SelectTool(SELECTION_TYPE_RIGHT), QKeySequence(Qt::Key_F5), toolsToolsMenu);
+	toolsToolsMenu->addAction(selectRightAction);
+
+	toolsToolsMenu->addSeparator();
+	QAction *moveAllAction = new ToolButton(new EventMoveTool(true, true), QKeySequence(Qt::Key_F6), toolsToolsMenu);
+	toolsToolsMenu->addAction(moveAllAction);
+	QAction *moveLRAction = new ToolButton(new EventMoveTool(false, true), QKeySequence(Qt::Key_F7), toolsToolsMenu);
+	toolsToolsMenu->addAction(moveLRAction);
+	QAction *moveUDAction = new ToolButton(new EventMoveTool(true, false), QKeySequence(Qt::Key_F8), toolsToolsMenu);
+	toolsToolsMenu->addAction(moveUDAction);
+	QAction *sizeChangeAction = new ToolButton(new SizeChangeTool(), QKeySequence(Qt::Key_F9), toolsToolsMenu);
+	toolsToolsMenu->addAction(sizeChangeAction);
+
+	toolsToolsMenu->addSeparator();
+
+	QAction *newNoteAction = new ToolButton(new NewNoteTool(), QKeySequence(Qt::Key_F10), toolsToolsMenu);
+	toolsToolsMenu->addAction(newNoteAction);
+	QAction *removeNotesAction = new ToolButton(new EraserTool(), QKeySequence(Qt::Key_F11), toolsToolsMenu);
+	toolsToolsMenu->addAction(removeNotesAction);
+
+	toolsMB->addMenu(toolsToolsMenu);
+
+	QAction *deleteAction = new QAction("Remove events", this);
+	deleteAction->setToolTip("Remove selected events");
 	deleteAction->setShortcut(QKeySequence::Delete);
     deleteAction->setIcon(QIcon("graphics/tool/eraser.png"));
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedEvents()));
-    editMB->addAction(deleteAction);
+	toolsMB->addAction(deleteAction);
 
-    editMB->addSeparator();
+	toolsMB->addSeparator();
 
-    QAction *alignLeftAction = new QAction("Align Events to Leftmost", this);
+	QAction *alignLeftAction = new QAction("Align left", this);
+	alignLeftAction->setShortcut(QKeySequence(Qt::Key_Left + Qt::CTRL));
     alignLeftAction->setIcon(QIcon("graphics/tool/align_left.png"));
     connect(alignLeftAction, SIGNAL(triggered()), this, SLOT(alignLeft()));
-    editMB->addAction(alignLeftAction);
+	toolsMB->addAction(alignLeftAction);
 
-    QAction *alignRightAction = new QAction("Align Events to Rightmost", this);
-    alignRightAction->setIcon(QIcon("graphics/tool/align_right.png"));
+	QAction *alignRightAction = new QAction("Align right", this);
+	alignRightAction->setIcon(QIcon("graphics/tool/align_right.png"));
+	alignRightAction->setShortcut(QKeySequence(Qt::Key_Right + Qt::CTRL));
     connect(alignRightAction, SIGNAL(triggered()), this, SLOT(alignRight()));
-    editMB->addAction(alignRightAction);
+	toolsMB->addAction(alignRightAction);
 
-    QAction *equalizeAction = new QAction("Equalize Selection", this);
-    equalizeAction->setIcon(QIcon("graphics/tool/equalize.png"));
+	QAction *equalizeAction = new QAction("Equalize selection", this);
+	equalizeAction->setIcon(QIcon("graphics/tool/equalize.png"));
+	equalizeAction->setShortcut(QKeySequence(Qt::Key_Up + Qt::CTRL));
     connect(equalizeAction, SIGNAL(triggered()), this, SLOT(equalize()));
-    editMB->addAction(equalizeAction);
+	toolsMB->addAction(equalizeAction);
 
-    editMB->addSeparator();
+	toolsMB->addSeparator();
 
-    QAction *spreadAction = new QAction("Spread Selection", this);
+	QAction *spreadAction = new QAction("Spread selection", this);
     connect(spreadAction, SIGNAL(triggered()), this, SLOT(spreadSelection()));
-    editMB->addAction(spreadAction);
+	toolsMB->addAction(spreadAction);
 
-    editMB->addSeparator();
+	toolsMB->addSeparator();
 
-    _moveSelectedEventsToChannelMenu = new QMenu("Move selected Events to Channel...", editMB);
-    editMB->addMenu(_moveSelectedEventsToChannelMenu);
+	QAction *addTrackAction = new QAction("Add track...", toolsMB);
+	toolsMB->addAction(addTrackAction);
+	connect(addTrackAction, SIGNAL(triggered()), this, SLOT(addTrack()));
+
+	toolsMB->addSeparator();
+
+	_deleteChannelMenu = new QMenu("Remove events from channel...", toolsMB);
+	toolsMB->addMenu(_deleteChannelMenu);
+	connect(_deleteChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT(deleteChannel(QAction*)));
+
+	for(int i = 0; i<16; i++){
+		QVariant variant(i);
+		QAction *delChannelAction = new QAction(QString::number(i), this);
+		delChannelAction->setData(variant);
+		_deleteChannelMenu->addAction(delChannelAction);
+	}
+
+	_moveSelectedEventsToChannelMenu = new QMenu("Move events to channel...", editMB);
+	toolsMB->addMenu(_moveSelectedEventsToChannelMenu);
     connect(_moveSelectedEventsToChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT(moveSelectedEventsToChannel(QAction*)));
 
     for(int i = 0; i<16; i++){
@@ -1947,217 +1995,100 @@ QWidget *MainWindow::setupActions(QWidget *parent){
         _moveSelectedEventsToChannelMenu->addAction(moveToChannelAction);
     }
 
-    _moveSelectedEventsToTrackMenu = new QMenu("Move selected Events to Track...", editMB);
-    editMB->addMenu(_moveSelectedEventsToTrackMenu);
+	_moveSelectedEventsToTrackMenu = new QMenu("Move events to track...", editMB);
+	toolsMB->addMenu(_moveSelectedEventsToTrackMenu);
     connect(_moveSelectedEventsToTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(moveSelectedEventsToTrack(QAction*)));
 
-    editMB->addSeparator();
+	toolsMB->addSeparator();
 
-    QAction *transposeAction = new QAction("Transpose Selection...", this);
+	QAction *transposeAction = new QAction("Transpose selection...", this);
+	transposeAction->setShortcut(QKeySequence(Qt::Key_T + Qt::CTRL));
     connect(transposeAction, SIGNAL(triggered()), this, SLOT(transposeNSemitones()));
-    editMB->addAction(transposeAction);
+	toolsMB->addAction(transposeAction);
 
-	editMB->addSeparator();
+	toolsMB->addSeparator();
+
+	QAction *setFileLengthMs = new QAction("Set file duration", this);
+	connect(setFileLengthMs, SIGNAL(triggered()), this,SLOT(setFileLengthMs()));
+	toolsMB->addAction(setFileLengthMs);
+
+	QAction *scaleSelection = new QAction("Scale events", this);
+	connect(scaleSelection, SIGNAL(triggered()), this,SLOT(scaleSelection()));
+	toolsMB->addAction(scaleSelection);
+
+	toolsMB->addSeparator();
 
 	QAction *magnetAction = new QAction("Magnet", editMB);
-	editMB->addAction(magnetAction);
+	toolsMB->addAction(magnetAction);
+	magnetAction->setShortcut(QKeySequence(Qt::Key_M+Qt::CTRL));
 	magnetAction->setIcon(QIcon("graphics/tool/magnet.png"));
 	magnetAction->setCheckable(true);
 	magnetAction->setChecked(false);
 	magnetAction->setChecked(EventTool::magnetEnabled());
 	connect(magnetAction, SIGNAL(toggled(bool)), this, SLOT(enableMagnet(bool)));
 
-    // channels
-    QAction *allChannelsVisible = new QAction("Show all Channels", this);
-    allChannelsVisible->setIcon(QIcon("graphics/channelwidget/visible.png"));
-    connect(allChannelsVisible, SIGNAL(triggered()), this,
-            SLOT(allChannelsVisible()));
-    channelsMB->addAction(allChannelsVisible);
-
-    QAction *allChannelsInvisible = new QAction("Hide all Channels", this);
-    allChannelsInvisible->setIcon(QIcon("graphics/channelwidget/hidden.png"));
-    connect(allChannelsInvisible, SIGNAL(triggered()), this,
-            SLOT(allChannelsInvisible()));
-    channelsMB->addAction(allChannelsInvisible);
-
-    _channelVisibilityMenu = new QMenu("Shown Channels...", channelsMB);
-    channelsMB->addMenu(_channelVisibilityMenu);
-    connect(_channelVisibilityMenu, SIGNAL(triggered(QAction*)), this, SLOT(viewChannel(QAction*)));
-
-    for(int i = 0; i<17; i++){
-        QVariant variant(i);
-        QAction *viewChannelAction = new QAction(QString::number(i), this);
-        viewChannelAction->setCheckable(true);
-        viewChannelAction->setData(variant);
-        _channelVisibilityMenu->addAction(viewChannelAction);
-    }
-
-    channelsMB->addSeparator();
-
-    QAction *muteAllChannels = new QAction("Mute all Channels", this);
-    muteAllChannels->setIcon(QIcon("graphics/channelwidget/mute.png"));
-    connect(muteAllChannels, SIGNAL(triggered()), this,
-            SLOT(muteAllChannels()));
-    channelsMB->addAction(muteAllChannels);
-
-    QAction *unmuteAllChannels = new QAction("Unmute all Channels", this);
-    unmuteAllChannels->setIcon(QIcon("graphics/channelwidget/loud.png"));
-    connect(unmuteAllChannels, SIGNAL(triggered()), this,
-            SLOT(unmuteAllChannels()));
-    channelsMB->addAction(unmuteAllChannels);
-
-    _channelMuteMenu = new QMenu("Muted Channels...", channelsMB);
-    channelsMB->addMenu(_channelMuteMenu);
-    connect(_channelMuteMenu, SIGNAL(triggered(QAction*)), this, SLOT(muteChannel(QAction*)));
-
-    for(int i = 0; i<16; i++){
-        QVariant variant(i);
-        QAction *muteChannelAction = new QAction(QString::number(i), this);
-        muteChannelAction->setCheckable(true);
-        muteChannelAction->setData(variant);
-        _channelMuteMenu->addAction(muteChannelAction);
-    }
-
-    _channelSoloMenu = new QMenu("Select solo Channel...", channelsMB);
-    channelsMB->addMenu(_channelSoloMenu);
-    connect(_channelSoloMenu, SIGNAL(triggered(QAction*)), this, SLOT(soloChannel(QAction*)));
-
-    for(int i = 0; i<16; i++){
-        QVariant variant(i);
-        QAction *soloChannelAction = new QAction(QString::number(i), this);
-        soloChannelAction->setCheckable(true);
-        soloChannelAction->setData(variant);
-        _channelSoloMenu->addAction(soloChannelAction);
-    }
-
-    channelsMB->addSeparator();
-
-
-    _deleteChannelMenu = new QMenu("Remove all Events from Channel...", channelsMB);
-    channelsMB->addMenu(_deleteChannelMenu);
-    connect(_deleteChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT( deleteChannel(QAction*)));
-
-    for(int i = 0; i<16; i++){
-        QVariant variant(i);
-        QAction *delChannelAction = new QAction(QString::number(i), this);
-        delChannelAction->setData(variant);
-        _deleteChannelMenu->addAction(delChannelAction);
-    }
-
-    _channelInstrumentMenu = new QMenu("Select Intrument for Channel...");
-    channelsMB->addMenu(_channelInstrumentMenu);
-    connect(_channelInstrumentMenu, SIGNAL(triggered(QAction*)), this, SLOT(instrumentChannel(QAction*)));
-
-    for(int i = 0; i<16; i++){
-        QVariant variant(i);
-        QAction *instrumentChannelAction = new QAction(QString::number(i), this);
-        instrumentChannelAction->setData(variant);
-        _channelInstrumentMenu->addAction(instrumentChannelAction);
-    }
-
-    // Tracks
-    QAction *addTrackAction = new QAction("Add Track...", tracksMB);
-    tracksMB->addAction(addTrackAction);
-    connect(addTrackAction, SIGNAL(triggered()), this, SLOT(addTrack()));
-
-    tracksMB->addSeparator();
-
-    QAction *allTracksVisible = new QAction("Show all Tracks", this);
-    allTracksVisible->setIcon(QIcon("graphics/trackwidget/visible.png"));
-    connect(allTracksVisible, SIGNAL(triggered()), this,
-            SLOT(allTracksVisible()));
-    tracksMB->addAction(allTracksVisible);
-
-    QAction *allTracksInvisible = new QAction("Hide all Tracks", this);
-    allTracksInvisible->setIcon(QIcon("graphics/trackwidget/hidden.png"));
-    connect(allTracksInvisible, SIGNAL(triggered()), this,
-            SLOT(allTracksInvisible()));
-    tracksMB->addAction(allTracksInvisible);
-
-    _trackVisibilityMenu = new QMenu("Shown Tracks...", tracksMB);
-    tracksMB->addMenu(_trackVisibilityMenu);
-    connect(_trackVisibilityMenu, SIGNAL(triggered(QAction*)), this, SLOT(showTrackMenuClicked(QAction*)));
-
-    tracksMB->addSeparator();
-
-    QAction *muteAllTracks = new QAction("Mute all Tracks", this);
-    muteAllTracks->setIcon(QIcon("graphics/trackwidget/mute.png"));
-    connect(muteAllTracks, SIGNAL(triggered()), this,
-            SLOT(muteAllTracks()));
-    tracksMB->addAction(muteAllTracks);
-
-    QAction *unmuteAllTracks = new QAction("Unmute all Tracks", this);
-    unmuteAllTracks->setIcon(QIcon("graphics/trackwidget/loud.png"));
-    connect(unmuteAllTracks, SIGNAL(triggered()), this,
-            SLOT(unmuteAllTracks()));
-    tracksMB->addAction(unmuteAllTracks);
-
-    _trackMuteMenu = new QMenu("Muted Tracks...", tracksMB);
-    tracksMB->addMenu(_trackMuteMenu);
-    connect(_trackMuteMenu, SIGNAL(triggered(QAction*)), this, SLOT(muteTrackMenuClicked(QAction*)));
-
-    tracksMB->addSeparator();
-
-    _removeTrackMenu = new QMenu("Remove Track...", tracksMB);
-    tracksMB->addMenu(_removeTrackMenu);
-    connect(_removeTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(removeTrackMenuClicked(QAction*)));
-
-    _renameTrackMenu = new QMenu("Rename Track...", tracksMB);
-    tracksMB->addMenu(_renameTrackMenu);
-    connect(_renameTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(renameTrackMenuClicked(QAction*)));
-
-    // Timing
-    QAction *setFileLengthMs = new QAction("Set File Length (ms)", this);
-    connect(setFileLengthMs, SIGNAL(triggered()), this,SLOT(setFileLengthMs()));
-    timingMB->addAction(setFileLengthMs);
-
-    QAction *scaleSelection = new QAction("Scale selected Events", this);
-    connect(scaleSelection, SIGNAL(triggered()), this,SLOT(scaleSelection()));
-    timingMB->addAction(scaleSelection);
-
     // View
-    QMenu *_zoomMenu = new QMenu("Zoom...", tracksMB);
-    QAction *zoomHorOutAction = new QAction("Out(horizontal)", this);
+	QMenu *zoomMenu = new QMenu("Zoom...", viewMB);
+	QAction *zoomHorOutAction = new QAction("Horizontal out", this);
+	zoomHorOutAction->setShortcut(QKeySequence(Qt::Key_Minus+Qt::CTRL));
     zoomHorOutAction->setIcon(QIcon("graphics/tool/zoom_hor_out.png"));
     connect(zoomHorOutAction, SIGNAL(triggered()),
             mw_matrixWidget,SLOT(zoomHorOut()));
-    _zoomMenu->addAction(zoomHorOutAction);
+	zoomMenu->addAction(zoomHorOutAction);
 
-    QAction *zoomHorInAction = new QAction("In(horizontal)", this);
+	QAction *zoomHorInAction = new QAction("Horizontal in", this);
     zoomHorInAction->setIcon(QIcon("graphics/tool/zoom_hor_in.png"));
+	zoomHorInAction->setShortcut(QKeySequence(Qt::Key_Plus+Qt::CTRL));
     connect(zoomHorInAction, SIGNAL(triggered()),
             mw_matrixWidget,SLOT(zoomHorIn()));
-    _zoomMenu->addAction(zoomHorInAction);
+	zoomMenu->addAction(zoomHorInAction);
 
-    QAction *zoomVerOutAction = new QAction("Out(vertical)", this);
+	QAction *zoomVerOutAction = new QAction("Vertical out", this);
     zoomVerOutAction->setIcon(QIcon("graphics/tool/zoom_ver_out.png"));
+	zoomVerOutAction->setShortcut(QKeySequence(Qt::Key_Minus+Qt::CTRL+Qt::ALT));
     connect(zoomVerOutAction, SIGNAL(triggered()),
             mw_matrixWidget,SLOT(zoomVerOut()));
-    _zoomMenu->addAction(zoomVerOutAction);
+	zoomMenu->addAction(zoomVerOutAction);
 
-    QAction *zoomVerInAction = new QAction("In(vertical)", this);
+	QAction *zoomVerInAction = new QAction("Vertical in", this);
     zoomVerInAction->setIcon(QIcon("graphics/tool/zoom_ver_in.png"));
+	zoomVerInAction->setShortcut(QKeySequence(Qt::Key_Plus+Qt::CTRL+Qt::ALT));
     connect(zoomVerInAction, SIGNAL(triggered()),
             mw_matrixWidget,SLOT(zoomVerIn()));
-    _zoomMenu->addAction(zoomVerInAction);
+	zoomMenu->addAction(zoomVerInAction);
 
-    viewMB->addMenu(_zoomMenu);
+	zoomMenu->addSeparator();
+
+	QAction *zoomStdAction = new QAction("Restore default", this);
+	zoomStdAction->setShortcut(QKeySequence(Qt::Key_0+Qt::CTRL));
+	connect(zoomStdAction, SIGNAL(triggered()),
+			mw_matrixWidget,SLOT(zoomStd()));
+	zoomMenu->addAction(zoomStdAction);
+
+	viewMB->addMenu(zoomMenu);
+
 
     viewMB->addSeparator();
 
-    QMenu *colorMenu = new QMenu("Set Event Colors...", tracksMB);
-    _colorsByChannel = new QAction("By Channels", this);
+	viewMB->addAction(_allChannelsVisible);
+	viewMB->addAction(_allChannelsInvisible);
+	viewMB->addAction(_allTracksVisible);
+	viewMB->addAction(_allTracksInvisible);
+
+	viewMB->addSeparator();
+
+	QMenu *colorMenu = new QMenu("Colors ...", viewMB);
+	_colorsByChannel = new QAction("From channels", this);
     _colorsByChannel->setCheckable(true);
     connect(_colorsByChannel, SIGNAL(triggered()), this,SLOT(colorsByChannel()));
     colorMenu->addAction(_colorsByChannel);
 
-    _colorsByTracks = new QAction("By Tracks", this);
+	_colorsByTracks = new QAction("From tracks", this);
     _colorsByTracks->setCheckable(true);
     connect(_colorsByTracks, SIGNAL(triggered()), this,SLOT(colorsByTrack()));
     colorMenu->addAction(_colorsByTracks);
 
     viewMB->addMenu(colorMenu);
-    colorsByChannel();
 
 	viewMB->addSeparator();
 
@@ -2189,17 +2120,10 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	connect(divMenu, SIGNAL(triggered(QAction*)), this, SLOT(divChanged(QAction*)));
 	viewMB->addMenu(divMenu);
 
-	viewMB->addSeparator();
-	QAction *lockAction = new QAction("Lock screen while playing", this);
-	lockAction->setIcon(QIcon("graphics/tool/screen_unlocked.png"));
-	lockAction->setCheckable(true);
-	connect(lockAction, SIGNAL(toggled(bool)), this, SLOT(screenLockPressed(bool)));
-	viewMB->addAction(lockAction);
-	lockAction->setChecked(mw_matrixWidget->screenLocked());
-
     // Playback
     QAction *playAction = new QAction("Play", this);
     playAction->setIcon(QIcon("graphics/tool/play.png"));
+	playAction->setShortcut(QKeySequence(Qt::Key_P+Qt::CTRL));
     connect(playAction, SIGNAL(triggered()), this, SLOT(play()));
     playbackMB->addAction(playAction);
 
@@ -2210,50 +2134,53 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     QAction *recAction = new QAction("Record", this);
     recAction->setIcon(QIcon("graphics/tool/record.png"));
+	recAction->setShortcut(QKeySequence(Qt::Key_R + Qt::CTRL));
     connect(recAction, SIGNAL(triggered()), this, SLOT(record()));
     playbackMB->addAction(recAction);
 
     QAction *stopAction = new QAction("Stop", this);
-    stopAction->setIcon(QIcon("graphics/tool/stop.png"));
+	stopAction->setIcon(QIcon("graphics/tool/stop.png"));
+	stopAction->setShortcut(QKeySequence(Qt::Key_P+Qt::CTRL+Qt::ALT));
     connect(stopAction, SIGNAL(triggered()), this, SLOT(stop()));
     playbackMB->addAction(stopAction);
 
     playbackMB->addSeparator();
 
-    QAction *backToBeginAction = new QAction("Back (To the start of the Song)", this);
+	QAction *backToBeginAction = new QAction("Back to begin", this);
     backToBeginAction->setIcon(QIcon("graphics/tool/back_to_begin.png"));
     connect(backToBeginAction, SIGNAL(triggered()), this, SLOT(backToBegin()));
     playbackMB->addAction(backToBeginAction);
 
-    QAction *backAction = new QAction("Back (one Measure)", this);
+	QAction *backAction = new QAction("Previous measure", this);
     backAction->setIcon(QIcon("graphics/tool/back.png"));
     connect(backAction, SIGNAL(triggered()), this, SLOT(back()));
     playbackMB->addAction(backAction);
 
-    QAction *forwAction = new QAction("Forward (one Measure)", this);
-    forwAction->setIcon(QIcon("graphics/tool/forward.png"));
+	QAction *forwAction = new QAction("Next measure", this);
+	forwAction->setIcon(QIcon("graphics/tool/forward.png"));
     connect(forwAction, SIGNAL(triggered()), this, SLOT(forward()));
     playbackMB->addAction(forwAction);
 
+	playbackMB->addSeparator();
+
+	playbackMB->addAction(_allChannelsAudible);
+	playbackMB->addAction(_allChannelsMute);
+	playbackMB->addAction(_allTracksAudible);
+	playbackMB->addAction(_allTracksMute);
+
+	playbackMB->addSeparator();
+
+	QAction *lockAction = new QAction("Lock screen while playing", this);
+	lockAction->setIcon(QIcon("graphics/tool/screen_unlocked.png"));
+	lockAction->setCheckable(true);
+	connect(lockAction, SIGNAL(toggled(bool)), this, SLOT(screenLockPressed(bool)));
+	playbackMB->addAction(lockAction);
+	lockAction->setChecked(mw_matrixWidget->screenLocked());
+
     // Midi
-    QAction *startCommandAction = new QAction("Set Start Command", this);
-    connect(startCommandAction, SIGNAL(triggered()), this,
-            SLOT(setStartupCmd()));
-    midiMB->addAction(startCommandAction);
-
-    QAction *settingsAction = new QAction("Midi Settings", this);
-    connect(settingsAction, SIGNAL(triggered()), this,
-            SLOT(midiSettings()));
-    midiMB->addAction(settingsAction);
-
     QAction *panicAction = new QAction("Midi panic (All Notes off)", this);
     connect(panicAction, SIGNAL(triggered()), this, SLOT(panic()));
     midiMB->addAction(panicAction);
-
-    // Remote
-    QAction *remoteDAction = new QAction("Show Remote Dialog", this);
-    connect(remoteDAction, SIGNAL(triggered()), this, SLOT(showRemoteDialog()));
-    remoteMB->addAction(remoteDAction);
 
     // Help
     QAction *manualAction = new QAction("User Manual", this);
@@ -2282,7 +2209,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     fileTB->setIconSize(QSize(35,35));
     fileTB->addAction(newAction);
     fileTB->setStyleSheet("QToolBar { border: 0px }");
-    QAction *loadAction2 = new QAction("Open File...", this);
+	QAction *loadAction2 = new QAction("Open...", this);
     loadAction2->setIcon(QIcon("graphics/tool/load.png"));
     connect(loadAction2, SIGNAL(triggered()), this, SLOT(load()));
     loadAction2->setMenu(_recentPathsMenu);
@@ -2293,7 +2220,6 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     fileTB->addAction(undoAction);
     fileTB->addAction(redoAction);
-
     fileTB->addSeparator();
 
     btnLayout->addWidget(fileTB, 0, 0, 2, 1);
@@ -2315,7 +2241,16 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	upperTB->setStyleSheet("QToolBar { border: 0px }");
 
 	lowerTB->addAction(copyAction);
-	lowerTB->addAction(pasteAction);
+
+	QAction *pasteActionTB = new QAction("Paste events", this);
+	pasteActionTB->setToolTip("Paste events at cursor position");
+	pasteActionTB->setShortcut(QKeySequence::Paste);
+	pasteActionTB->setIcon(QIcon("graphics/tool/paste.png"));
+	connect(pasteActionTB, SIGNAL(triggered()), this, SLOT(paste()));
+	pasteActionTB->setMenu(pasteOptionsMenu);
+
+	lowerTB->addAction(pasteActionTB);
+
 	lowerTB->addSeparator();
 
     lowerTB->addAction(zoomHorInAction);
@@ -2336,22 +2271,17 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	lowerTB->addAction(lockAction);
 
-    StandardTool *tool = new StandardTool();
-    Tool::setCurrentTool(tool);
+	upperTB->addAction(stdToolAction);
+	upperTB->addAction(selectSingleAction);
+	upperTB->addAction(selectBoxAction);
+	upperTB->addAction(selectLeftAction);
+	upperTB->addAction(selectRightAction);
 
-    upperTB->addAction(new ToolButton(tool));
-	tool->buttonClick();
-    upperTB->addAction(new ToolButton(new SelectTool(SELECTION_TYPE_SINGLE)));
-    upperTB->addAction(new ToolButton(new SelectTool(SELECTION_TYPE_BOX)));
-    upperTB->addAction(new ToolButton(new SelectTool(SELECTION_TYPE_LEFT)));
-    upperTB->addAction(new ToolButton(new SelectTool(SELECTION_TYPE_RIGHT)));
-
-    upperTB->addSeparator();
-
-    upperTB->addAction(new ToolButton(new EventMoveTool(true, true)));
-    upperTB->addAction(new ToolButton(new EventMoveTool(false, true)));
-    upperTB->addAction(new ToolButton(new EventMoveTool(true, false)));
-    upperTB->addAction(new ToolButton(new SizeChangeTool()));
+	upperTB->addSeparator();
+	upperTB->addAction(moveAllAction);
+	upperTB->addAction(moveLRAction);
+	upperTB->addAction(moveUDAction);
+	upperTB->addAction(sizeChangeAction);
 
     upperTB->addSeparator();
 
@@ -2360,8 +2290,8 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	upperTB->addAction(equalizeAction);
 	upperTB->addSeparator();
 
-    upperTB->addAction(new ToolButton(new NewNoteTool()));
-    upperTB->addAction(new ToolButton(new EraserTool()));
+	upperTB->addAction(newNoteAction);
+	upperTB->addAction(removeNotesAction);
 
 	upperTB->addSeparator();
 	upperTB->addAction(magnetAction);
@@ -2391,4 +2321,9 @@ void MainWindow::divChanged(QAction* action){
 
 void MainWindow::enableMagnet(bool enable){
 	EventTool::enableMagnet(enable);
+}
+
+void MainWindow::openConfig(){
+	SettingsDialog *d = new SettingsDialog("Settings", _settings, _remoteServer, this);
+	d->show();
 }

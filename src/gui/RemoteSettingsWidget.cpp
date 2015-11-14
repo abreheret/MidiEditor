@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "RemoteDialog.h"
+#include "RemoteSettingsWidget.h"
 
 #include <QGridLayout>
 #include <QLabel>
@@ -26,7 +26,7 @@
 
 #include "../remote/RemoteServer.h"
 
-RemoteDialog::RemoteDialog(RemoteServer *server, QWidget *parent) : QDialog(parent){
+RemoteSettingsWidget::RemoteSettingsWidget(RemoteServer *server, QWidget *parent) : SettingsWidget("Android Remote", parent){
 	_server = server;
 
 	QGridLayout *layout = new QGridLayout(this);
@@ -54,21 +54,16 @@ RemoteDialog::RemoteDialog(RemoteServer *server, QWidget *parent) : QDialog(pare
 	_portField = new QLineEdit(port, this);
 	layout->addWidget(_portField, 2, 1, 1, 2);
 
-	QPushButton *abort = new QPushButton("Abort", this);
-	layout->addWidget(abort, 3, 0, 1, 1);
-	connect(abort, SIGNAL(clicked()), this, SLOT(hide()));
-
-	QPushButton *confirm = new QPushButton("Confirm", this);
-	layout->addWidget(confirm, 3, 2, 1, 1);
-	connect(confirm, SIGNAL(clicked()), this, SLOT(confirm()));
+	layout->setRowStretch(6, 1);
 }
 
-void RemoteDialog::confirm(){
+bool RemoteSettingsWidget::accept(){
 	bool ok;
+
 	int port = _portField->text().toInt(&ok);
 	if(!ok){
 		QMessageBox::information(this, "Enter number", QString("Port is no number!"));
-		return;
+		return true;
 	}
 	QString ip = _ipField->text();
 
@@ -76,5 +71,5 @@ void RemoteDialog::confirm(){
 	_server->setPort(port);
 	//_server->tryConnect();
 	QMessageBox::information(this, "Restart", QString("You have to restart MidiEditor to connect!"));
-	hide();
+	return true;
 }
