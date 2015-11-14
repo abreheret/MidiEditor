@@ -20,6 +20,7 @@
 #define TOOLBUTTON_H
 
 #include <QAction>
+#include <QKeySequence>
 
 class Tool;
 
@@ -28,7 +29,7 @@ class ToolButton  : public QAction {
 	Q_OBJECT
 	
 	public:
-		ToolButton(Tool *tool, QWidget *parent = 0);
+		ToolButton(Tool *tool, QKeySequence sequence = QKeySequence(), QWidget *parent = 0);
 	
 	public slots:
 		void buttonClick();

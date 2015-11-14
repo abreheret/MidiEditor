@@ -75,6 +75,7 @@ class MatrixWidget : public PaintWidget {
 		void zoomHorOut();
 		void zoomVerIn();
 		void zoomVerOut();
+		void zoomStd();
 		void timeMsChanged(int ms, bool ignoreLocked=false);
 		void registerRelayout();
 		void calcSizes();

@@ -19,22 +19,21 @@
 #ifndef REMOTEDIALOG_H_
 #define REMOTEDIALOG_H_
 
-#include <QDialog>
+#include "SettingsWidget.h"
 
 class RemoteServer;
 class QLabel;
 class QLineEdit;
 
-class RemoteDialog : public QDialog {
+class RemoteSettingsWidget : public SettingsWidget {
 
 	Q_OBJECT
 
 	public:
 
-		RemoteDialog(RemoteServer *server, QWidget *parent = 0);
+		RemoteSettingsWidget(RemoteServer *server, QWidget *parent = 0);
 
-	public slots:
-		void confirm();
+		bool accept();
 
 	private:
 		RemoteServer *_server;

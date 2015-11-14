@@ -16,39 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MIDISETTINGSDIALOG_H_
-#define MIDISETTINGSDIALOG_H_
+#ifndef SETTINGSWIDGET_H_
+#define SETTINGSWIDGET_H_
 
-#include <QDialog>
-#include <QList>
+#include <QWidget>
+#include <QIcon>
 
-class QWidget;
-class QListWidget;
-class QListWidgetItem;
-class QLineEdit;
-class QCheckBox;
+class QString;
 
-class MidiSettingsDialog : public QDialog {
-
-	Q_OBJECT
+class SettingsWidget : public QWidget {
 
 	public:
 
-		MidiSettingsDialog(QWidget *parent = 0);
-
-	public slots:
-
-		void reloadInputPorts();
-		void reloadOutputPorts();
-		void inputChanged(QListWidgetItem *item);
-		void outputChanged(QListWidgetItem *item);
-		void manualModeToggled(bool enable);
+		SettingsWidget(QString title, QWidget *parent = 0);
+		QString title();
+		virtual bool accept();
+		QWidget *createInfoBox(QString info);
+		QWidget *separator();
+		virtual QIcon icon();
 
 	private:
-		QStringList *_inputPorts, *_outputPorts;
-		QListWidget *_inList, *_outList;
-		QCheckBox *_alternativePlayerModeBox;
-
+		QString _title;
 };
 
 #endif

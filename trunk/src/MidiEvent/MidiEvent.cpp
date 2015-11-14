@@ -411,6 +411,10 @@ void MidiEvent::setMidiTime(int t, bool toProtocol){
 	} else {
 		delete toCopy;
 	}
+
+
+	// TODO error here!!!
+
 	file()->channelEvents(numChannel)->insert(timePos, this);
 
 	if(shownInEventWidget()){
@@ -452,9 +456,12 @@ void MidiEvent::reloadState(ProtocolEntry *entry){
 	}
 	_track = other->_track;
 	numChannel = other->numChannel;
+	//bool c = file()->channelEvents(numChannel)->contains(timePos, this);
 	file()->channelEvents(numChannel)->remove(timePos, this);
 	timePos = other->timePos;
-	file()->channelEvents(numChannel)->insert(timePos, this);
+	//if(c){
+		file()->channelEvents(numChannel)->insert(timePos, this);
+	//}
 	midiFile = other->midiFile;
 }
 

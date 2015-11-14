@@ -983,6 +983,12 @@ int MatrixWidget::lineAtY(int y){
 	return (y-timeHeight)/lineHeight()+startLineY;
 }
 
+void MatrixWidget::zoomStd(){
+	scaleX=1;
+	scaleY=1;
+	calcSizes();
+}
+
 void MatrixWidget::zoomHorIn(){
 	scaleX+=0.1;
 	calcSizes();

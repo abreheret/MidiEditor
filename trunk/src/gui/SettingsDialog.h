@@ -16,27 +16,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QApplication>
+#ifndef SETTINGSDIALOG_H_
+#define SETTINGSDIALOG_H_
 
-#include "gui/MainWindow.h"
-#include "midi/MidiOutput.h"
-#include "midi/MidiInput.h"
+#include <QDialog>
+#include <QSettings>
 
-#include <QFile>
-#include <QTextStream>
+class QListWidget;
+class QWidget;
+class QString;
+class QStackedWidget;
+class SettingsWidget;
+class RemoteServer;
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-	a.setAttribute(Qt::AA_DontShowIconsInMenus);
-	a.setApplicationVersion("3.0.0");
-	a.setApplicationName("MidiEditor");
-	a.setProperty("date_published", "Nov. 19th, 2015");
-	MidiOutput::init();
-    MidiInput::init();
+class SettingsDialog : public QDialog {
 
-    MainWindow *w = new MainWindow();
-    w->showMaximized();
+	Q_OBJECT
 
-    return a.exec();
-}
+	public:
+		SettingsDialog(QString title, QSettings *settings, RemoteServer *server, QWidget *parent);
+		void addSetting(SettingsWidget *settingsWidget);
+
+	public slots:
+		void rowChanged(int row);
+		void submit();
+
+	protected:
+		QListWidget *_listWidget;
+		QList<SettingsWidget*> *_settingsWidgets;
+		QStackedWidget *_container;
+};
+
+#endif

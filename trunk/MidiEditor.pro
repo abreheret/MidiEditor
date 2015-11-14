@@ -3,7 +3,7 @@ TARGET = MidiEditor
 QT += core \
     network \
 
-HEADERS += src/gui/RemoteDialog.h \
+HEADERS += \
     src/MidiEvent/KeySignatureEvent.h \
     src/remote/RemoteServer.h \
     src/gui/InstrumentChooser.h \
@@ -15,7 +15,6 @@ HEADERS += src/gui/RemoteDialog.h \
     src/Terminal.h \
     src/gui/RecordDialog.h \
     src/midi/MidiInput.h \
-    src/gui/MidiSettingsDialog.h \
     src/midi/rtmidi/RtError.h \
     src/midi/rtmidi/RtMidi.h \
     src/gui/FileLengthDialog.h \
@@ -64,8 +63,12 @@ HEADERS += src/gui/RemoteDialog.h \
     src/MidiEvent/MidiEvent.h \
     src/gui/MiscWidget.h \
     src/MidiEvent/SysExEvent.h \
-    src/gui/DataEditor.h
-SOURCES += src/gui/RemoteDialog.cpp \
+    src/gui/DataEditor.h \
+    src/gui/SettingsWidget.h \
+    src/gui/SettingsDialog.h \
+    src/gui/MidiSettingsWidget.h \
+    src/gui/RemoteSettingsWidget.h
+SOURCES += \
     src/MidiEvent/KeySignatureEvent.cpp \
     src/remote/RemoteServer.cpp \
     src/gui/InstrumentChooser.cpp \
@@ -77,7 +80,6 @@ SOURCES += src/gui/RemoteDialog.cpp \
     src/Terminal.cpp \
     src/gui/RecordDialog.cpp \
     src/midi/MidiInput.cpp \
-    src/gui/MidiSettingsDialog.cpp \
     src/midi/rtmidi/RtMidi.cpp \
     src/gui/FileLengthDialog.cpp \
     src/gui/AboutDialog.cpp \
@@ -126,7 +128,11 @@ SOURCES += src/gui/RemoteDialog.cpp \
     src/main.cpp \
     src/gui/MiscWidget.cpp \
     src/MidiEvent/SysExEvent.cpp \
-    src/gui/DataEditor.cpp
+    src/gui/DataEditor.cpp \
+    src/gui/SettingsWidget.cpp \
+    src/gui/SettingsDialog.cpp \
+    src/gui/MidiSettingsWidget.cpp \
+    src/gui/RemoteSettingsWidget.cpp
 FORMS += 
 RESOURCES += 
 DEFINES += __LINUX_ALSASEQ__

@@ -34,7 +34,7 @@ ProtocolWidget::ProtocolWidget(QWidget *parent) : QListWidget(parent) {
 	protocolHasChanged = false;
 	nextChangeFromList = false;
 	setStyleSheet( "QListWidget::item { border-bottom: 1px solid lightGray; }" );
-	setIconSize(QSize(30, 30));
+	setIconSize(QSize(15, 15));
 	connect(this, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(stepClicked(QListWidgetItem*)));
 }
 
@@ -91,12 +91,13 @@ void ProtocolWidget::update(){
 
 			// construct item
 			QListWidgetItem *item = new QListWidgetItem(step->description());
-			item->setSizeHint(QSize(0, 40));
+			item->setSizeHint(QSize(0, 30));
 			item->setFont(f);
 			if(step->image()){
-				item->setIcon(QIcon(QPixmap::fromImage(*(step->image()))));
+				QImage img = step->image()->scaled(20, 20, Qt::KeepAspectRatio);
+				item->setIcon(QIcon(QPixmap::fromImage(img)));
 			} else {
-				//item->setIcon(QIcon("graphics/tool/noicon.png"));
+				item->setIcon(QIcon("graphics/tool/noicon.png"));
 			}
 			QVariant v;
 			v.setValue(i);

@@ -147,6 +147,9 @@ void EventTool::changeTick(MidiEvent* event, int shiftX){
 
 	int newMs = file()->msOfTick(event->midiTime())-matrixWidget->timeMsOfWidth(shiftX);
 	int tick = file()->tick(newMs);
+	if(tick < 0){
+		tick = 0;
+	}
 	event->setMidiTime(tick);
 }
 
