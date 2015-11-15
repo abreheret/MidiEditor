@@ -499,3 +499,11 @@ QMap<int, QString> MidiEvent::knownMetaTypes(){
 	meta.insert(0x2F, "End of Track");
 	return meta;
 }
+
+void MidiEvent::setTemporaryRecordID(int id){
+	_tempID = id;
+}
+
+int MidiEvent::temporaryRecordID(){
+	return _tempID;
+}

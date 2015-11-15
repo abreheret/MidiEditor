@@ -83,12 +83,16 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 
 		static QMap<int, QString> knownMetaTypes();
 
+		void setTemporaryRecordID(int id);
+		int temporaryRecordID();
+
 	protected:
 		int numChannel, timePos;
 		MidiFile *midiFile;
 		static quint8 _startByte;
 		static EventWidget *_eventWidget;
 		MidiTrack *_track;
+		int _tempID;
 };
 
 #endif
