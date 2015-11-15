@@ -61,6 +61,7 @@ class MidiInput : public QObject {
 		static QMultiMap<int, std::vector<unsigned char> > *_messages;
 		static int _currentTime;
 		static bool _recording;
+		static QList<int> toUnique(QList<int> in);
 };
 
 #endif

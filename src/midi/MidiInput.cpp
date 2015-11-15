@@ -21,6 +21,9 @@
 #include "../MidiEvent/MidiEvent.h"
 #include "../MidiEvent/OffEvent.h"
 #include "../MidiEvent/OnEvent.h"
+#include "../MidiEvent/ControlChangeEvent.h"
+#include "../MidiEvent/KeyPressureEvent.h"
+
 #include "MidiTrack.h"
 
 #include <QTextStream>
@@ -185,6 +188,105 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(MidiTrack *track){
 	_currentTime = 0;
 
 
+	// perform consistency check
+	QMultiMap<int, MidiEvent*> toRemove;
+	QList<int> allTicks = toUnique(eventList.keys());
+
+	foreach(int tick, allTicks){
+
+		int id = 0;
+		QMultiMap<int, MidiEvent*> sortedByChannel;
+		foreach(MidiEvent* event, eventList.values(tick)){
+			event->setTemporaryRecordID(id);
+			sortedByChannel.insert(event->channel(), event);
+			id++;
+		}
+
+		foreach(int channel, toUnique(sortedByChannel.keys())){
+			QMultiMap<int, MidiEvent*> sortedByLine;
+
+			foreach(MidiEvent *event, sortedByChannel.values(channel)){
+				if((event->line() == MidiEvent::CONTROLLER_LINE) ||
+					(event->line() == MidiEvent::PITCH_BEND_LINE) ||
+					(event->line() == MidiEvent::CHANNEL_PRESSURE_LINE) ||
+					(event->line() == MidiEvent::KEY_PRESSURE_LINE)
+				){
+					sortedByLine.insert(event->line(), event);
+				}
+			}
+
+			foreach(int line, toUnique(sortedByLine.keys())){
+
+				// check for dublicates and mark all events which have been replaced
+				// as toRemove
+				if(sortedByLine.values(line).size() > 1){
+
+					if(line == MidiEvent::CONTROLLER_LINE){
+						QMap<int, MidiEvent*> byController;
+						foreach(MidiEvent* event, sortedByLine.values(line)){
+							ControlChangeEvent *conv = dynamic_cast<ControlChangeEvent*>(event);
+							if(!conv){
+								continue;
+							}
+							if(byController.contains(conv->control())){
+								if(conv->temporaryRecordID() > byController[conv->control()]->temporaryRecordID()){
+									toRemove.insert(tick, byController[conv->control()]);
+									byController[conv->control()] = conv;
+								} else {
+									toRemove.insert(tick, conv);
+								}
+							} else {
+								byController.insert(conv->control(), conv);
+							}
+						}
+					} else if((line == MidiEvent::PITCH_BEND_LINE) || (line == MidiEvent::CHANNEL_PRESSURE_LINE)) {
+
+						// search for maximum
+						MidiEvent *maxIdEvent = 0;
+
+						foreach(MidiEvent *ev, sortedByLine.values(line)){
+							toRemove.insert(tick, ev);
+							if(!maxIdEvent || (maxIdEvent->temporaryRecordID() < ev->temporaryRecordID())){
+								maxIdEvent = ev;
+							}
+						}
+
+						if(maxIdEvent){
+							toRemove.remove(tick, maxIdEvent);
+						}
+
+					} else if(line == MidiEvent::KEY_PRESSURE_LINE) {
+						QMap<int, MidiEvent*> byNote;
+						foreach(MidiEvent* event, sortedByLine.values(line)){
+							KeyPressureEvent *conv = dynamic_cast<KeyPressureEvent*>(event);
+							if(!conv){
+								continue;
+							}
+							if(byNote.contains(conv->note())){
+								if(conv->temporaryRecordID() > byNote[conv->note()]->temporaryRecordID()){
+									toRemove.insert(tick, byNote[conv->note()]);
+									byNote[conv->note()] = conv;
+								} else {
+									toRemove.insert(tick, conv);
+								}
+							} else {
+								byNote.insert(conv->note(), conv);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if(toRemove.size()>0){
+		QMultiMap<int, MidiEvent*>::iterator remIt = toRemove.begin();
+		while(remIt != toRemove.end()){
+			eventList.remove(remIt.key(), remIt.value());
+			remIt++;
+		}
+	}
+
 	return eventList;
 }
 
@@ -194,4 +296,14 @@ void MidiInput::setTime(int ms){
 
 bool MidiInput::recording(){
 	return _recording;
+}
+
+QList<int> MidiInput::toUnique(QList<int> in){
+	QList<int> out;
+	foreach(int i, in){
+		if((out.size() == 0) || (out.last() != i)){
+			out.append(i);
+		}
+	}
+	return out;
 }
