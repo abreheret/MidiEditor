@@ -30,13 +30,16 @@
 #include "../midi/MidiPlayer.h"
 #include "../gui/MainWindow.h"
 #include "../gui/EventWidget.h"
+#include "NewNoteTool.h"
 
 #include <QtCore/qmath.h>
 
 QList<MidiEvent*> *EventTool::selectedEvents = new QList<MidiEvent*>;
 QList<MidiEvent*> *EventTool::copiedEvents = new QList<MidiEvent*>;
+
 int EventTool::_pasteChannel = -1;
-MidiTrack *EventTool::_pasteTrack = 0;
+int EventTool::_pasteTrack = -2;
+
 bool EventTool::_magnet = false;
 
 EventTool::EventTool() : EditorTool() {
@@ -187,6 +190,10 @@ void EventTool::copyAction(){
 
 void EventTool::pasteAction(){
 
+	if(copiedEvents->size() == 0){
+		return;
+	}
+
 	// TODO what happends to TempoEvents??
 
 	// copy copied events to insert unique events
@@ -218,11 +225,13 @@ void EventTool::pasteAction(){
 		currentFile()->protocol()->startNewAction("Paste "+
 				QString::number(copiedCopiedEvents.count())+" Events");
 
+		double tickscale = ((double)(currentFile()->ticksPerQuarter()))/((double)copiedEvents->first()->file()->ticksPerQuarter());
+
 		// get first Tick of the copied events
 		int firstTick = -1;
 		foreach(MidiEvent *event, copiedCopiedEvents){
-			if(event->midiTime()<firstTick || firstTick<0){
-				firstTick = event->midiTime();
+			if((int)(tickscale*event->midiTime())<firstTick || firstTick<0){
+				firstTick = (int)(tickscale*event->midiTime());
 			}
 		}
 
@@ -236,14 +245,19 @@ void EventTool::pasteAction(){
 
 			// get channel
 			int channel = event->channel();
+			if(_pasteChannel == -2){
+				channel = NewNoteTool::editChannel();
+			}
 			if((_pasteChannel >= 0) && (channel < 16)){
 				channel = _pasteChannel;
 			}
 
 			// get track
 			MidiTrack *track = event->track();
-			if(pasteTrack()){
-				track = pasteTrack();
+			if(pasteTrack() == -2){
+				track = currentFile()->track(NewNoteTool::editTrack());
+			} else if((pasteTrack()>=0) && (pasteTrack() < currentFile()->tracks()->size())){
+				track = currentFile()->track(pasteTrack());
 			} else if(event->file() != currentFile() || !currentFile()->tracks()->contains(track)){
 				track = currentFile()->getPasteTrack(event->track(), event->file());
 				if(!track){
@@ -251,11 +265,16 @@ void EventTool::pasteAction(){
 				}
 			}
 
+
+			if((!track) || (track->file() != currentFile())){
+				track = currentFile()->track(0);
+			}
+
 			event->setFile(currentFile());
 			event->setChannel(channel, false);
 			event->setTrack(track, false);
 			currentFile()->channel(channel)->insertEvent(event,
-					event->midiTime()+diff);
+					(int)(tickscale*event->midiTime())+diff);
 		}
 		currentFile()->protocol()->endAction();
 	}
@@ -265,11 +284,11 @@ bool EventTool::showsSelection(){
 	return false;
 }
 
-void EventTool::setPasteTrack(MidiTrack *track){
+void EventTool::setPasteTrack(int track){
 	_pasteTrack = track;
 }
 
-MidiTrack *EventTool::pasteTrack(){
+int EventTool::pasteTrack(){
 	return _pasteTrack;
 }
 

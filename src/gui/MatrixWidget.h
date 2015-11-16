@@ -134,6 +134,8 @@ class MatrixWidget : public PaintWidget {
 
 		bool _colorsByChannels;
 		int _div;
+
+		QMap<int, QRect> pianoKeys;
 };
 
 #endif
