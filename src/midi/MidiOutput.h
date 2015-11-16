@@ -41,11 +41,15 @@ class MidiOutput : public QObject {
 		static void sendEnqueuedCommand(QByteArray array);
 		static bool isAlternativePlayer;
 		static QMap<int, QList<int> > playedNotes;
+		static void setStandardChannel(int channel);
+		static int standardChannel();
+		static void sendProgram(int channel, int prog);
 
 	private:
 		static QString _outPort;
 		static RtMidiOut *_midiOut;
 		static SenderThread *_sender;
+		static int _stdChannel;
 };
 
 #endif

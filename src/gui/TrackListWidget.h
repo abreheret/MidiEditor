@@ -71,9 +71,11 @@ class TrackListWidget : public QListWidget {
 	signals:
 		void trackRenameClicked(int tracknumber);
 		void trackRemoveClicked(int tracknumber);
+		void trackClicked(MidiTrack *track);
 
 	public slots:
 		void update();
+		void chooseTrack(QListWidgetItem *item);
 
 	private:
 		MidiFile *file;

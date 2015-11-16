@@ -54,6 +54,8 @@ class MidiInput : public QObject {
 		static void setTime(int ms);
 
 		static bool recording();
+		static void setThruEnabled(bool b);
+		static bool thru();
 
 	private:
 		static QString _inPort;
@@ -62,6 +64,8 @@ class MidiInput : public QObject {
 		static int _currentTime;
 		static bool _recording;
 		static QList<int> toUnique(QList<int> in);
+		static bool _thru;
+
 };
 
 #endif

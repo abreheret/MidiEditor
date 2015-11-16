@@ -34,12 +34,15 @@
 #include "rtmidi/RtError.h"
 #include "rtmidi/RtMidi.h"
 
+#include "MidiOutput.h"
+
 RtMidiIn *MidiInput::_midiIn = 0;
 QString MidiInput::_inPort = "";
 QMultiMap<int, std::vector<unsigned char> > *MidiInput::_messages =
 		new QMultiMap<int, std::vector<unsigned char> >;
 int MidiInput::_currentTime = 0;
 bool MidiInput::_recording = false;
+bool MidiInput::_thru = false;
 
 void MidiInput::init(){
 
@@ -60,6 +63,47 @@ void MidiInput::receiveMessage(double deltatime, std::vector<unsigned char>
 {
 	if(message->size()>1){
 		_messages->insert(_currentTime, *message);
+	}
+
+	if(_thru){
+		QByteArray a;
+		for(int i = 0; i<message->size(); i++){
+			// check channel
+			if(i == 0){
+				switch(message->at(i) & 0xF0){
+					case 0x80: {
+						a.append(0x80 | MidiOutput::standardChannel());
+						continue;
+					}
+					case 0x90: {
+						a.append(0x90 | MidiOutput::standardChannel());
+						continue;
+					}
+					case 0xD0: {
+						a.append(0xD0 | MidiOutput::standardChannel());
+						continue;
+					}
+					case 0xC0: {
+						a.append(0xC0 | MidiOutput::standardChannel());
+						continue;
+					}
+					case 0xB0: {
+						a.append(0xB0 | MidiOutput::standardChannel());
+						continue;
+					}
+					case 0xA0: {
+						a.append(0xA0 | MidiOutput::standardChannel());
+						continue;
+					}
+					case 0xE0: {
+						a.append(0xE0 | MidiOutput::standardChannel());
+						continue;
+					}
+				}
+			}
+			a.append(message->at(i));
+		}
+		MidiOutput::sendCommand(a);
 	}
 }
 
@@ -306,4 +350,12 @@ QList<int> MidiInput::toUnique(QList<int> in){
 		}
 	}
 	return out;
+}
+
+void MidiInput::setThruEnabled(bool b){
+	_thru = b;
+}
+
+bool MidiInput::thru(){
+	return _thru;
 }

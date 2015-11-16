@@ -46,10 +46,13 @@ class PlayerThread : public QThread {
 	signals:
 		void timeMsChanged(int ms);
 		void playerStopped();
+		void playerStarted();
 
 		void tonalityChanged(int tonality);
-		void measureChanged(int measure);
+		void measureChanged(int measure, int tickInMeasure);
 		void meterChanged(int num, int denum);
+
+		void measureUpdate(int measure, int tickInMeasure);
 
 	private:
 		MidiFile *file;

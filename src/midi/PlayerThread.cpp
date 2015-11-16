@@ -68,6 +68,8 @@ void PlayerThread::run(){
 		position = file->msOfTick(file->pauseTick());
 	}
 
+	emit playerStarted();
+
 	// Reset all Controllers
 	for(int i = 0; i<16; i++){
 		QByteArray array;
@@ -96,8 +98,10 @@ void PlayerThread::run(){
 	stopped = false;
 
 	QList<TimeSignatureEvent*> *list = 0;
-	measure = file->measure(file->cursorTick(), file->cursorTick(), &list);
-	emit(measureChanged(measure));
+
+	int tickInMeasure = 0;
+	measure = file->measure(file->cursorTick(), file->cursorTick(), &list, &tickInMeasure);
+	emit(measureChanged(measure, tickInMeasure));
 
 	if(exec() == 0){
 		timer->stop();
@@ -143,9 +147,14 @@ void PlayerThread::timeout(){
 		int newPos = position + time->elapsed();
 		int tick = file->tick(newPos);
 		QList<TimeSignatureEvent*> *list = 0;
-		int new_measure = file->measure(tick, tick, &list);
+		int ickInMeasure = 0;
+
+		int new_measure = file->measure(tick, tick, &list, &ickInMeasure);
+
+		// compute current pos
+
 		if(new_measure > measure){
-			emit measureChanged(new_measure);
+			emit measureChanged(new_measure, ickInMeasure);
 			measure = new_measure;
 		}
 		time->restart();
@@ -199,6 +208,7 @@ void PlayerThread::timeout(){
 		MidiInput::setTime(position);
 		if(timeoutSinceLastSignal==TIMEOUTS_PER_SIGNAL){
 			emit timeMsChanged(position);
+			emit measureUpdate(measure, ickInMeasure);
 			timeoutSinceLastSignal = 0;
 		}
 	}

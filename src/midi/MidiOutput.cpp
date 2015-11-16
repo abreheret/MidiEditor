@@ -39,6 +39,8 @@ SenderThread *MidiOutput::_sender = new SenderThread();
 QMap<int, QList<int> > MidiOutput::playedNotes = QMap<int, QList<int> >();
 bool MidiOutput::isAlternativePlayer = false;
 
+int MidiOutput::_stdChannel = 0;
+
 void MidiOutput::init(){
 
 	// RtMidiOut constructor
@@ -140,6 +142,25 @@ void MidiOutput::sendEnqueuedCommand(QByteArray array) {
 		foreach(char byte, array){
 			message.push_back(byte);
 		}
-		_midiOut->sendMessage(&message);
+		try {
+			_midiOut->sendMessage(&message);
+		} catch ( RtError &error ) {
+			qWarning("%s", error.getMessageString());
+		}
 	}
 }
+
+void MidiOutput::setStandardChannel(int channel){
+	_stdChannel = channel;
+}
+
+int MidiOutput::standardChannel(){
+	return _stdChannel;
+}
+
+ void MidiOutput::sendProgram(int channel, int prog){
+	 QByteArray array = QByteArray();
+	 array.append(0xC0 | channel);
+	 array.append(prog);
+	 sendCommand(array);
+ }

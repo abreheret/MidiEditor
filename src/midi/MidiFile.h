@@ -53,7 +53,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 		void calcMaxTime();
 		int tick(int ms);
 		int tick(int startms, int endms, QList<MidiEvent*> **events, int *endTick, int *msOfFirstEvent);
-		int measure(int startTick, int endTick, QList<TimeSignatureEvent*> **eventList, int *ticksLeft = 0);
+		int measure(int startTick, int endTick, QList<TimeSignatureEvent*> **eventList, int *tickInMeasure = 0);
 		int msOfTick(int tick, QList<MidiEvent*> *events = 0, int msOfFirstEventInList = 0);
 
 		QList<MidiEvent*> *eventsBetween(int start, int end);
@@ -95,6 +95,8 @@ class MidiFile : public QObject, public ProtocolEntry {
 
 		void registerCopiedTrack(MidiTrack *source, MidiTrack *destination, MidiFile *fileFrom);
 		MidiTrack *getPasteTrack(MidiTrack *source, MidiFile *fileFrom);
+
+		QList<int> quantization(int fractionSize);
 
 	signals:
 		void cursorPositionChanged();

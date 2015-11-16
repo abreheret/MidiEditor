@@ -83,6 +83,7 @@
 #include "../MidiEvent/OffEvent.h"
 #include "../MidiEvent/OnEvent.h"
 #include "../MidiEvent/NoteOnEvent.h"
+#include "../midi/Metronome.h"
 
 MainWindow::MainWindow() : QMainWindow() {
 
@@ -98,11 +99,15 @@ MainWindow::MainWindow() : QMainWindow() {
 	bool magnet = _settings->value("magnet", false).toBool();
 	EventTool::enableMagnet(magnet);
 
+	MidiInput::setThruEnabled(_settings->value("thru", false).toBool());
+	Metronome::setEnabled(_settings->value("metronome", false).toBool());
+
 	 _remoteServer = new RemoteServer();
 	 _remoteServer->setIp(ip);
 	 _remoteServer->setPort(port);
 	 _remoteServer->tryConnect();
 
+	_quantizationGrid = _settings->value("quantization", 3).toInt();
 
 	connect(_remoteServer, SIGNAL(playRequest()), this, SLOT(play()));
 	connect(_remoteServer, SIGNAL(stopRequest(bool, bool)), this, SLOT(stop(bool, bool)));
@@ -118,8 +123,20 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(MidiPlayer::playerThread(),
 			SIGNAL(tonalityChanged(int)), _remoteServer, SLOT(setTonality(int)));
 	connect(MidiPlayer::playerThread(),
-			SIGNAL(measureChanged(int)), _remoteServer, SLOT(setMeasure(int)));
+			SIGNAL(measureChanged(int, int)), _remoteServer, SLOT(setMeasure(int)));
 
+
+	// metronome
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(measureChanged(int, int)), Metronome::instance(), SLOT(measureUpdate(int, int)));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(measureUpdate(int,int)), Metronome::instance(), SLOT(measureUpdate(int, int)));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(meterChanged(int, int)), Metronome::instance(), SLOT(meterChanged(int, int)));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(playerStopped()), Metronome::instance(), SLOT(playbackStopped()));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(playerStarted()), Metronome::instance(), SLOT(playbackStarted()));
 
 	startDirectory = QDir::homePath();
 
@@ -321,6 +338,8 @@ MainWindow::MainWindow() : QMainWindow() {
 	_trackWidget = new TrackListWidget(tracks);
 	connect(_trackWidget, SIGNAL(trackRenameClicked(int)), this, SLOT(renameTrack(int)), Qt::QueuedConnection);
 	connect(_trackWidget, SIGNAL(trackRemoveClicked(int)), this, SLOT(removeTrack(int)), Qt::QueuedConnection);
+	connect(_trackWidget, SIGNAL(trackClicked(MidiTrack*)), this, SLOT(editTrackAndChannel(MidiTrack*)), Qt::QueuedConnection);
+
 	tracksLayout->addWidget(_trackWidget, 1, 0, 1, 1);
 	upperTabWidget->addTab(tracks, "Tracks");
 
@@ -386,23 +405,23 @@ MainWindow::MainWindow() : QMainWindow() {
 	chooser->setMinimumWidth(350);
 	rightSplitter->addWidget(chooser);
 	QGridLayout *chooserLayout = new QGridLayout(chooser);
-	QLabel *trackchannelLabel = new QLabel("Choose Track and Channel for new Events");
+	QLabel *trackchannelLabel = new QLabel("Add new events to ...");
 	chooserLayout->addWidget(trackchannelLabel, 0,0,1, 2);
 	QLabel *channelLabel = new QLabel("Channel: ", chooser);
-	chooserLayout->addWidget(channelLabel, 1, 0, 1, 1);
+	chooserLayout->addWidget(channelLabel, 2, 0, 1, 1);
 	_chooseEditChannel = new QComboBox(chooser);
 	for(int i = 0; i<16;i++){
 		_chooseEditChannel->addItem("Channel "+QString::number(i));
 	}
 	connect(_chooseEditChannel, SIGNAL(activated(int)), this, SLOT(editChannel(int)));
 
-	chooserLayout->addWidget(_chooseEditChannel, 1, 1, 1, 1);
+	chooserLayout->addWidget(_chooseEditChannel, 2, 1, 1, 1);
 	QLabel *trackLabel = new QLabel("Track: ", chooser);
-	chooserLayout->addWidget(trackLabel, 2, 0, 1, 1);
+	chooserLayout->addWidget(trackLabel, 1, 0, 1, 1);
 	_chooseEditTrack = new QComboBox(chooser);
-	chooserLayout->addWidget(_chooseEditTrack, 2, 1, 1, 1);
+	chooserLayout->addWidget(_chooseEditTrack, 1, 1, 1, 1);
 	connect(_chooseEditTrack, SIGNAL(activated(int)), this, SLOT(editTrack(int)));
-
+	chooserLayout->setColumnStretch(1, 1);
 	// connect Scrollbars and Widgets
 	connect(vert, SIGNAL(valueChanged(int)), mw_matrixWidget,
 			SLOT(scrollYChanged(int)));
@@ -455,6 +474,7 @@ void MainWindow::setFile(MidiFile *file){
 	NewNoteTool::setEditChannel(0);
 	EventTool::clearSelection();
 
+	Metronome::instance()->setFile(file);
 	protocolWidget->setFile(file);
 	channelWidget->setFile(file);
 	_trackWidget->setFile(file);
@@ -957,6 +977,10 @@ void MainWindow::closeEvent(QCloseEvent *event){
 
 	_settings->setValue("div", mw_matrixWidget->div());
 	_settings->setValue("colors_from_channel", mw_matrixWidget->colorsByChannel());
+
+	_settings->setValue("metronome", Metronome::enabled());
+	_settings->setValue("thru", MidiInput::thru());
+	_settings->setValue("quantization", _quantizationGrid);
 }
 
 void MainWindow::donate(){
@@ -1318,6 +1342,22 @@ void MainWindow::updateChannelMenu() {
 		}
 	}
 
+	// paste events to channel...
+	foreach(QAction *action, _pasteToChannelMenu->actions()){
+		int channel = action->data().toInt();
+		if(file && channel >= 0){
+			action->setText(QString::number(channel)+" "+MidiFile::instrumentName(file->channel(channel)->progAtTick(0)));
+		}
+	}
+
+	// select all events from channel...
+	foreach(QAction *action, _selectAllFromChannelMenu->actions()){
+		int channel = action->data().toInt();
+		if(file){
+			action->setText(QString::number(channel)+" "+MidiFile::instrumentName(file->channel(channel)->progAtTick(0)));
+		}
+	}
+
 	_chooseEditChannel->setCurrentIndex(NewNoteTool::editChannel());
 }
 
@@ -1325,6 +1365,7 @@ void MainWindow::updateTrackMenu() {
 
 	_moveSelectedEventsToTrackMenu->clear();
 	_chooseEditTrack->clear();
+	_selectAllFromTrackMenu->clear();
 
 	if(!file){
 		return;
@@ -1336,6 +1377,14 @@ void MainWindow::updateTrackMenu() {
 		moveToTrackAction->setData(variant);
 		_moveSelectedEventsToTrackMenu->addAction(moveToTrackAction);
 	}
+
+	for(int i = 0; i<file->numTracks(); i++){
+		QVariant variant(i);
+		QAction *select = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
+		select->setData(variant);
+		_selectAllFromTrackMenu->addAction(select);
+	}
+
 
 	for(int i = 0; i<file->numTracks(); i++){
 		_chooseEditTrack->addItem("Track "+QString::number(i)+": "+file->tracks()->at(i)->name());
@@ -1551,6 +1600,47 @@ void MainWindow::muteTrackMenuClicked(QAction *action){
 	}
 }
 
+
+void MainWindow::selectAllFromChannel(QAction *action){
+
+	if(!file){
+		return;
+	}
+	int channel = action->data().toInt();
+	file->protocol()->startNewAction("Select all events from channel "+QString::number(channel));
+	EventTool::clearSelection();
+	file->channel(channel)->setVisible(true);
+	foreach(MidiEvent *e, file->channel(channel)->eventMap()->values()){
+		if(e->track()->hidden()){
+			e->track()->setHidden(false);
+		}
+		EventTool::selectEvent(e, false);
+	}
+
+	file->protocol()->endAction();
+}
+
+void MainWindow::selectAllFromTrack(QAction *action){
+
+	if(!file){
+		return;
+	}
+
+	int track = action->data().toInt();
+	file->protocol()->startNewAction("Select all events from track "+QString::number(track));
+	EventTool::clearSelection();
+	file->track(track)->setHidden(false);
+	for(int channel = 0; channel<16; channel++){
+		foreach(MidiEvent *e, file->channel(channel)->eventMap()->values()){
+			if(e->track()->number() == track){
+				file->channel(e->channel())->setVisible(true);
+				EventTool::selectEvent(e, false);
+			}
+		}
+	}
+	file->protocol()->endAction();
+}
+
 void MainWindow::selectAll(){
 
 	if(!file){
@@ -1620,13 +1710,39 @@ void MainWindow::colorsByTrack(){
     _miscWidget->update();
 }
 
-void MainWindow::editChannel(int i){
+void MainWindow::editChannel(int i, bool assign){
 	NewNoteTool::setEditChannel(i);
-	updateChannelMenu();
+
+	// assign channel to track
+	if(assign && file && file->track(NewNoteTool::editTrack())){
+		file->track(NewNoteTool::editTrack())->assignChannel(i);
+	}
+
+	MidiOutput::setStandardChannel(i);
+
+	int prog = file->channel(i)->progAtTick(file->cursorTick());
+	MidiOutput::sendProgram(i, prog);
+
+	// TODO instrument...
+
+	updateChannelMenu();	
 }
-void MainWindow::editTrack(int i){
+
+void MainWindow::editTrack(int i, bool assign){
 	NewNoteTool::setEditTrack(i);
+
+	// assign channel to track
+	if(assign && file && file->track(i)){
+		file->track(i)->assignChannel(NewNoteTool::editChannel());
+	}
 	updateTrackMenu();
+}
+
+void MainWindow::editTrackAndChannel(MidiTrack *track){
+	editTrack(track->number(), false);
+	if(track->assignedChannel() > -1){
+		editChannel(track->assignedChannel(), false);
+	}
 }
 
 void MainWindow::setInstrumentForChannel(int i){
@@ -1634,6 +1750,9 @@ void MainWindow::setInstrumentForChannel(int i){
 	d->setModal(true);
 	d->exec();
 
+	if(i == NewNoteTool::editChannel()){
+		editChannel(i);
+	}
 	updateChannelMenu();
 }
 
@@ -1848,6 +1967,28 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
     editMB->addAction(selectAllAction);
 
+	_selectAllFromChannelMenu = new QMenu("Select all events from channel...", editMB);
+	editMB->addMenu(_selectAllFromChannelMenu);
+	connect(_selectAllFromChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT(selectAllFromChannel(QAction*)));
+
+	for(int i = 0; i<16; i++){
+		QVariant variant(i);
+		QAction *delChannelAction = new QAction(QString::number(i), this);
+		delChannelAction->setData(variant);
+		_selectAllFromChannelMenu->addAction(delChannelAction);
+	}
+
+	_selectAllFromTrackMenu = new QMenu("Select all events from track...", editMB);
+	editMB->addMenu(_selectAllFromTrackMenu);
+	connect(_selectAllFromTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(selectAllFromTrack(QAction*)));
+
+	for(int i = 0; i<16; i++){
+		QVariant variant(i);
+		QAction *delChannelAction = new QAction(QString::number(i), this);
+		delChannelAction->setData(variant);
+		_selectAllFromTrackMenu->addAction(delChannelAction);
+	}
+
     editMB->addSeparator();
 
 	QAction *copyAction = new QAction("Copy events", this);
@@ -1891,7 +2032,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	editMB->addSeparator();
 
 	QAction *configAction = new QAction("Settings...", this);
-	configAction->setIcon(QIcon("graphics/tools/config.png"));
+	configAction->setIcon(QIcon("graphics/tool/config.png"));
 	connect(configAction, SIGNAL(triggered()), this, SLOT(openConfig()));
 	editMB->addAction(configAction);
 
@@ -1958,6 +2099,43 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	equalizeAction->setShortcut(QKeySequence(Qt::Key_Up + Qt::CTRL));
     connect(equalizeAction, SIGNAL(triggered()), this, SLOT(equalize()));
 	toolsMB->addAction(equalizeAction);
+
+	toolsMB->addSeparator();
+
+	QAction *quantizeAction = new QAction("Quantize selection", this);
+	quantizeAction->setIcon(QIcon("graphics/tool/quantize.png"));
+	quantizeAction->setShortcut(QKeySequence(Qt::Key_G + Qt::CTRL));
+	connect(quantizeAction, SIGNAL(triggered()), this, SLOT(quantizeSelection()));
+	toolsMB->addAction(quantizeAction);
+
+
+	QMenu *quantMenu = new QMenu("Quantization fractions", viewMB);
+	QActionGroup *quantGroup = new QActionGroup(viewMB);
+	quantGroup->setExclusive(true);
+
+	for(int i = 0; i<=5; i++){
+		QVariant variant(i);
+		QString text = "";
+
+		if(i == 0){
+			text = "Whole note";
+		} else if(i == 1){
+			text = "Half note";
+		} else if(i == 2){
+			text = "Quarter note";
+		} else {
+			text = QString::number((int)qPow(2, i))+"th note";
+		}
+
+		QAction *a = new QAction(text, this);
+		a->setData(variant);
+		quantGroup->addAction(a);
+		quantMenu->addAction(a);
+		a->setCheckable(true);
+		a->setChecked(i == _quantizationGrid);
+	}
+	connect(quantMenu, SIGNAL(triggered(QAction*)), this, SLOT(quantizationChanged(QAction*)));
+	toolsMB->addMenu(quantMenu);
 
 	toolsMB->addSeparator();
 
@@ -2178,9 +2356,28 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	lockAction->setChecked(mw_matrixWidget->screenLocked());
 
     // Midi
+	QAction *configAction2 = new QAction("Settings...", this);
+	configAction2->setIcon(QIcon("graphics/tool/config.png"));
+	connect(configAction2, SIGNAL(triggered()), this, SLOT(openConfig()));
+	midiMB->addAction(configAction2);
+
     QAction *panicAction = new QAction("Midi panic (All Notes off)", this);
     connect(panicAction, SIGNAL(triggered()), this, SLOT(panic()));
     midiMB->addAction(panicAction);
+
+	QAction *metronomeAction = new QAction("Metronome", this);
+	metronomeAction->setIcon(QIcon("graphics/tool/metronome.png"));
+	metronomeAction->setCheckable(true);
+	metronomeAction->setChecked(Metronome::enabled());
+	connect(metronomeAction, SIGNAL(toggled(bool)), this, SLOT(enableMetronome(bool)));
+	midiMB->addAction(metronomeAction);
+
+	QAction *thruAction = new QAction("Connect Midi In/Out", this);
+	thruAction->setIcon(QIcon("graphics/tool/connection.png"));
+	thruAction->setCheckable(true);
+	thruAction->setChecked(MidiInput::thru());
+	connect(thruAction, SIGNAL(toggled(bool)), this, SLOT(enableThru(bool)));
+	midiMB->addAction(thruAction);
 
     // Help
     QAction *manualAction = new QAction("User Manual", this);
@@ -2244,7 +2441,6 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	QAction *pasteActionTB = new QAction("Paste events", this);
 	pasteActionTB->setToolTip("Paste events at cursor position");
-	pasteActionTB->setShortcut(QKeySequence::Paste);
 	pasteActionTB->setIcon(QIcon("graphics/tool/paste.png"));
 	connect(pasteActionTB, SIGNAL(triggered()), this, SLOT(paste()));
 	pasteActionTB->setMenu(pasteOptionsMenu);
@@ -2296,6 +2492,11 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	upperTB->addSeparator();
 	upperTB->addAction(magnetAction);
 
+	lowerTB->addSeparator();
+	lowerTB->addAction(metronomeAction);
+	lowerTB->addSeparator();
+	lowerTB->addAction(thruAction);
+
     btnLayout->setColumnStretch(3, 1);
 
     return buttonBar;
@@ -2326,4 +2527,66 @@ void MainWindow::enableMagnet(bool enable){
 void MainWindow::openConfig(){
 	SettingsDialog *d = new SettingsDialog("Settings", _settings, _remoteServer, this);
 	d->show();
+}
+
+void MainWindow::enableMetronome(bool enable){
+	Metronome::setEnabled(enable);
+}
+
+void MainWindow::enableThru(bool enable){
+	MidiInput::setThruEnabled(enable);
+}
+
+void MainWindow::quantizationChanged(QAction *action){
+	_quantizationGrid = action->data().toInt();
+}
+
+void MainWindow::quantizeSelection(){
+
+	if(!file){
+		return;
+	}
+
+	// get list with all quantization ticks
+	QList<int> ticks = file->quantization(_quantizationGrid);
+
+	file->protocol()->startNewAction("Quantize events");
+	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+			int onTime = e->midiTime();
+			e->setMidiTime(quantize(onTime, ticks));
+			OnEvent *on = dynamic_cast<OnEvent*>(e);
+			if(on){
+					MidiEvent *off = on->offEvent();
+					off->setMidiTime(quantize(off->midiTime(), ticks));
+			}
+	}
+	file->protocol()->endAction();
+}
+
+int MainWindow::quantize(int t, QList<int> ticks){
+
+	int min = -1;
+
+	for(int j = 0; j<ticks.size(); j++){
+
+		if(min < 0){
+			min = j;
+			continue;
+		}
+
+		int i = ticks.at(j);
+
+		int dist = t-i;
+
+		int a = qAbs(dist);
+		int b = qAbs(t-ticks.at(min));
+
+		if(a<b){
+			min = j;
+		}
+
+		if(dist<0){
+			return ticks.at(min);
+		}
+	}
 }

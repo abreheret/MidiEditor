@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = MidiEditor
 QT += core \
     network \
+    phonon \
 
 HEADERS += \
     src/MidiEvent/KeySignatureEvent.h \
@@ -67,7 +68,8 @@ HEADERS += \
     src/gui/SettingsWidget.h \
     src/gui/SettingsDialog.h \
     src/gui/MidiSettingsWidget.h \
-    src/gui/RemoteSettingsWidget.h
+    src/gui/RemoteSettingsWidget.h \
+    src/midi/Metronome.h
 SOURCES += \
     src/MidiEvent/KeySignatureEvent.cpp \
     src/remote/RemoteServer.cpp \
@@ -132,7 +134,8 @@ SOURCES += \
     src/gui/SettingsWidget.cpp \
     src/gui/SettingsDialog.cpp \
     src/gui/MidiSettingsWidget.cpp \
-    src/gui/RemoteSettingsWidget.cpp
+    src/gui/RemoteSettingsWidget.cpp \
+    src/midi/Metronome.cpp
 FORMS += 
 RESOURCES += 
 DEFINES += __LINUX_ALSASEQ__
