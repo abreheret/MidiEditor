@@ -45,8 +45,8 @@ class EventTool: public EditorTool {
 
 		virtual bool showsSelection();
 
-		static void setPasteTrack(MidiTrack *track);
-		static MidiTrack *pasteTrack();
+		static void setPasteTrack(int track);
+		static int pasteTrack();
 		static void setPasteChannel(int channel);
 		static int pasteChannel();
 
@@ -60,7 +60,7 @@ class EventTool: public EditorTool {
 		QList<MidiEvent*> *ownSelectedEvents;
 		static bool isCutAction;
 		static int _pasteChannel;
-		static MidiTrack *_pasteTrack;
+		static int _pasteTrack;
 		static bool _magnet;
 };
 

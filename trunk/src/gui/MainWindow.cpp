@@ -1399,10 +1399,12 @@ void MainWindow::updateTrackMenu() {
 	pasteTrackGroup->setExclusive(true);
 
 	bool checked = false;
-	for(int i = -1; i<file->numTracks(); i++){
+	for(int i = -2; i<file->numTracks(); i++){
 		QVariant variant(i);
 		QString text = QString::number(i);
-		if(i<0){
+		if(i == -2){
+			text = "Same as selected for new events";
+		} else if(i==-1){
 			text = "Keep track";
 		} else {
 			text = "Track "+QString::number(i)+": "+file->tracks()->at(i)->name();
@@ -1412,7 +1414,7 @@ void MainWindow::updateTrackMenu() {
 		pasteToTrackAction->setCheckable(true);
 		_pasteToTrackMenu->addAction(pasteToTrackAction);
 		pasteTrackGroup->addAction(pasteToTrackAction);
-		if(i>-1 && (EventTool::pasteTrack() == file->track(i))){
+		if(i == EventTool::pasteTrack()){
 			pasteToTrackAction->setChecked(true);
 			checked = true;
 		}
@@ -1723,8 +1725,6 @@ void MainWindow::editChannel(int i, bool assign){
 	int prog = file->channel(i)->progAtTick(file->cursorTick());
 	MidiOutput::sendProgram(i, prog);
 
-	// TODO instrument...
-
 	updateChannelMenu();	
 }
 
@@ -2012,10 +2012,13 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	connect(_pasteToChannelMenu, SIGNAL(triggered(QAction*)), this, SLOT(pasteToChannel(QAction*)));
 	connect(_pasteToTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(pasteToTrack(QAction*)));
 
-	for(int i = -1; i<16; i++){
+	for(int i = -2; i<16; i++){
 		QVariant variant(i);
 		QString text = QString::number(i);
-		if(i<0){
+		if(i==-2){
+			text = "Same as selected for new events";
+		}
+		if(i==-1){
 			text = "Keep channel";
 		}
 		QAction *pasteToChannelAction = new QAction(text, this);
@@ -2484,6 +2487,11 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	upperTB->addAction(alignLeftAction);
 	upperTB->addAction(alignRightAction);
 	upperTB->addAction(equalizeAction);
+
+	upperTB->addSeparator();
+
+	upperTB->addAction(quantizeAction);
+
 	upperTB->addSeparator();
 
 	upperTB->addAction(newNoteAction);
@@ -2507,13 +2515,7 @@ void MainWindow::pasteToChannel(QAction *action){
 }
 
 void MainWindow::pasteToTrack(QAction *action){
-	int track = action->data().toInt();
-	if(track <0){
-		EventTool::setPasteTrack(0);
-		return;
-	}
-	MidiTrack *t = file->track(track);
-	EventTool::setPasteTrack(t);
+	EventTool::setPasteTrack(action->data().toInt());
 }
 
 void MainWindow::divChanged(QAction* action){
@@ -2552,13 +2554,19 @@ void MainWindow::quantizeSelection(){
 
 	file->protocol()->startNewAction("Quantize events");
 	foreach(MidiEvent *e, *EventTool::selectedEventList()){
-			int onTime = e->midiTime();
-			e->setMidiTime(quantize(onTime, ticks));
-			OnEvent *on = dynamic_cast<OnEvent*>(e);
-			if(on){
-					MidiEvent *off = on->offEvent();
-					off->setMidiTime(quantize(off->midiTime(), ticks));
+		int onTime = e->midiTime();
+		e->setMidiTime(quantize(onTime, ticks));
+		OnEvent *on = dynamic_cast<OnEvent*>(e);
+		if(on){
+			MidiEvent *off = on->offEvent();
+			off->setMidiTime(quantize(off->midiTime(), ticks));
+			if(off->midiTime() == on->midiTime()){
+				int idx = ticks.indexOf(off->midiTime());
+				if((idx >= 0) && (ticks.size()>idx+1)){
+					off->setMidiTime(ticks.at(idx+1));
+				}
 			}
+		}
 	}
 	file->protocol()->endAction();
 }
@@ -2589,4 +2597,5 @@ int MainWindow::quantize(int t, QList<int> ticks){
 			return ticks.at(min);
 		}
 	}
+	return t;
 }

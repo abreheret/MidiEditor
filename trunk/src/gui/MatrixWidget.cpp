@@ -163,7 +163,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 	bool totalRepaint = !pixmap;
 
 	if(totalRepaint){
-
+		this->pianoKeys.clear();
 		pixmap = new QPixmap(width(), height());
 		QPainter *pixpainter = new QPainter(pixmap);
         pixpainter->setRenderHint(QPainter::Antialiasing);
@@ -599,7 +599,6 @@ void MatrixWidget::paintChannel(QPainter *painter, int channel){
 void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 		int width, int height)
 {
-
     int borderRight = 10;
     width = width-borderRight;
 	if(number>=0 && number<=127){
@@ -675,7 +674,7 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 		if(isBlack){
 			painter->drawLine(x, y+height/2, x+width, y+height/2);
 			y+=(height-height*scaleHeightBlack)/2;
-			QRectF playerRect;
+			QRect playerRect;
 			playerRect.setX(x);
 			playerRect.setY(y);
 			playerRect.setWidth(width*scaleWidthBlack);
@@ -691,6 +690,7 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 			keyPolygon.append(QPoint(x, y+height*scaleHeightBlack));
 			keyPolygon.append(QPoint(x+width*scaleWidthBlack, y+height*scaleHeightBlack));
 			keyPolygon.append(QPoint(x+width*scaleWidthBlack, y));
+			pianoKeys.insert(number, playerRect);
 
 		} else {
 
@@ -714,6 +714,7 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 				keyPolygon.append(QPoint(x, y+height+height*scaleHeightBlack/2));
 			}
 			inRect = mouseInRect(x,y,width, height);
+			pianoKeys.insert(number, QRect(x, y, width, height));
 		}
 
         if(isBlack){
@@ -748,12 +749,6 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 			QColor lineColor = QColor(0, 0, 100, 40);
             painter->fillRect(x+width+borderRight, yPosOfLine(128-number),
                     this->width()-x-width-borderRight, height, lineColor);
-		}
-		if(inRect && mouseReleased){
-			// play note
-			pianoEvent->setNote(number);
-			MidiPlayer::play(pianoEvent);
-			mouseReleased = false;
 		}
 	}
 }
@@ -887,7 +882,17 @@ void MatrixWidget::mousePressEvent(QMouseEvent *event){
 				update();
 			}
 		}
+	} else if(enabled && (!MidiPlayer::isPlaying()) && (mouseInRect(PianoArea))){
+		foreach(int key, pianoKeys.keys()){
+			bool inRect = mouseInRect(pianoKeys.value(key));
+			if(inRect){
+				// play note
+				pianoEvent->setNote(key);
+				MidiPlayer::play(pianoEvent);
+			}
+		}
 	}
+
 }
 void MatrixWidget::mouseReleaseEvent(QMouseEvent *event){
 	PaintWidget::mouseReleaseEvent(event);
@@ -1046,7 +1051,7 @@ void MatrixWidget::wheelEvent(QWheelEvent *event){
 
 	if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier)){
 
-		int scroll = -1*event->delta()*widgetRange/1000; // test
+		int scroll = -1*event->delta()*widgetRange/1000;
 
 		int newStartTime = startTimeX+scroll;
 
