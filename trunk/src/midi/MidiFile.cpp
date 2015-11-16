@@ -36,12 +36,14 @@
 #include "MidiChannel.h"
 #include "MidiTrack.h"
 
+#include <QtCore/qmath.h>
+
 MidiFile::MidiFile(){
 	_saved = true;
 	midiTicks = 0;
 	_cursorTick = 0;
 	prot = new Protocol(this);
-	prot->addEmptyAction("File created");
+	prot->addEmptyAction("New file");
 	_path = "";
 	_pauseTick = -1;
 	for(int i = 0; i<19; i++){
@@ -214,6 +216,11 @@ bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 	_tracks->append(track);
 	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 
+	int channelFrequency[16];
+	for(int i = 0; i<16; i++){
+		channelFrequency[i] = 0;
+	}
+
 	while(!endEvent){
 
 		position+=deltaTime(content);
@@ -252,6 +259,10 @@ bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 
 		// also inserts to the Map of the channel
 		event->setMidiTime(position, false);
+
+		if(event->channel()<16){
+			channelFrequency[event->channel()]++;
+		}
 	}
 
 	// end of track
@@ -277,6 +288,15 @@ bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 		tempoEv->setTrack(0, false);
 		channel(17)->eventMap()->insert(0, tempoEv);
 	}
+
+	// assign channel
+	int assignedChannel = 0;
+	for(int i = 1; i<16; i++){
+		if(channelFrequency[i] > channelFrequency[assignedChannel]){
+			assignedChannel = i;
+		}
+	}
+	track->assignChannel(assignedChannel);
 
 	return true;
 }
@@ -509,7 +529,7 @@ int MidiFile::numTracks(){
 }
 
 int MidiFile::measure(int startTick, int endTick,
-		QList<TimeSignatureEvent*> **eventList, int *ticksLeft)
+		QList<TimeSignatureEvent*> **eventList, int *ticksInmeasure)
 {
 
 	if((*eventList)){
@@ -544,7 +564,7 @@ int MidiFile::measure(int startTick, int endTick,
 		}
 	}
 	int ticks = startTick-event->midiTime();
-	measure+=event->measures(ticks, ticksLeft);
+	measure+=event->measures(ticks, ticksInmeasure);
 	(*eventList)->append(event);
 
 	// find the endEvent, save all events between start and end in the list and
@@ -1115,6 +1135,9 @@ void MidiFile::addTrack(){
 	ProtocolEntry *toCopy = copy();
 	MidiTrack *track = new MidiTrack(this);
 	track->setNumber(_tracks->size());
+	if(track->number()>0){
+		track->assignChannel(track->number()-1);
+	}
 	_tracks->append(track);
 	track->setName("New Track");
 	ProtocolEntry::protocol(toCopy, this);
@@ -1261,4 +1284,38 @@ MidiTrack *MidiFile::getPasteTrack(MidiTrack *source, MidiFile *fileFrom){
 	}
 
 	return pasteTracks.value(fileFrom).value(source);
+}
+
+QList<int> MidiFile::quantization(int fractionSize){
+
+	int fractionTicks = (4*ticksPerQuarter())/qPow(2, fractionSize);
+
+	QList<int> list;
+
+	QList<MidiEvent*> timeSigs = timeSignatureEvents()->values();
+	TimeSignatureEvent *last = 0;
+	foreach(MidiEvent* event, timeSigs){
+
+		TimeSignatureEvent *t = dynamic_cast<TimeSignatureEvent*>(event);
+
+		if(last){
+
+			int current = last->midiTime();
+			while(current < t->midiTime()){
+				list.append(current);
+				current+=fractionTicks;
+			}
+		}
+
+		last = t;
+	}
+
+	if(last){
+		int current = last->midiTime();
+		while(current <= midiTicks){
+			list.append(current);
+			current+=fractionTicks;
+		}
+	}
+	return list;
 }

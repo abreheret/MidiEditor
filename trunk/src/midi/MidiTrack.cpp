@@ -29,6 +29,7 @@ MidiTrack::MidiTrack(MidiFile *file) : ProtocolEntry() {
 	_hidden = false;
 	_muted = false;
 	_color = new QColor(Qt::red);
+	_assignedChannel = -1;
 }
 
 MidiTrack::MidiTrack(MidiTrack &other) : QObject(), ProtocolEntry(other) {
@@ -167,4 +168,12 @@ MidiTrack *MidiTrack::copyToFile(MidiFile *file){
 	file->registerCopiedTrack(this, newTrack, this->file());
 
 	return newTrack;
+}
+
+void MidiTrack::assignChannel(int ch){
+	_assignedChannel = ch;
+}
+
+int MidiTrack::assignedChannel(){
+	return _assignedChannel;
 }

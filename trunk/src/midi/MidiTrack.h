@@ -49,6 +49,9 @@ class MidiTrack : public QObject, public ProtocolEntry{
 
 		MidiFile *file();
 
+		void assignChannel(int ch);
+		int assignedChannel();
+
 		void setHidden(bool hidden);
 		bool hidden();
 
@@ -71,6 +74,8 @@ class MidiTrack : public QObject, public ProtocolEntry{
 		MidiFile *_file;
 		bool _hidden, _muted;
 		QColor *_color;
+
+		int _assignedChannel;
 };
 
 #endif

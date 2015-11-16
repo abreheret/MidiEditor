@@ -40,6 +40,7 @@ class RemoteServer;
 class RemoteDialog;
 class MiscWidget;
 class QGridLayout;
+class MidiTrack;
 
 class MainWindow : public QMainWindow {
 
@@ -124,8 +125,9 @@ class MainWindow : public QMainWindow {
 		void colorsByChannel();
 		void colorsByTrack();
 
-		void editChannel(int i);
-		void editTrack(int i);
+		void editChannel(int i, bool assign = true);
+		void editTrack(int i, bool assign = true);
+		void editTrackAndChannel(MidiTrack *track);
 
 		void manual();
 
@@ -134,11 +136,21 @@ class MainWindow : public QMainWindow {
 
 		void pasteToChannel(QAction *action);
 		void pasteToTrack(QAction *action);
+
+		void selectAllFromChannel(QAction *action);
+		void selectAllFromTrack(QAction *action);
+
 		void divChanged(QAction* action);
+		void quantizationChanged(QAction*);
 
 		void enableMagnet(bool enable);
 
 		void openConfig();
+
+		void enableMetronome(bool enable);
+		void enableThru(bool enable);
+
+		void quantizeSelection();
 
 	protected:
 		void closeEvent(QCloseEvent *event);
@@ -158,7 +170,8 @@ class MainWindow : public QMainWindow {
 		QStringList _recentFilePaths;
 		QMenu *_recentPathsMenu, *_deleteChannelMenu,
 			*_moveSelectedEventsToTrackMenu, *_moveSelectedEventsToChannelMenu,
-			*_pasteToTrackMenu, *_pasteToChannelMenu;
+			*_pasteToTrackMenu, *_pasteToChannelMenu, *_selectAllFromTrackMenu, *_selectAllFromChannelMenu;
+
 		QTabWidget *lowerTabWidget;
 		QAction *_colorsByChannel, *_colorsByTracks;
 
@@ -174,6 +187,9 @@ class MainWindow : public QMainWindow {
         MiscWidget *_miscWidget;
 
 		QWidget *setupActions(QWidget *parent);
+
+		int _quantizationGrid;
+		int quantize(int t, QList<int> ticks);
 };
 
 #endif
