@@ -151,6 +151,8 @@ class MainWindow : public QMainWindow {
 		void enableThru(bool enable);
 
 		void quantizeSelection();
+		void quantizeNtoleDialog();
+		void quantizeNtole();
 
 	protected:
 		void closeEvent(QCloseEvent *event);

@@ -56,6 +56,7 @@
 #include "ClickButton.h"
 #include "InstrumentChooser.h"
 #include "SettingsDialog.h"
+#include "NToleQuantizationDialog.h"
 
 #include "../tool/Tool.h"
 #include "../tool/SelectTool.h"
@@ -2140,6 +2141,16 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	connect(quantMenu, SIGNAL(triggered(QAction*)), this, SLOT(quantizationChanged(QAction*)));
 	toolsMB->addMenu(quantMenu);
 
+	QAction *quantizeNToleAction = new QAction("Quantize ntole...", this);
+	quantizeNToleAction->setShortcut(QKeySequence(Qt::Key_H + Qt::CTRL + Qt::SHIFT));
+	connect(quantizeNToleAction, SIGNAL(triggered()), this, SLOT(quantizeNtoleDialog()));
+	toolsMB->addAction(quantizeNToleAction);
+
+	QAction *quantizeNToleActionRepeat = new QAction("Repeat ntole quantization", this);
+	quantizeNToleActionRepeat->setShortcut(QKeySequence(Qt::Key_H + Qt::CTRL));
+	connect(quantizeNToleActionRepeat, SIGNAL(triggered()), this, SLOT(quantizeNtole()));
+	toolsMB->addAction(quantizeNToleActionRepeat);
+
 	toolsMB->addSeparator();
 
 	QAction *spreadAction = new QAction("Spread selection", this);
@@ -2597,5 +2608,73 @@ int MainWindow::quantize(int t, QList<int> ticks){
 			return ticks.at(min);
 		}
 	}
-	return t;
+	return ticks.last();
+}
+
+void MainWindow::quantizeNtoleDialog(){
+
+	if(!file || EventTool::selectedEventList()->isEmpty()){
+		return;
+	}
+
+
+	NToleQuantizationDialog *d = new NToleQuantizationDialog(this);
+	d->setModal(true);
+	if(d->exec()){
+
+		quantizeNtole();
+	}
+}
+
+void MainWindow::quantizeNtole(){
+
+	if(!file || EventTool::selectedEventList()->isEmpty()){
+		return;
+	}
+
+	// get list with all quantization ticks
+	QList<int> ticks = file->quantization(_quantizationGrid);
+
+	file->protocol()->startNewAction("Quantize ntole");
+
+	// find minimum starting time
+	int startTick = -1;
+	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+		int onTime = e->midiTime();
+		if((startTick<0) || (onTime < startTick)){
+			startTick = onTime;
+		}
+	}
+
+	// quantize start tick
+	startTick = quantize(startTick, ticks);
+
+	// compute new quantization grid
+	QList<int> ntoleTicks;
+	int ticksDuration = (NToleQuantizationDialog::replaceNumNum*file->ticksPerQuarter()*4)/(qPow(2, NToleQuantizationDialog::replaceDenomNum));
+	int fractionSize = ticksDuration/NToleQuantizationDialog::ntoleNNum;
+
+	for(int i = 0; i<=NToleQuantizationDialog::ntoleNNum; i++){
+		ntoleTicks.append(startTick+i*fractionSize);
+	}
+
+	// quantize
+	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+		int onTime = e->midiTime();
+		e->setMidiTime(quantize(onTime, ntoleTicks));
+		OnEvent *on = dynamic_cast<OnEvent*>(e);
+		if(on){
+			MidiEvent *off = on->offEvent();
+			off->setMidiTime(quantize(off->midiTime(), ntoleTicks));
+			if(off->midiTime() == on->midiTime()){
+				int idx = ntoleTicks.indexOf(off->midiTime());
+				if((idx >= 0) && (ntoleTicks.size()>idx+1)){
+					off->setMidiTime(ntoleTicks.at(idx+1));
+				} else if((ntoleTicks.size()==idx+1)){
+					on->setMidiTime(ntoleTicks.at(idx-1));
+				}
+			}
+		}
+	}
+	file->protocol()->endAction();
 }
