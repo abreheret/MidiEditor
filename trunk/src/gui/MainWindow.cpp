@@ -627,13 +627,17 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 
 		QMultiMap<int, MidiEvent*> events = MidiInput::endInput(track);
 
-		RecordDialog *dialog = new RecordDialog(file, events, this);
-		dialog->setModal(true);
-		if(!autoConfirmRecord){
-			dialog->show();
+		if(events.isEmpty() && !autoConfirmRecord){
+			QMessageBox::information(this, "Information", "No events recorded.");
 		} else {
-			if(addEvents){
-				dialog->enter();
+			RecordDialog *dialog = new RecordDialog(file, events, this);
+			dialog->setModal(true);
+			if(!autoConfirmRecord){
+				dialog->show();
+			} else {
+				if(addEvents){
+					dialog->enter();
+				}
 			}
 		}
 	}
@@ -725,8 +729,8 @@ void MainWindow::save(){
 		}
 
 		if(printMuteWarning){
-			QMessageBox::information(this, "Channels/Tracks mute or invisible",
-					"One or more channels/tracks are mute or invisible. They will be audible in the saved file!",
+			QMessageBox::information(this, "Channels/Tracks mute",
+					"One or more channels/tracks are mute. They will be audible in the saved file!",
 					"Save file", 0, 0);
 		}
 
@@ -780,8 +784,8 @@ void MainWindow::saveas(){
 		}
 
 		if(printMuteWarning){
-			QMessageBox::information(this, "Channels/Tracks mute or invisible",
-					"One or more channels/tracks are mute or invisible. They will be audible in the saved file!",
+			QMessageBox::information(this, "Channels/Tracks mute",
+					"One or more channels/tracks are mute. They will be audible in the saved file!",
 					"Save file", 0, 0);
 		}
 
@@ -799,7 +803,7 @@ void MainWindow::load(){
 	if(file){
 		oldPath = file->path();
 		if(!file->saved()){
-			switch(QMessageBox::question(this, "Save file?", "save file "+
+			switch(QMessageBox::question(this, "Save file?", "Save file "+
 					file->path()+
 				" before closing?", "Save","Close without saving", "Cancel",0,2))
 			{
@@ -857,7 +861,7 @@ void MainWindow::openFile(QString filePath){
 		setFile(mf);
 		updateRecentPathsList();
 	} else {
-		QMessageBox::warning(this, "Error", QString("No file opened"));
+		QMessageBox::warning(this, "Error", QString("The file is damaged and could not be opened. "));
 	}
 }
 
@@ -924,7 +928,7 @@ void MainWindow::closeEvent(QCloseEvent *event){
 	if(!file || file->saved()){
 		event->accept();
 	} else {
-		switch(QMessageBox::question(this, "Save file?", "save file "+
+		switch(QMessageBox::question(this, "Save file?", "Save file "+
 				file->path()+
 			" before closing?", "Save","Close without saving", "Cancel", 0,2))
 		{
@@ -1011,7 +1015,7 @@ void MainWindow::setStartDir(QString dir){
 void MainWindow::newFile(){
 	if(file){
 		if(!file->saved()){
-			switch(QMessageBox::question(this, "Save file?", "save file "+
+			switch(QMessageBox::question(this, "Save file?", "Save file "+
 					file->path()+
 				" before closing?", "Save","Close without saving", "Cancel",0,2))
 			{
@@ -1095,7 +1099,7 @@ void MainWindow::alignLeft(){
                 }
         }
 
-        file->protocol()->startNewAction("Align Left events", 0);
+		file->protocol()->startNewAction("Align left", 0);
         foreach(MidiEvent *e, *EventTool::selectedEventList()){
                 int onTime = e->midiTime();
                 e->setMidiTime(minTime);
@@ -1123,7 +1127,7 @@ void MainWindow::alignRight(){
 				}
         }
 
-        file->protocol()->startNewAction("Align Right events", 0);
+		file->protocol()->startNewAction("Align right", 0);
         foreach(MidiEvent *e, *EventTool::selectedEventList()){
                 int onTime = e->midiTime();
                 OnEvent *on = dynamic_cast<OnEvent*>(e);
@@ -1157,7 +1161,7 @@ void MainWindow::equalize()
 			avgStart /= count;
 			avgTime /= count;
 
-			file->protocol()->startNewAction("Equalize events", 0);
+			file->protocol()->startNewAction("Equalize", 0);
 			foreach(MidiEvent *e, *EventTool::selectedEventList()){
 					OnEvent *on = dynamic_cast<OnEvent*>(e);
 					if(on){
@@ -1181,7 +1185,7 @@ void MainWindow::deleteSelectedEvents(){
 	}
 	if(showsSelected && EventTool::selectedEventList()->size()>0 && file){
 
-		file->protocol()->startNewAction("Remove Event(s)");
+		file->protocol()->startNewAction("Remove event(s)");
 		foreach(MidiEvent *ev, *EventTool::selectedEventList()){
 			file->channel(ev->channel())->removeEvent(ev);
 		}
@@ -1296,7 +1300,7 @@ void MainWindow::openRecent(QAction *action){
 		QString oldPath = file->path();
 
 		if(!file->saved()){
-			switch(QMessageBox::question(this, "Save file?", "save file "+
+			switch(QMessageBox::question(this, "Save file?", "Save file "+
 					file->path()+
 				" before closing?", "Save","Close without saving", "Cancel",0,2))
 			{
@@ -1491,7 +1495,7 @@ void MainWindow::renameTrack(int tracknumber){
 
     bool ok;
     QString text = QInputDialog::getText(this, "Set Track Name",
-         "Track Name (Track "+QString::number(tracknumber)+")", QLineEdit::Normal,
+		 "Track name (Track "+QString::number(tracknumber)+")", QLineEdit::Normal,
          file->tracks()->at(tracknumber)->name(), &ok);
     if (ok && !text.isEmpty()){
     	file->tracks()->at(tracknumber)->setName(text);
@@ -1514,7 +1518,7 @@ void MainWindow::removeTrack(int tracknumber){
 	MidiTrack *track = file->track(tracknumber);
 	file->protocol()->startNewAction("Remove Track");
 	if(!file->removeTrack(track)){
-		QMessageBox::warning(this, "Error", QString("The selected Track can\'t be removed!\n It\'s the last Track of the File!"));
+		QMessageBox::warning(this, "Error", QString("The selected track can\'t be removed!\n It\'s the last track of the File!"));
 	}
 	file->protocol()->endAction();
 	updateTrackMenu();
@@ -1526,12 +1530,12 @@ void MainWindow::addTrack(){
 
 		bool ok;
 		QString text = QInputDialog::getText(this, "Set Track Name",
-			 "Track Name (New Track)", QLineEdit::Normal,
+			 "Track name (New Track)", QLineEdit::Normal,
 			 "New Track", &ok);
 		if (ok && !text.isEmpty()){
 
 
-			file->protocol()->startNewAction("Add Track");
+			file->protocol()->startNewAction("Add track");
 			file->addTrack();
 			file->tracks()->at(file->numTracks()-1)->setName(text);
 			file->protocol()->endAction();
@@ -1543,7 +1547,7 @@ void MainWindow::addTrack(){
 
 void MainWindow::muteAllTracks(){
 	if(!file) return;
-	file->protocol()->startNewAction("Mute all Tracks");
+	file->protocol()->startNewAction("Mute all tracks");
 	foreach(MidiTrack *track, *(file->tracks())){
 		track->setMuted(true);
 	}
@@ -1553,7 +1557,7 @@ void MainWindow::muteAllTracks(){
 
 void MainWindow::unmuteAllTracks(){
 	if(!file) return;
-	file->protocol()->startNewAction("Unmute all Tracks");
+	file->protocol()->startNewAction("Unmute all tracks");
 	foreach(MidiTrack *track, *(file->tracks())){
 		track->setMuted(false);
 	}
@@ -1563,7 +1567,7 @@ void MainWindow::unmuteAllTracks(){
 
 void MainWindow::allTracksVisible(){
 	if(!file) return;
-	file->protocol()->startNewAction("Show all Tracks");
+	file->protocol()->startNewAction("Show all tracks");
 	foreach(MidiTrack *track, *(file->tracks())){
 		track->setHidden(false);
 	}
@@ -1573,7 +1577,7 @@ void MainWindow::allTracksVisible(){
 
 void MainWindow::allTracksInvisible(){
 	if(!file) return;
-	file->protocol()->startNewAction("Hide all Tracks");
+	file->protocol()->startNewAction("Hide all tracks");
 	foreach(MidiTrack *track, *(file->tracks())){
 		track->setHidden(true);
 	}
@@ -1584,7 +1588,7 @@ void MainWindow::allTracksInvisible(){
 void MainWindow::showTrackMenuClicked(QAction *action){
 	int track = action->data().toInt();
 	if(file){
-		file->protocol()->startNewAction("Show Track");
+		file->protocol()->startNewAction("Show track");
 		file->track(track)->setHidden(!(action->isChecked()));
 		updateTrackMenu();
 		_trackWidget->update();
@@ -1595,7 +1599,7 @@ void MainWindow::showTrackMenuClicked(QAction *action){
 void MainWindow::muteTrackMenuClicked(QAction *action){
 	int track = action->data().toInt();
 	if(file){
-		file->protocol()->startNewAction("Mute Track");
+		file->protocol()->startNewAction("Mute track");
 		file->track(track)->setMuted(action->isChecked());
 		updateTrackMenu();
 		_trackWidget->update();
@@ -1786,7 +1790,7 @@ void MainWindow::spreadSelection(){
 		}
 	}
 
-	file->protocol()->startNewAction("Spread Events");
+	file->protocol()->startNewAction("Spread events");
 	int numSpreads = 0;
 	for(int i = 0; i<19;i++){
 
@@ -1835,7 +1839,7 @@ void MainWindow::spreadSelection(){
 	}
 	file->protocol()->endAction();
 
-	QMessageBox::information(this, "Spreading done", QString("Spreaded "+QString::number(numSpreads)+" Events"));
+	QMessageBox::information(this, "Spreading done", QString("Spreaded "+QString::number(numSpreads)+" events"));
 }
 
 void MainWindow::manual(){
@@ -2369,22 +2373,18 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	playbackMB->addAction(lockAction);
 	lockAction->setChecked(mw_matrixWidget->screenLocked());
 
-    // Midi
-	QAction *configAction2 = new QAction("Settings...", this);
-	configAction2->setIcon(QIcon("graphics/tool/config.png"));
-	connect(configAction2, SIGNAL(triggered()), this, SLOT(openConfig()));
-	midiMB->addAction(configAction2);
-
-    QAction *panicAction = new QAction("Midi panic (All Notes off)", this);
-    connect(panicAction, SIGNAL(triggered()), this, SLOT(panic()));
-    midiMB->addAction(panicAction);
-
 	QAction *metronomeAction = new QAction("Metronome", this);
 	metronomeAction->setIcon(QIcon("graphics/tool/metronome.png"));
 	metronomeAction->setCheckable(true);
 	metronomeAction->setChecked(Metronome::enabled());
 	connect(metronomeAction, SIGNAL(toggled(bool)), this, SLOT(enableMetronome(bool)));
-	midiMB->addAction(metronomeAction);
+	playbackMB->addAction(metronomeAction);
+
+    // Midi
+	QAction *configAction2 = new QAction("Settings...", this);
+	configAction2->setIcon(QIcon("graphics/tool/config.png"));
+	connect(configAction2, SIGNAL(triggered()), this, SLOT(openConfig()));
+	midiMB->addAction(configAction2);
 
 	QAction *thruAction = new QAction("Connect Midi In/Out", this);
 	thruAction->setIcon(QIcon("graphics/tool/connection.png"));
@@ -2393,12 +2393,18 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	connect(thruAction, SIGNAL(toggled(bool)), this, SLOT(enableThru(bool)));
 	midiMB->addAction(thruAction);
 
+	midiMB->addSeparator();
+
+	QAction *panicAction = new QAction("Midi panic", this);
+	connect(panicAction, SIGNAL(triggered()), this, SLOT(panic()));
+	midiMB->addAction(panicAction);
+
     // Help
-    QAction *manualAction = new QAction("User Manual", this);
+	QAction *manualAction = new QAction("Manual", this);
     connect(manualAction, SIGNAL(triggered()), this, SLOT(manual()));
     helpMB->addAction(manualAction);
 
-    QAction *aboutAction = new QAction("About", this);
+	QAction *aboutAction = new QAction("About MidiEditor", this);
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
     helpMB->addAction(aboutAction);
 

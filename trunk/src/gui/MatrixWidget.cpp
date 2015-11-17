@@ -747,7 +747,7 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 		if(inRect && enabled){
 			// mark the current Line
 			QColor lineColor = QColor(0, 0, 100, 40);
-            painter->fillRect(x+width+borderRight, yPosOfLine(128-number),
+			painter->fillRect(x+width+borderRight, yPosOfLine(127-number),
                     this->width()-x-width-borderRight, height, lineColor);
 		}
 	}

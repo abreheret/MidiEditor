@@ -26,6 +26,7 @@ class MidiFile;
 class MidiEvent;
 class QCheckBox;
 class QComboBox;
+class QListWidget;
 
 class RecordDialog : public QDialog {
 
@@ -44,8 +45,8 @@ class RecordDialog : public QDialog {
 		QMultiMap<int, MidiEvent*> _data;
 		QComboBox *_channelBox;
 		QComboBox *_trackBox;
-		QCheckBox *_notes, *_channelPressure, *_controlChange, *_keyPressure,
-			*_progChange, *_tempoChange, *_timeSig, *_text, *_unknown;
+		QListWidget *addTypes;
+		void addListItem(QListWidget *w, QString title, int line, bool enabled);
 
 };
 
