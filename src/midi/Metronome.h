@@ -29,7 +29,7 @@ class Metronome : public QObject {
 		void reset();
 		int num, denom, lastPos, lastMeasure;
 		void click();
-		Phonon::MediaObject *mediaObject;
+		static Phonon::MediaObject *mediaObject;
 		static bool _enable;
 };
 

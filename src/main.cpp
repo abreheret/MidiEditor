@@ -33,7 +33,9 @@ int main(int argc, char *argv[])
 	a.setAttribute(Qt::AA_DontShowIconsInMenus);
 	a.setApplicationVersion("3.0.0");
 	a.setApplicationName("MidiEditor");
+	a.setQuitOnLastWindowClosed(true);
 	a.setProperty("date_published", "Nov. 19th, 2015");
+
 	MidiOutput::init();
     MidiInput::init();
 

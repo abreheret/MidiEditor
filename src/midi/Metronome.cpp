@@ -4,13 +4,15 @@
 #include "MidiFile.h"
 
 #include <QtCore/qmath.h>
+#include <QFile>
+#include <QFileInfo>
 
 Metronome *Metronome::_instance = new Metronome();
 bool Metronome::_enable = false;
+Phonon::MediaObject *Metronome::mediaObject = 0;
 
 Metronome::Metronome(QObject *parent) :	QObject(parent) {
 	_file = 0;
-	mediaObject = 0;
 	num = 4;
 	denom = 2;
 }
@@ -72,7 +74,7 @@ void Metronome::click(){
 	}
 
 	if(!mediaObject){
-		mediaObject = Phonon::createPlayer(Phonon::NoCategory, Phonon::MediaSource("metronome/metronome-01.wav"));
+		mediaObject = Phonon::createPlayer(Phonon::NoCategory, Phonon::MediaSource(QUrl::fromLocalFile(QFileInfo("metronome/metronome-01.mp3").absoluteFilePath())));
 	}
 	mediaObject->play();
 }
