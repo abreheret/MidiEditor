@@ -225,7 +225,10 @@ void EventTool::pasteAction(){
 		currentFile()->protocol()->startNewAction("Paste "+
 				QString::number(copiedCopiedEvents.count())+" Events");
 
-		double tickscale = ((double)(currentFile()->ticksPerQuarter()))/((double)copiedEvents->first()->file()->ticksPerQuarter());
+		double tickscale = 1;
+		if(currentFile() != copiedEvents->first()->file()){
+			tickscale = ((double)(currentFile()->ticksPerQuarter()))/((double)copiedEvents->first()->file()->ticksPerQuarter());
+		}
 
 		// get first Tick of the copied events
 		int firstTick = -1;
@@ -264,7 +267,6 @@ void EventTool::pasteAction(){
 					track = event->track()->copyToFile(currentFile());
 				}
 			}
-
 
 			if((!track) || (track->file() != currentFile())){
 				track = currentFile()->track(0);

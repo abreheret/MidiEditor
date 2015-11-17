@@ -69,7 +69,8 @@ HEADERS += \
     src/gui/SettingsDialog.h \
     src/gui/MidiSettingsWidget.h \
     src/gui/RemoteSettingsWidget.h \
-    src/midi/Metronome.h
+    src/midi/Metronome.h \
+    src/gui/NToleQuantizationDialog.h
 SOURCES += \
     src/MidiEvent/KeySignatureEvent.cpp \
     src/remote/RemoteServer.cpp \
@@ -135,7 +136,8 @@ SOURCES += \
     src/gui/SettingsDialog.cpp \
     src/gui/MidiSettingsWidget.cpp \
     src/gui/RemoteSettingsWidget.cpp \
-    src/midi/Metronome.cpp
+    src/midi/Metronome.cpp \
+    src/gui/NToleQuantizationDialog.cpp
 FORMS += 
 RESOURCES += 
 DEFINES += __LINUX_ALSASEQ__
