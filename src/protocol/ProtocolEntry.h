@@ -40,6 +40,9 @@ class MidiFile;
 class ProtocolEntry {
 
 	public:
+
+		virtual ~ProtocolEntry();
+
 		/**
 		 * \brief copies the ProtocolEntry.
 		 *

@@ -455,13 +455,11 @@ void MidiEvent::reloadState(ProtocolEntry *entry){
 		return;
 	}
 	_track = other->_track;
+	file()->channelEvents(numChannel)->remove(timePos, this);
 	numChannel = other->numChannel;
-	//bool c = file()->channelEvents(numChannel)->contains(timePos, this);
 	file()->channelEvents(numChannel)->remove(timePos, this);
 	timePos = other->timePos;
-	//if(c){
-		file()->channelEvents(numChannel)->insert(timePos, this);
-	//}
+	file()->channelEvents(numChannel)->insert(timePos, this);
 	midiFile = other->midiFile;
 }
 
@@ -506,4 +504,31 @@ void MidiEvent::setTemporaryRecordID(int id){
 
 int MidiEvent::temporaryRecordID(){
 	return _tempID;
+}
+
+void MidiEvent::moveToChannel(int ch){
+
+	int oldChannel = channel();
+
+	if(oldChannel > 15){
+		return;
+	}
+
+	if(oldChannel == ch){
+		return;
+	}
+
+	midiFile->channel(oldChannel)->removeEvent(this);
+
+	ProtocolEntry *toCopy = copy();
+
+	numChannel = ch;
+
+	protocol(toCopy, this);
+
+	midiFile->channel(ch)->insertEvent(this, midiTime());
+
+	if(shownInEventWidget()){
+		eventWidget()->reload();
+	}
 }

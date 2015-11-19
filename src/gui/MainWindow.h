@@ -37,7 +37,6 @@ class QMenu;
 class TrackListWidget;
 class QComboBox;
 class RemoteServer;
-class RemoteDialog;
 class MiscWidget;
 class QGridLayout;
 class MidiTrack;
@@ -178,7 +177,10 @@ class MainWindow : public QMainWindow {
 		QAction *_colorsByChannel, *_colorsByTracks;
 
 		QComboBox *_chooseEditTrack, *_chooseEditChannel;
+
+#ifdef ENABLE_REMOTE
 		RemoteServer *_remoteServer;
+#endif
 
         QWidget *_miscWidgetControl;
         QGridLayout *_miscControlLayout;

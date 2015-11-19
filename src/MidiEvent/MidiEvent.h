@@ -86,6 +86,8 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		void setTemporaryRecordID(int id);
 		int temporaryRecordID();
 
+		virtual void moveToChannel(int channel);
+
 	protected:
 		int numChannel, timePos;
 		MidiFile *midiFile;

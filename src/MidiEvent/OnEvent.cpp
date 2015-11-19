@@ -63,4 +63,7 @@ QString OnEvent::offEventMessage(){
 	return "";
 }
 
-
+void OnEvent::moveToChannel(int channel){
+	MidiEvent::moveToChannel(channel);
+	offEvent()->moveToChannel(channel);
+}

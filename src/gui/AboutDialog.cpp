@@ -24,61 +24,77 @@
 #include <QGridLayout>
 #include <QApplication>
 #include <QVariant>
+#include <QTextBrowser>
+#include <QScrollArea>
 
-AboutDialog::AboutDialog(QWidget *parent):QDialog(parent)
-{
+AboutDialog::AboutDialog(QWidget *parent):QDialog(parent) {
+
+	setMinimumWidth(550);
+	setMaximumHeight(450);
+	setWindowTitle(tr("About"));
 	setWindowIcon(QIcon("graphics/icon.png"));
+	QGridLayout *layout = new QGridLayout(this);
 
-	QGridLayout *layout = new QGridLayout;
+	QLabel *icon = new QLabel();
+	icon->setPixmap(QPixmap("graphics/midieditor.png").scaledToWidth(80, Qt::SmoothTransformation));
+	icon->setFixedSize(80, 80);
+	layout->addWidget(icon, 0, 0, 3, 1);
 
-	//Label starttext
-	QLabel *title = new QLabel("<h2><b>"+QApplication::applicationName()+" "+QApplication::applicationVersion()+"</b></h2>"
-		"Copyright by Markus Schwenk"
-		 " (kontakt@markus-schwenk.de)<br>Visit my Homepage: <a href=\""
-		 "http://www.markus-schwenk.de\">www.markus-schwenk.de</a>"
-		 "<br><br>"
-		 "Thanks to Romain Behar."
-		 "<br>"
-		 "3D icons by Double-J Design (http://www.doublejdesign.co.uk)."
-		 "<br>"
-		"Flat icons designed by Freepik."
-		"<br>"
-		 "MidiEditor logo by Markus Schwenk.");
-	title->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
-	title->setOpenExternalLinks(true);
+	QLabel *title = new QLabel("<h1>"+QApplication::applicationName()+"</h1>", this);
+	layout->addWidget(title, 0, 1, 1, 2);
+	title->setStyleSheet("color: black");
 
-	layout->addWidget(title, 0,0,1,4);
+	QLabel *version = new QLabel("Version: "+QApplication::applicationVersion()+" ("+QApplication::instance()->property("date_published").toString()+")", this);
+	layout->addWidget(version, 1, 1, 1, 2);
+	version->setStyleSheet("color: black");
 
-	QFrame *f0 = new QFrame( this );
-	f0->setFrameStyle( QFrame::HLine | QFrame::Sunken );
-	layout->addWidget( f0, 1, 0, 1, 4);
+	QScrollArea *a = new QScrollArea(this);
+	QLabel *content = new QLabel("<html>"
+									 "<body>"
+									 "<p>"
+										"<a href=\"http://midieditor.sourceforge.net/\">www.midieditor.sourceforge.net</a><br>"
+										"bugs@markus-schwenk.de"
+									 "</p>"
+									 "<h3>Author</h3>"
+									 "<p>"
+										 "Markus Schwenk<br>"
+										 "Email: kontakt@markus-schwenk.de<br>"
+										 "Website: <a href=\"http://www.markus-schwenk.de\">www.markus-schwenk.de</a><br>"
+									 "</p>"
+									 "<h3>Thanks to</h3>"
+									 "<p>Romain Behar</p>"
+									 "<h3>Credits</h3>"
+									 "<p>"
+										 "3D icons by Double-J Design (http://www.doublejdesign.co.uk)<br>"
+										 "Flat icons designed by Freepik<br>"
+										 "Metronome sound by Mike Koenig<br>"
+									 "</p>"
+									 "<h3>Third party Libraries</h3>"
+									 "<p>"
+										 "SFML: http://www.sfml-dev.org/<br>"
+										 "RtMidi (Copyright (c) 2003-2014 Gary P. Scavone)"
+									 "</p>"
+									 "</body>"
+								 "</html>"
+								 );
+	a->setWidgetResizable(true);
+	a->setWidget(content);
+	a->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	a->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+	layout->addWidget(a, 2, 1, 2, 2);
+	content->setStyleSheet("color: black; background-color: white; padding: 5px");
 
+	content->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+	content->setOpenExternalLinks(true);
 
-	QLabel *version = new QLabel("Version: "+QApplication::applicationName()+" "+QApplication::applicationVersion());
-	layout->addWidget(version, 2,0,1,4);
-
-	QLabel *date = new QLabel(QApplication::instance()->property("date_published").toString());
-	layout->addWidget(date, 3, 0, 1, 4);
-
-	QFrame *f3 = new QFrame( this );
-	f3->setFrameStyle( QFrame::HLine | QFrame::Sunken );
-	layout->addWidget( f3, 4, 0, 1, 4);
-
-	QLabel *comment = new QLabel("Bugs:");
-	layout->addWidget(comment, 5, 0, 1, 4);
-
-	QLabel *mail = new QLabel("bugs@markus-schwenk.de");
-	layout->addWidget(mail, 6, 0, 1, 4);
+	layout->setRowStretch(3, 1);
+	layout->setColumnStretch(1, 1);
 
 	QFrame *f = new QFrame( this );
-	f->setFrameStyle( QFrame::HLine | QFrame::Sunken );
-	layout->addWidget( f, 7, 0, 1, 4);
+	f->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+	layout->addWidget(f, 4, 0, 1, 3);
 
-	// button close
 	QPushButton *close = new QPushButton("Close");
-	layout->addWidget(close, 8, 3, 1, 1);
+	layout->addWidget(close, 5, 2, 1, 1);
 	connect(close, SIGNAL(clicked()), this, SLOT(hide()));
-
-	setLayout(layout);
-	setWindowTitle(tr("About"));
 }

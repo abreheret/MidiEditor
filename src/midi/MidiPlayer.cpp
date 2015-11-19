@@ -24,6 +24,8 @@
 #include "SingleNotePlayer.h"
 #include "MidiOutput.h"
 
+#include "Metronome.h"
+
 PlayerThread *MidiPlayer::filePlayer = new PlayerThread();
 bool MidiPlayer::playing = false;
 SingleNotePlayer *MidiPlayer::singleNotePlayer = new SingleNotePlayer();
@@ -37,6 +39,17 @@ void MidiPlayer::play(MidiFile *file){
 #ifdef __WINDOWS_MM__
 	delete filePlayer;
 	filePlayer = new PlayerThread();
+
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(measureChanged(int, int)), Metronome::instance(), SLOT(measureUpdate(int, int)));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(measureUpdate(int,int)), Metronome::instance(), SLOT(measureUpdate(int, int)));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(meterChanged(int, int)), Metronome::instance(), SLOT(meterChanged(int, int)));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(playerStopped()), Metronome::instance(), SLOT(playbackStopped()));
+	connect(MidiPlayer::playerThread(),
+			SIGNAL(playerStarted()), Metronome::instance(), SLOT(playbackStarted()));
 #endif
 
 	int tickFrom = file->cursorTick();
