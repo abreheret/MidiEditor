@@ -407,15 +407,7 @@ void EventWidgetDelegate::setModelData(QWidget *editor, QAbstractItemModel *mode
 		case EventWidget::MidiEventChannel: {
 			QSpinBox *spin = dynamic_cast<QSpinBox*>(editor);
 			foreach(MidiEvent *ev, eventWidget->events()){
-
-				eventWidget->file()->channel(ev->channel())->removeEvent(ev);
-				ev->setChannel(spin->value(), true);
-				OnEvent *onevent = dynamic_cast<OnEvent*>(ev);
-				if(onevent){
-					eventWidget->file()->channel(spin->value())->insertEvent(onevent->offEvent(), onevent->offEvent()->midiTime());
-					onevent->offEvent()->setChannel(spin->value(), true);
-				}
-				eventWidget->file()->channel(spin->value())->insertEvent(ev, ev->midiTime());
+				ev->moveToChannel(spin->value());
 			}
 			break;
 		}

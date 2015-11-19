@@ -2,7 +2,10 @@
 #define METRONOME_H
 
 #include <QObject>
-#include <phonon/phonon>
+
+#ifndef __WINDOWS_MM__
+	#include <SFML/Audio.hpp>
+#endif
 
 class MidiFile;
 
@@ -11,6 +14,7 @@ class Metronome : public QObject {
 
 	public:
 		Metronome(QObject *parent = 0);
+
 		void setFile(MidiFile *file);
 		static Metronome *instance();
 
@@ -29,8 +33,12 @@ class Metronome : public QObject {
 		void reset();
 		int num, denom, lastPos, lastMeasure;
 		void click();
-		static Phonon::MediaObject *mediaObject;
 		static bool _enable;
+
+		#ifndef __WINDOWS_MM__
+			sf::SoundBuffer buffer;
+			sf::Sound sound;
+		#endif
 };
 
 #endif

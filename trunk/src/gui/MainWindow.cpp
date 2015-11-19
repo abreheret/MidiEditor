@@ -70,7 +70,10 @@
 
 #include "../protocol/Protocol.h"
 #include "../Terminal.h"
+
+#ifdef ENABLE_REMOTE
 #include "../remote/RemoteServer.h"
+#endif
 
 #include "../midi/MidiFile.h"
 #include "../midi/MidiTrack.h"
@@ -86,15 +89,18 @@
 #include "../MidiEvent/NoteOnEvent.h"
 #include "../midi/Metronome.h"
 
+#include <QtCore/qmath.h>
+
 MainWindow::MainWindow() : QMainWindow() {
 
 	file = 0;
 	_settings = new QSettings(QString("MidiEditor"), QString("NONE"));
 
+#ifdef ENABLE_REMOTE
 	bool ok;
 	int port = _settings->value("udp_client_port", -1).toInt(&ok);
 	QString ip = _settings->value("udp_client_ip", "").toString();
-
+#endif
 	bool alternativeStop = _settings->value("alt_stop", false).toBool();
 	MidiOutput::isAlternativePlayer = alternativeStop;
 	bool magnet = _settings->value("magnet", false).toBool();
@@ -103,12 +109,11 @@ MainWindow::MainWindow() : QMainWindow() {
 	MidiInput::setThruEnabled(_settings->value("thru", false).toBool());
 	Metronome::setEnabled(_settings->value("metronome", false).toBool());
 
+#ifdef ENABLE_REMOTE
 	 _remoteServer = new RemoteServer();
 	 _remoteServer->setIp(ip);
 	 _remoteServer->setPort(port);
 	 _remoteServer->tryConnect();
-
-	_quantizationGrid = _settings->value("quantization", 3).toInt();
 
 	connect(_remoteServer, SIGNAL(playRequest()), this, SLOT(play()));
 	connect(_remoteServer, SIGNAL(stopRequest(bool, bool)), this, SLOT(stop(bool, bool)));
@@ -126,6 +131,9 @@ MainWindow::MainWindow() : QMainWindow() {
 	connect(MidiPlayer::playerThread(),
 			SIGNAL(measureChanged(int, int)), _remoteServer, SLOT(setMeasure(int)));
 
+#endif
+
+	_quantizationGrid = _settings->value("quantization", 3).toInt();
 
 	// metronome
 	connect(MidiPlayer::playerThread(),
@@ -479,7 +487,9 @@ void MainWindow::setFile(MidiFile *file){
 	protocolWidget->setFile(file);
 	channelWidget->setFile(file);
 	_trackWidget->setFile(file);
+#ifdef ENABLE_REMOTE
 	_remoteServer->setFile(file);
+#endif
 	eventWidget()->setFile(file);
 
 	Tool::setFile(file);
@@ -526,8 +536,9 @@ void MainWindow::play(){
 		connect(MidiPlayer::playerThread(),
 				SIGNAL(timeMsChanged(int)), mw_matrixWidget, SLOT(timeMsChanged(int)));
 		#endif
-
+#ifdef ENABLE_REMOTE
 		_remoteServer->play();
+#endif
 	}
 }
 
@@ -555,9 +566,9 @@ void MainWindow::record(){
 			mw_matrixWidget->setEnabled(false);
 			_trackWidget->setEnabled(false);
 			eventWidget()->setEnabled(false);
-
+#ifdef ENABLE_REMOTE
 			_remoteServer->record();
-
+#endif
 			MidiPlayer::play(file);
 			MidiInput::startInput();
 			connect(MidiPlayer::playerThread(),
@@ -604,8 +615,9 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		eventWidget()->setEnabled(true);
 		mw_matrixWidget->timeMsChanged(MidiPlayer::timeMs(), true);
 		_trackWidget->setEnabled(true);
+#ifdef ENABLE_REMOTE
 		_remoteServer->stop();
-
+#endif
 		panic();
 	}
 
@@ -623,8 +635,9 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		mw_matrixWidget->setEnabled(true);
 		_trackWidget->setEnabled(true);
 		eventWidget()->setEnabled(true);
+#ifdef ENABLE_REMOTE
 		_remoteServer->stop();
-
+#endif
 		QMultiMap<int, MidiEvent*> events = MidiInput::endInput(track);
 
 		if(events.isEmpty() && !autoConfirmRecord){
@@ -962,6 +975,7 @@ void MainWindow::closeEvent(QCloseEvent *event){
 	if(MidiInput::inputPort() != ""){
 		_settings->setValue("in_port", MidiInput::inputPort());
 	}
+#ifdef ENABLE_REMOTE
 	if(_remoteServer->clientIp() != ""){
 		_settings->setValue("udp_client_ip", _remoteServer->clientIp());
 	}
@@ -969,6 +983,7 @@ void MainWindow::closeEvent(QCloseEvent *event){
 		_settings->setValue("udp_client_port", _remoteServer->clientPort());
 	}
 	_remoteServer->stopServer();
+#endif
 
 	bool ok;
 	int numStart = _settings->value("numStart", -1).toInt(&ok);
@@ -2110,7 +2125,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	toolsMB->addSeparator();
 
-	QAction *quantizeAction = new QAction("Quantize selection", this);
+	QAction *quantizeAction = new QAction("Quantify selection", this);
 	quantizeAction->setIcon(QIcon("graphics/tool/quantize.png"));
 	quantizeAction->setShortcut(QKeySequence(Qt::Key_G + Qt::CTRL));
 	connect(quantizeAction, SIGNAL(triggered()), this, SLOT(quantizeSelection()));
@@ -2145,7 +2160,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	connect(quantMenu, SIGNAL(triggered(QAction*)), this, SLOT(quantizationChanged(QAction*)));
 	toolsMB->addMenu(quantMenu);
 
-	QAction *quantizeNToleAction = new QAction("Quantize ntole...", this);
+	QAction *quantizeNToleAction = new QAction("Quantify ntole...", this);
 	quantizeNToleAction->setShortcut(QKeySequence(Qt::Key_H + Qt::CTRL + Qt::SHIFT));
 	connect(quantizeNToleAction, SIGNAL(triggered()), this, SLOT(quantizeNtoleDialog()));
 	toolsMB->addAction(quantizeNToleAction);
@@ -2544,7 +2559,11 @@ void MainWindow::enableMagnet(bool enable){
 }
 
 void MainWindow::openConfig(){
+#ifdef ENABLE_REMOTE
 	SettingsDialog *d = new SettingsDialog("Settings", _settings, _remoteServer, this);
+#else
+	SettingsDialog *d = new SettingsDialog("Settings", _settings, 0, this);
+#endif
 	d->show();
 }
 
@@ -2569,7 +2588,7 @@ void MainWindow::quantizeSelection(){
 	// get list with all quantization ticks
 	QList<int> ticks = file->quantization(_quantizationGrid);
 
-	file->protocol()->startNewAction("Quantize events");
+	file->protocol()->startNewAction("Quantify events");
 	foreach(MidiEvent *e, *EventTool::selectedEventList()){
 		int onTime = e->midiTime();
 		e->setMidiTime(quantize(onTime, ticks));
@@ -2641,7 +2660,7 @@ void MainWindow::quantizeNtole(){
 	// get list with all quantization ticks
 	QList<int> ticks = file->quantization(_quantizationGrid);
 
-	file->protocol()->startNewAction("Quantize ntole");
+	file->protocol()->startNewAction("Quantify ntole");
 
 	// find minimum starting time
 	int startTick = -1;

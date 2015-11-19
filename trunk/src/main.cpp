@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 	a.setAttribute(Qt::AA_DontShowIconsInMenus);
-	a.setApplicationVersion("3.0.0");
+	a.setApplicationVersion("3.0.0 (beta - non-official release)");
 	a.setApplicationName("MidiEditor");
 	a.setQuitOnLastWindowClosed(true);
 	a.setProperty("date_published", "Nov. 19th, 2015");

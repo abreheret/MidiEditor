@@ -1,9 +1,8 @@
 TEMPLATE = app
 TARGET = MidiEditor
 QT += core \
-    network \
-    phonon \
-
+    network
+#DEFINES += ENABLE_REMOTE
 HEADERS += \
     src/MidiEvent/KeySignatureEvent.h \
     src/remote/RemoteServer.h \
@@ -140,6 +139,22 @@ SOURCES += \
     src/gui/NToleQuantizationDialog.cpp
 FORMS += 
 RESOURCES += 
-DEFINES += __LINUX_ALSASEQ__
-LIBS += -lasound
-CONFIG += release
+unix: {
+    DEFINES += __LINUX_ALSASEQ__
+    LIBS += -lasound -lsfml-system -lsfml-audio
+    CONFIG += release
+   # QMAKE_LIBDIR += L/usr/lib/i386-linux-gnu/
+}
+
+win32: {
+    DEFINES += __WINDOWS_MM__
+    LIBS += -lwinmm
+    CONFIG += release\
+	    assistant
+    RC_FILE = midieditor.rc
+    Release:DESTDIR = bin
+    OBJECTS_DIR = .tmp_win
+    MOC_DIR = .tmp_win
+}
+
+#-spec linux-g++-32

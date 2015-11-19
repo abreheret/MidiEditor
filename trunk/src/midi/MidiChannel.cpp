@@ -193,9 +193,9 @@ void MidiChannel::removeEvent(MidiEvent *event){
 	}
 	protocol(toCopy, this);
 
-	if(MidiEvent::eventWidget()->events().contains(event)){
-		MidiEvent::eventWidget()->removeEvent(event);
-	}
+	//if(MidiEvent::eventWidget()->events().contains(event)){
+	//	MidiEvent::eventWidget()->removeEvent(event);
+	//}
 }
 
 void MidiChannel::insertEvent(MidiEvent *event, int tick){

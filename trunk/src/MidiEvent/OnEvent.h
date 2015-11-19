@@ -36,7 +36,7 @@ class OnEvent : public MidiEvent{
 		virtual ProtocolEntry *copy();
 		virtual void reloadState(ProtocolEntry *entry);
 
-		static QSpinBox *_off_tick_box;
+		void moveToChannel(int channel);
 
 	protected:
 		OffEvent *_offEvent;

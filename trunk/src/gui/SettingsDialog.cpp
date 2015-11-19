@@ -28,8 +28,10 @@
 
 #include "SettingsWidget.h"
 #include "MidiSettingsWidget.h"
-#include "RemoteSettingsWidget.h"
-#include "../remote/RemoteServer.h"
+#ifdef ENABLE_REMOTE
+	#include "RemoteSettingsWidget.h"
+	#include "../remote/RemoteServer.h"
+#endif
 
 SettingsDialog::SettingsDialog(QString title, QSettings *settings, RemoteServer *server, QWidget *parent) : QDialog(parent) {
 
@@ -88,7 +90,9 @@ SettingsDialog::SettingsDialog(QString title, QSettings *settings, RemoteServer 
 	// add content
 	addSetting(new MidiSettingsWidget(central));
 	addSetting(new AdditionalMidiSettingsWidget(settings, central));
+#ifdef ENABLE_REMOTE
 	addSetting(new RemoteSettingsWidget(server, central));
+#endif
 }
 
 void SettingsDialog::addSetting(SettingsWidget *settingWidget){

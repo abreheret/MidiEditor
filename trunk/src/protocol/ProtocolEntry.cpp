@@ -47,3 +47,7 @@ ProtocolEntry *ProtocolEntry::copy(){
 	// This has to be implemented in the Subclasses
 	return 0;
 }
+
+ProtocolEntry::~ProtocolEntry(){
+
+}
