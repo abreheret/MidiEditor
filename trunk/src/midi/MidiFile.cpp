@@ -276,7 +276,7 @@ bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 		log->append("Warning: no TimeSignatureEvent detected at tick 0. Adding default value.");
 		TimeSignatureEvent *timeSig = new TimeSignatureEvent(18, 4, 2, 24, 8, track);
 		timeSig->setFile(this);
-		timeSig->setTrack(0, false);
+        timeSig->setTrack(track, false);
 		channel(18)->eventMap()->insert(0, timeSig);
 	}
 
@@ -285,7 +285,7 @@ bool MidiFile::readTrack(QDataStream *content, int num, QStringList *log){
 		log->append("Warning: no TempoChangeEvent detected at tick 0. Adding default value.");
 		TempoChangeEvent *tempoEv = new TempoChangeEvent(17, 500000, track);
 		tempoEv->setFile(this);
-		tempoEv->setTrack(0, false);
+        tempoEv->setTrack(track, false);
 		channel(17)->eventMap()->insert(0, tempoEv);
 	}
 
