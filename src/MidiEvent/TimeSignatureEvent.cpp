@@ -88,18 +88,12 @@ void TimeSignatureEvent::setNumerator(int n){
 	ProtocolEntry *toCopy = copy();
 	numerator = n;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 void TimeSignatureEvent::setDenominator(int d){
 	ProtocolEntry *toCopy = copy();
 	denominator = d;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 QByteArray TimeSignatureEvent::save(){

@@ -39,9 +39,6 @@ void TextEvent::setText(QString text){
 	ProtocolEntry *toCopy = copy();
 	_text = text;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 int TextEvent::type(){
@@ -52,9 +49,6 @@ void TextEvent::setType(int type){
 	ProtocolEntry *toCopy = copy();
 	_type = type;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 int TextEvent::line(){

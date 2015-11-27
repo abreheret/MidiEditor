@@ -95,6 +95,7 @@ void EventTool::deselectEvent(MidiEvent *event){
 void EventTool::clearSelection(){
 	selectedEvents->clear();
 	_mainWindow->eventWidget()->setEvents(*selectedEvents);
+	_mainWindow->eventWidget()->reload();
 }
 
 void EventTool::reloadState(ProtocolEntry *entry){
@@ -118,6 +119,7 @@ bool EventTool::pressKey(int key){
 		}
 		selectedEvents->clear();
 		_mainWindow->eventWidget()->setEvents(*selectedEvents);
+		_mainWindow->eventWidget()->reload();
 		protocol(toCopy, this);
 		currentFile()->protocol()->endAction();
 		return true;

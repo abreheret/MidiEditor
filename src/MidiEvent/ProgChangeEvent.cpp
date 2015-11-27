@@ -68,7 +68,4 @@ void ProgChangeEvent::setProgram(int p){
 	ProtocolEntry *toCopy = copy();
 	_program = p;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }

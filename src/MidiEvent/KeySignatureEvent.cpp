@@ -80,18 +80,12 @@ void KeySignatureEvent::setTonality(int t){
 	ProtocolEntry *toCopy = copy();
 	_tonality = t;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 void KeySignatureEvent::setMinor(bool minor){
 	ProtocolEntry *toCopy = copy();
 	_minor = minor;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 QString KeySignatureEvent::toString(int tonality, bool minor){

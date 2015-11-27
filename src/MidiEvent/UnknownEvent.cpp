@@ -69,16 +69,10 @@ void UnknownEvent::setType(int type){
 	ProtocolEntry *toCopy = copy();
 	_type = type;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 void UnknownEvent::setData(QByteArray d){
 	ProtocolEntry *toCopy = copy();
 	_data = d;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }

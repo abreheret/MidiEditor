@@ -27,13 +27,14 @@ class MidiEvent;
 class QCheckBox;
 class QComboBox;
 class QListWidget;
+class QSettings;
 
 class RecordDialog : public QDialog {
 
 	Q_OBJECT
 
 	public:
-		RecordDialog(MidiFile *file, QMultiMap<int, MidiEvent*> data,
+		RecordDialog(MidiFile *file, QMultiMap<int, MidiEvent*> data, QSettings *settings,
 				QWidget *parent = 0);
 
 	public slots:
@@ -46,6 +47,7 @@ class RecordDialog : public QDialog {
 		QComboBox *_channelBox;
 		QComboBox *_trackBox;
 		QListWidget *addTypes;
+		QSettings *_settings;
 		void addListItem(QListWidget *w, QString title, int line, bool enabled);
 
 };
