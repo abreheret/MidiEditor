@@ -63,7 +63,4 @@ void SysExEvent::setData(QByteArray d){
 	ProtocolEntry *toCopy = copy();
 	_data = d;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }

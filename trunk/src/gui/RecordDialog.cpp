@@ -24,7 +24,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QMessageBox>
-
+#include <QSettings>
 #include <QListWidget>
 
 #include "../midi/MidiFile.h"
@@ -46,41 +46,43 @@
 #include "../midi/MidiTrack.h"
 #include "../tool/NewNoteTool.h"
 
-RecordDialog::RecordDialog(MidiFile *file, QMultiMap<int, MidiEvent*> data,
+RecordDialog::RecordDialog(MidiFile *file, QMultiMap<int, MidiEvent*> data, QSettings *settings,
 		QWidget *parent) : QDialog(parent)
 {
 	_data = data;
 	_file = file;
+	_settings = settings;
 
 	QGridLayout *layout = new QGridLayout(this);
 	setLayout(layout);
-
-	// label
-	//QLabel *textlabel = new QLabel("There are "+QString::number(data.size())+
-	//		" recorded Events.\n Choose how to add them to your MidiFile.",
-	//		this);
-	//layout->addWidget(textlabel, 0,0,1,3);
 
 	setWindowTitle("Add "+QString::number(data.size())+ " recorded Events");
 	// track
 	QLabel *tracklabel = new QLabel("Add to Track: ", this);
 	layout->addWidget(tracklabel, 1, 0, 1, 1);
 	_trackBox = new QComboBox(this);
+	_trackBox->addItem("Same as selected for new events");
 	for(int i = 0; i< _file->numTracks(); i++){
 		_trackBox->addItem("Track "+QString::number(i)+": "+_file->track(i)->name());
 	}
 	layout->addWidget(_trackBox, 1, 1, 1, 3);
-	_trackBox->setCurrentIndex(NewNoteTool::editTrack());
+	int oldTrack = _settings->value("record_track_index", 0).toInt();
+	if(oldTrack >= file->numTracks()+1){
+		oldTrack = 0;
+	}
+	_trackBox->setCurrentIndex(oldTrack);
 
 	// channel
 	QLabel *channellabel = new QLabel("Add to Channel: ", this);
 	layout->addWidget(channellabel, 2, 0, 1, 1);
 	_channelBox = new QComboBox(this);
+	_channelBox->addItem("Same as selected for new events");
+	_channelBox->addItem("Keep channel");
 	for(int i = 0; i< 16; i++){
 		_channelBox->addItem("Channel "+QString::number(i));
 	}
-	_channelBox->addItem("Keep channel");
-	_channelBox->setCurrentIndex(NewNoteTool::editChannel());
+	_channelBox->setCurrentIndex(_settings->value("record_channel_index", 0).toInt());
+
 	layout->addWidget(_channelBox, 2, 1, 1, 3);
 
 	// ignore types
@@ -115,8 +117,29 @@ RecordDialog::RecordDialog(MidiFile *file, QMultiMap<int, MidiEvent*> data,
 void RecordDialog::enter(){
 
 	int channel = _channelBox->currentIndex();
-	MidiTrack *track = _file->track(_trackBox->currentIndex());
-	bool ownChannel = (channel == 16);
+	bool ownChannel = false;
+	if(channel < 2){
+		if(channel == 0){
+			channel = NewNoteTool::editChannel();
+		} else {
+			ownChannel = true;
+		}
+	} else {
+		channel = channel-2;
+	}
+
+	MidiTrack *track = 0;
+	int trackIndex = _trackBox->currentIndex();
+	if(trackIndex == 0){
+		track = _file->track(NewNoteTool::editTrack());
+	} else {
+		track = _file->track(trackIndex-1);
+	}
+	if(!track){
+		track = _file->tracks()->last();
+	}
+	_settings->setValue("record_channel_index", _channelBox->currentIndex());
+	_settings->setValue("record_track_index", _trackBox->currentIndex());
 
 	// ignore events
 	QList<int> ignoredLines;

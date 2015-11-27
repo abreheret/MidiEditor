@@ -56,7 +56,6 @@ class EventWidget : public QTableWidget {
 		void setFile(MidiFile *file);
 		MidiFile *file();
 
-		void reload();
 		enum EventType {
 			MidiEventType,
 			ChannelPressureEventType,
@@ -101,6 +100,10 @@ class EventWidget : public QTableWidget {
 		void getKey(int index, int *tonality, bool *minor);
 
 		static QString dataToString(QByteArray data);
+
+	public slots:
+		void reload();
+
 	signals:
 		void selectionChanged(bool);
 

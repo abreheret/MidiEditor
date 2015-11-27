@@ -499,7 +499,7 @@ void MainWindow::setFile(MidiFile *file){
 	connect(file,SIGNAL(cursorPositionChanged()),channelWidget,SLOT(update()));
 	connect(file,SIGNAL(recalcWidgetSize()),mw_matrixWidget,SLOT(calcSizes()));
 	connect(file->protocol(), SIGNAL(protocolChanged()), this, SLOT(markEdited()));
-
+	connect(file->protocol(), SIGNAL(protocolChanged()), eventWidget(), SLOT(reload()));
 	mw_matrixWidget->setFile(file);
 	updateChannelMenu();
 	updateTrackMenu();
@@ -643,7 +643,7 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		if(events.isEmpty() && !autoConfirmRecord){
 			QMessageBox::information(this, "Information", "No events recorded.");
 		} else {
-			RecordDialog *dialog = new RecordDialog(file, events, this);
+			RecordDialog *dialog = new RecordDialog(file, events, _settings, this);
 			dialog->setModal(true);
 			if(!autoConfirmRecord){
 				dialog->show();
@@ -1205,8 +1205,10 @@ void MainWindow::deleteSelectedEvents(){
 			file->channel(ev->channel())->removeEvent(ev);
 		}
 		EventTool::selectedEventList()->clear();
+		eventWidget()->setEvents(*(EventTool::selectedEventList()));
+		eventWidget()->reload();
     	file->protocol()->endAction();
-    }
+	}
 }
 
 void MainWindow::deleteChannel(QAction *action){
@@ -2141,13 +2143,19 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 		QString text = "";
 
 		if(i == 0){
-			text = "Whole note";
+			text = "Whole note (semibreve)";
 		} else if(i == 1){
-			text = "Half note";
+			text = "Half note (minim)";
 		} else if(i == 2){
-			text = "Quarter note";
+			text = "Quarter note (crotchet)";
 		} else {
 			text = QString::number((int)qPow(2, i))+"th note";
+			if(i == 3){
+				text += " (quaver)";
+			}
+			if(i == 4){
+				text += " (semiquaver)";
+			}
 		}
 
 		QAction *a = new QAction(text, this);
@@ -2160,12 +2168,12 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	connect(quantMenu, SIGNAL(triggered(QAction*)), this, SLOT(quantizationChanged(QAction*)));
 	toolsMB->addMenu(quantMenu);
 
-	QAction *quantizeNToleAction = new QAction("Quantify ntole...", this);
+	QAction *quantizeNToleAction = new QAction("Quantify tuplet...", this);
 	quantizeNToleAction->setShortcut(QKeySequence(Qt::Key_H + Qt::CTRL + Qt::SHIFT));
 	connect(quantizeNToleAction, SIGNAL(triggered()), this, SLOT(quantizeNtoleDialog()));
 	toolsMB->addAction(quantizeNToleAction);
 
-	QAction *quantizeNToleActionRepeat = new QAction("Repeat ntole quantization", this);
+	QAction *quantizeNToleActionRepeat = new QAction("Repeat tuplet quantization", this);
 	quantizeNToleActionRepeat->setShortcut(QKeySequence(Qt::Key_H + Qt::CTRL));
 	connect(quantizeNToleActionRepeat, SIGNAL(triggered()), this, SLOT(quantizeNtole()));
 	toolsMB->addAction(quantizeNToleActionRepeat);
@@ -2310,15 +2318,19 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	for(int i = -1; i<=5; i++){
 		QVariant variant(i);
 		QString text = "Off";
-		if(i>=0){
-			if(i == 0){
-				text = "Whole note";
-			} else if(i == 1){
-				text = "Half note";
-			} else if(i == 2){
-				text = "Quarter note";
-			} else {
-				text = QString::number((int)qPow(2, i))+"th note";
+		if(i == 0){
+			text = "Whole note (semibreve)";
+		} else if(i == 1){
+			text = "Half note (minim)";
+		} else if(i == 2){
+			text = "Quarter note (crotchet)";
+		} else if(i>0){
+			text = QString::number((int)qPow(2, i))+"th note";
+			if(i == 3){
+				text += " (quaver)";
+			}
+			if(i == 4){
+				text += " (semiquaver)";
 			}
 		}
 		QAction *a = new QAction(text, this);
@@ -2454,13 +2466,33 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     fileTB->addAction(redoAction);
     fileTB->addSeparator();
 
-    btnLayout->addWidget(fileTB, 0, 0, 2, 1);
+	btnLayout->addWidget(fileTB, 0, 0, 2, 1);
 
+	if(QApplication::arguments().contains("--large-playback-toolbar")){
+
+		QToolBar *playTB = new QToolBar("Playback", buttonBar);
+
+		playTB->setFloatable(false);
+		playTB->setContentsMargins(0,0,0,0);
+		playTB->layout()->setSpacing(0);
+		playTB->setIconSize(QSize(35,35));
+
+		playTB->addAction(backToBeginAction);
+		playTB->addAction(backAction);
+		playTB->addAction(playAction);
+		playTB->addAction(pauseAction);
+		playTB->addAction(stopAction);
+		playTB->addAction(recAction);
+		playTB->addAction(forwAction);
+		playTB->addSeparator();
+
+		btnLayout->addWidget(playTB, 0, 1, 2, 1);
+	}
 
     QToolBar *upperTB = new QToolBar(buttonBar);
     QToolBar *lowerTB = new QToolBar(buttonBar);
-    btnLayout->addWidget(upperTB, 0, 1, 1, 1);
-    btnLayout->addWidget(lowerTB, 1, 1, 1, 1);
+	btnLayout->addWidget(upperTB, 0, 2, 1, 1);
+	btnLayout->addWidget(lowerTB, 1, 2, 1, 1);
     upperTB->setFloatable(false);
     upperTB->setContentsMargins(0,0,0,0);
     upperTB->layout()->setSpacing(0);
@@ -2491,14 +2523,17 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     lowerTB->addSeparator();
 
-	lowerTB->addAction(backToBeginAction);
-    lowerTB->addAction(backAction);
-    lowerTB->addAction(playAction);
-    lowerTB->addAction(pauseAction);
-    lowerTB->addAction(stopAction);
-    lowerTB->addAction(recAction);
-	lowerTB->addAction(forwAction);
-	lowerTB->addSeparator();
+	if(!QApplication::arguments().contains("--large-playback-toolbar")){
+
+		lowerTB->addAction(backToBeginAction);
+		lowerTB->addAction(backAction);
+		lowerTB->addAction(playAction);
+		lowerTB->addAction(pauseAction);
+		lowerTB->addAction(stopAction);
+		lowerTB->addAction(recAction);
+		lowerTB->addAction(forwAction);
+		lowerTB->addSeparator();
+	}
 
 	lowerTB->addAction(lockAction);
 
@@ -2537,7 +2572,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	lowerTB->addSeparator();
 	lowerTB->addAction(thruAction);
 
-    btnLayout->setColumnStretch(3, 1);
+	btnLayout->setColumnStretch(4, 1);
 
     return buttonBar;
 }
@@ -2660,7 +2695,7 @@ void MainWindow::quantizeNtole(){
 	// get list with all quantization ticks
 	QList<int> ticks = file->quantization(_quantizationGrid);
 
-	file->protocol()->startNewAction("Quantify ntole");
+	file->protocol()->startNewAction("Quantify tuplet");
 
 	// find minimum starting time
 	int startTick = -1;

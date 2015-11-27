@@ -166,7 +166,9 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 		this->pianoKeys.clear();
 		pixmap = new QPixmap(width(), height());
 		QPainter *pixpainter = new QPainter(pixmap);
-        pixpainter->setRenderHint(QPainter::Antialiasing);
+		if(!QApplication::arguments().contains("--no-antialiasing")){
+			pixpainter->setRenderHint(QPainter::Antialiasing);
+		}
         // dark gray shade
         pixpainter->fillRect(0,0,width(),height(), Qt::darkGray);
 

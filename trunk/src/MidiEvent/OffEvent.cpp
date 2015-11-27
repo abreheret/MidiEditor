@@ -65,11 +65,6 @@ OnEvent *OffEvent::onEvent(){
 
 void OffEvent::setMidiTime(int t, bool toProtocol){
 	MidiEvent::setMidiTime(t, toProtocol);
-	if(_onEvent){
-		if(_onEvent->shownInEventWidget()){
-			eventWidget()->reload();
-		}
-	}
 }
 
 void OffEvent::enterOnEvent(OnEvent *event){

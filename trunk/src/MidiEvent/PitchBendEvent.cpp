@@ -74,9 +74,6 @@ void PitchBendEvent::setValue(int v){
 	ProtocolEntry *toCopy = copy();
 	_value = v;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 bool PitchBendEvent::isOnEvent(){

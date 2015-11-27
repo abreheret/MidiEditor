@@ -350,10 +350,6 @@ void MidiEvent::setTrack(MidiTrack *track, bool toProtocol){
 	} else {
 		delete toCopy;
 	}
-
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 MidiTrack *MidiEvent::track(){
@@ -371,9 +367,6 @@ void MidiEvent::setChannel(int ch, bool toProtocol){
 		setMidiTime(midiTime(), toProtocol);
 	} else {
 		delete toCopy;
-	}
-	if(shownInEventWidget()){
-		eventWidget()->reload();
 	}
 }
 
@@ -412,14 +405,7 @@ void MidiEvent::setMidiTime(int t, bool toProtocol){
 		delete toCopy;
 	}
 
-
-	// TODO error here!!!
-
 	file()->channelEvents(numChannel)->insert(timePos, this);
-
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 int MidiEvent::midiTime(){
@@ -527,8 +513,4 @@ void MidiEvent::moveToChannel(int ch){
 	protocol(toCopy, this);
 
 	midiFile->channel(ch)->insertEvent(this, midiTime());
-
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }

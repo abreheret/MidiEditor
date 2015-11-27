@@ -51,9 +51,6 @@ void NoteOnEvent::setVelocity(int v){
 	}
 	_velocity = v;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 int NoteOnEvent::line(){
@@ -64,9 +61,6 @@ void NoteOnEvent::setNote(int n){
 	ProtocolEntry *toCopy = copy();
 	_note = n;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 ProtocolEntry *NoteOnEvent::copy(){

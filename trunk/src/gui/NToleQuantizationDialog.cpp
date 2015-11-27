@@ -16,8 +16,10 @@ NToleQuantizationDialog::NToleQuantizationDialog(QWidget *parent) : QDialog(pare
 
 	connect(this, SIGNAL(accepted()), this, SLOT(takeResults()));
 
+	setWindowTitle("Tuplet Quantization");
+
 	QGridLayout *layout = new QGridLayout(this);
-	layout->addWidget(new QLabel("ntole: ", this), 0,0,1,1);
+	layout->addWidget(new QLabel("tuplet: ", this), 0,0,1,1);
 	layout->addWidget(new QLabel("instead of: ", this), 1,0,1,1);
 
 	ntoleBeat = new QComboBox(this);
@@ -39,13 +41,19 @@ NToleQuantizationDialog::NToleQuantizationDialog(QWidget *parent) : QDialog(pare
 		QString text = "";
 
 		if(i == 0){
-			text = "Whole note";
+			text = "Whole note (semibreve)";
 		} else if(i == 1){
-			text = "Half note";
+			text = "Half note (minim)";
 		} else if(i == 2){
-			text = "Quarter note";
+			text = "Quarter note (crotchet)";
 		} else {
 			text = QString::number((int)qPow(2, i))+"th note";
+			if(i == 3){
+				text += " (quaver)";
+			}
+			if(i == 4){
+				text += " (semiquaver)";
+			}
 		}
 
 		ntoleBeat->addItem(text);

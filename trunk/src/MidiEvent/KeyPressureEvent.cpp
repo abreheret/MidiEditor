@@ -66,18 +66,12 @@ void KeyPressureEvent::setValue(int v){
 	ProtocolEntry *toCopy = copy();
 	_value = v;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 void KeyPressureEvent::setNote(int n){
 	ProtocolEntry *toCopy = copy();
 	_note = n;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 QString KeyPressureEvent::typeString(){

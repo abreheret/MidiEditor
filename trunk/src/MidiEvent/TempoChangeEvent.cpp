@@ -74,9 +74,6 @@ void TempoChangeEvent::setBeats(int beats){
 	_beats = beats;
 	file()->calcMaxTime();
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 QString TempoChangeEvent::typeString(){

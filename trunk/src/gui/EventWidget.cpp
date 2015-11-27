@@ -612,7 +612,6 @@ MidiFile *EventWidget::file(){
 void EventWidget::setEvents(QList<MidiEvent*> events){
 	_events = events;
 	emit selectionChanged(_events.count()>0);
-	reload();
 }
 
 QList<MidiEvent*> EventWidget::events(){
@@ -622,7 +621,6 @@ QList<MidiEvent*> EventWidget::events(){
 void EventWidget::removeEvent(MidiEvent *event){
 	_events.removeAll(event);
 	emit selectionChanged(_events.count()>0);
-	reload();
 }
 
 void EventWidget::reload(){

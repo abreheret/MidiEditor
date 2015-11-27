@@ -153,7 +153,7 @@ bool EventMoveTool::release(){
 
 	currentProtocol()->startNewAction("Move Notes", image());
 
-	// backword to hold stability
+	// backwards to hold stability
 	for(int i = selectedEvents->count()-1;i>=0;i--){
 		MidiEvent *event = selectedEvents->at(i);
 		NoteOnEvent *ev = dynamic_cast<NoteOnEvent*>(event);

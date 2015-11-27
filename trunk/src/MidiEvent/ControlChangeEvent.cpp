@@ -81,18 +81,12 @@ void ControlChangeEvent::setValue(int v){
 	ProtocolEntry *toCopy = copy();
 	_value = v;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 void ControlChangeEvent::setControl(int c){
 	ProtocolEntry *toCopy = copy();
 	_control = c;
 	protocol(toCopy, this);
-	if(shownInEventWidget()){
-		eventWidget()->reload();
-	}
 }
 
 bool ControlChangeEvent::isOnEvent(){
