@@ -62,6 +62,7 @@ void Protocol::undo(bool emitChanged){
 
 		if(emitChanged){
 			emit protocolChanged();
+			emit actionFinished();
 		}
 	}
 }
@@ -85,6 +86,7 @@ void Protocol::redo(bool emitChanged){
 
 		if(emitChanged){
 			emit protocolChanged();
+			emit actionFinished();
 		}
 	}	
 }
@@ -115,6 +117,7 @@ void Protocol::endAction(){
 	_file->setSaved(false);
 
 	emit protocolChanged();
+	emit actionFinished();
 }
 		
 int Protocol::stepsBack(){
@@ -151,6 +154,7 @@ void Protocol::goTo(ProtocolStep *toGo){
 	}
 
 	emit protocolChanged();
+	emit actionFinished();
 }
 
 void Protocol::addEmptyAction(QString name){

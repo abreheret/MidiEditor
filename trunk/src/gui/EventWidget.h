@@ -101,11 +101,14 @@ class EventWidget : public QTableWidget {
 
 		static QString dataToString(QByteArray data);
 
+		void reportSelectionChangedByTool();
+
 	public slots:
 		void reload();
 
 	signals:
 		void selectionChanged(bool);
+		void selectionChangedByTool(bool);
 
 	private:
 		QList<MidiEvent*> _events;

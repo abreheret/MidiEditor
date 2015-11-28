@@ -58,7 +58,9 @@ TrackListItem::TrackListItem(MidiTrack *track, TrackListWidget *parent) : QWidge
 
 	QToolBar *toolBar = new QToolBar(this);
 	toolBar->setIconSize(QSize(12, 12));
-
+	QPalette palette = toolBar->palette();
+	palette.setColor(QPalette::Background, Qt::white);
+	toolBar->setPalette(palette);
 	// visibility
 	visibleAction = new QAction(QIcon("graphics/trackwidget/visible.png"), "Track visible", toolBar);
 	visibleAction->setCheckable(true);
@@ -143,7 +145,7 @@ TrackListWidget::TrackListWidget(QWidget *parent) : QListWidget(parent) {
 
 void TrackListWidget::setFile(MidiFile *f){
 	file = f;
-	connect(file->protocol(), SIGNAL(protocolChanged()), this, SLOT(update()));
+	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(update()));
 	update();
 }
 

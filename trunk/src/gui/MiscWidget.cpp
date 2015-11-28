@@ -139,6 +139,14 @@ void MiscWidget::paintEvent(QPaintEvent *event){
         // paint selected events above all others
         foreach(MidiEvent* event, *(EventTool::selectedEventList())){
 
+			if(!event->file()->channel(event->channel())->visible()){
+				continue;
+			}
+
+			if(event->track()->hidden()){
+				continue;
+			}
+
             int velocity = 0;
             NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
 

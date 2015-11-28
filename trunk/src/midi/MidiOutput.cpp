@@ -26,7 +26,6 @@
 
 #include <vector>
 
-#include "rtmidi/RtError.h"
 #include "rtmidi/RtMidi.h"
 
 #include "SenderThread.h"
@@ -45,10 +44,10 @@ void MidiOutput::init(){
 
 	// RtMidiOut constructor
 	try {
-        _midiOut = new RtMidiOut(QString("MidiEditor Output").toStdString());
+		_midiOut = new RtMidiOut(RtMidi::UNSPECIFIED, QString("MidiEditor output").toStdString());
 	}
-	catch ( RtError &error ) {
-        qWarning("%s", error.getMessageString());
+	catch ( RtMidiError &error ) {
+		error.printMessage();
 	}
 	_sender->start(QThread::TimeCriticalPriority);
 }
@@ -94,7 +93,7 @@ QStringList MidiOutput::outputPorts(){
 		try {
 			ports.append(QString::fromStdString(_midiOut->getPortName(i)));
 		}
-		catch (RtError &error) {}
+		catch (RtMidiError &error) {}
 	}
 
 	return ports;
@@ -120,7 +119,7 @@ bool MidiOutput::setOutputPort(QString name){
 			}
 
 		}
-		catch (RtError &error) {}
+		catch (RtMidiError &error) {}
 
 	}
 
@@ -144,8 +143,8 @@ void MidiOutput::sendEnqueuedCommand(QByteArray array) {
 		}
 		try {
 			_midiOut->sendMessage(&message);
-		} catch ( RtError &error ) {
-			qWarning("%s", error.getMessageString());
+		} catch (RtMidiError &error) {
+			error.printMessage();
 		}
 	}
 }

@@ -63,7 +63,6 @@ class PlayerThread : public QThread {
 		QTime *time;
 
 		int measure, posInMeasure;
-
 };
 
 #endif

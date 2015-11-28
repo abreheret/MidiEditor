@@ -1259,3 +1259,7 @@ QString EventWidget::dataToString(QByteArray data){
 	}
 	return s.trimmed();
 }
+
+void EventWidget::reportSelectionChangedByTool(){
+	emit selectionChangedByTool(_events.count()>0);
+}

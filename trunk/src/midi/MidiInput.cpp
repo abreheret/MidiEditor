@@ -31,7 +31,6 @@
 
 #include <cstdlib>
 
-#include "rtmidi/RtError.h"
 #include "rtmidi/RtMidi.h"
 
 #include "MidiOutput.h"
@@ -48,13 +47,13 @@ void MidiInput::init(){
 
 	// RtMidiIn constructor
 	try {
-        _midiIn = new RtMidiIn(QString("MidiEditor Input").toStdString());
-		_midiIn->setQueueSizeLimit(65535);
+		_midiIn = new RtMidiIn(RtMidi::UNSPECIFIED, QString("MidiEditor input").toStdString());
+		//_midiIn->setQueueSizeLimit(65535);
 		_midiIn->ignoreTypes(false, true, true);
 		_midiIn->setCallback(&receiveMessage);
 	}
-    catch (RtError &error) {
-        qWarning("%s", error.getMessageString());
+	catch (RtMidiError &error) {
+		error.printMessage();
 	}
 }
 
@@ -119,7 +118,7 @@ QStringList MidiInput::inputPorts(){
 		try {
 			ports.append(QString::fromStdString(_midiIn->getPortName(i)));
 		}
-		catch (RtError &error) {}
+		catch (RtMidiError &error) {}
 	}
 
 	return ports;
@@ -145,7 +144,7 @@ bool MidiInput::setInputPort(QString name){
 			}
 
 		}
-		catch (RtError &error) {}
+		catch (RtMidiError &error) {}
 	}
 
 	// port not found

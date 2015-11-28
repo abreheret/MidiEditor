@@ -251,7 +251,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
         pixpainter->fillRect(0, timeHeight-3, width(), 3, QApplication::palette().window());
 
         // paint time (ms)
-        int numbers = (width()-lineNameWidth)/50;
+		int numbers = (width()-lineNameWidth)/80;
         if(numbers>0){
             int step = (endTimeX-startTimeX)/numbers;
             int realstep = 1;
@@ -277,13 +277,26 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
             if(startNumber<startTimeX){
                 startNumber+=realstep;
             }
-            pixpainter->setPen(Qt::gray);
+			pixpainter->setPen(Qt::gray);
             while(startNumber<endTimeX){
-                int pos = xPosOfMs(startNumber);
-                QString text = QString::number(startNumber)+" ms";
+				int pos = xPosOfMs(startNumber);
+				QString text = "";
+				int hours = startNumber/(60000*60);
+				int remaining = startNumber-(60000*60)*hours;
+				int minutes = remaining/(60000);
+				remaining = remaining-minutes*60000;
+				int seconds = remaining/1000;
+				int ms = remaining-1000*seconds;
+
+
+				text+=QString::number(hours)+":";
+				text+=QString("%1:").arg(minutes, 2, 10, QChar('0'));
+				text+=QString("%1").arg(seconds, 2, 10, QChar('0'));
+				text+=QString(".%1").arg(ms/10, 2, 10, QChar('0'));
                 int textlength = QFontMetrics(pixpainter->font()).width(text);
-                pixpainter->drawText(pos-textlength/2, timeHeight/2-6, text);
-               // pixpainter->fillRect(pos-1, timeHeight/2-1, 2, 3, Qt::gray);
+				if(startNumber>0){
+					pixpainter->drawText(pos-textlength/2, timeHeight/2-6, text);
+				}
                 pixpainter->drawLine(pos, timeHeight/2-1, pos, timeHeight);
                 startNumber+=realstep;
             }
@@ -567,32 +580,36 @@ void MatrixWidget::paintChannel(QPainter *painter, int channel){
 			event->setWidth(width);
 			event->setHeight(height);
 
-			if(!event->track()->hidden()){
+			if(!(event->track()->hidden())){
 				if(!_colorsByChannels){
 					cC = *event->track()->color();
 				}
 				event->draw(painter, cC);
-			}
 
-			if(EventTool::selectedEventList()->contains(event)){
-				painter->setPen(Qt::gray);
-				painter->drawLine(lineNameWidth, y, this->width(), y);
-				painter->drawLine(lineNameWidth, y+height, this->width(), y+height);
-				painter->setPen(Qt::black);
 
+				if(EventTool::selectedEventList()->contains(event)){
+					painter->setPen(Qt::gray);
+					painter->drawLine(lineNameWidth, y, this->width(), y);
+					painter->drawLine(lineNameWidth, y+height, this->width(), y+height);
+					painter->setPen(Qt::black);
+
+				}
+				objects->prepend(event);
 			}
-			objects->append(event);
 		}
 
-		// append event to velocityObjects if its not a offEvent and if it
-		// is in the x-Area
-		OffEvent *offEvent = dynamic_cast<OffEvent*>(event);
-		if(!offEvent && event->midiTime()>=startTick &&
-				event->midiTime()<=endTick &&
-				!velocityObjects->contains(event))
-		{
-			event->setX(xPosOfMs(msOfTick(event->midiTime())));
-			velocityObjects->append(event);
+		if(!(event->track()->hidden())){
+			// append event to velocityObjects if its not a offEvent and if it
+			// is in the x-Area
+			OffEvent *offEvent = dynamic_cast<OffEvent*>(event);
+			if(!offEvent && event->midiTime()>=startTick &&
+					event->midiTime()<=endTick &&
+					!velocityObjects->contains(event))
+			{
+				event->setX(xPosOfMs(msOfTick(event->midiTime())));
+
+				velocityObjects->prepend(event);
+			}
 		}
 		it++;
 	}
@@ -766,9 +783,9 @@ void MatrixWidget::setFile(MidiFile *f){
 	startLineY = 0;
 
 
-	connect(file->protocol(), SIGNAL(protocolChanged()), this,
+	connect(file->protocol(), SIGNAL(actionFinished()), this,
 			SLOT(registerRelayout()));
-	connect(file->protocol(), SIGNAL(protocolChanged()), this, SLOT(update()));
+	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(update()));
 
 
 

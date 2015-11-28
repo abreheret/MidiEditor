@@ -40,6 +40,7 @@ class RemoteServer;
 class MiscWidget;
 class QGridLayout;
 class MidiTrack;
+class QShowEvent;
 
 class MainWindow : public QMainWindow {
 

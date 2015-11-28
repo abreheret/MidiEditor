@@ -137,7 +137,8 @@ class Protocol : public QObject {
 		 * \brief This Signal will be emitted when there has been an undo/redo
 		 */
 		void protocolChanged();
-		
+		void actionFinished();
+
 	private:
 		/**
 		 * \brief currentStep is the actual opened Step.

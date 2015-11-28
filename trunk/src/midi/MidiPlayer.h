@@ -37,6 +37,8 @@ class MidiPlayer : public QObject {
 		static bool isPlaying();
 		static int timeMs();
 		static PlayerThread *playerThread();
+		static double speedScale();
+		static void setSpeedScale(double d);
 
 		/**
 		 * Send all Notes off to every channel.
@@ -47,6 +49,7 @@ class MidiPlayer : public QObject {
 		static PlayerThread *filePlayer;
 		static bool playing;
 		static SingleNotePlayer *singleNotePlayer;
+		static double _speed;
 };
 
 #endif
