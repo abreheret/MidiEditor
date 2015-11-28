@@ -26,6 +26,7 @@
 #include "../MidiEvent/KeySignatureEvent.h"
 #include "MidiInput.h"
 #include <QTime>
+#include "MidiPlayer.h"
 
 #define INTERVAL_TIME 15
 #define TIMEOUTS_PER_SIGNAL 1
@@ -144,7 +145,7 @@ void PlayerThread::timeout(){
 
 	} else {
 
-		int newPos = position + time->elapsed();
+		int newPos = position + time->elapsed()*MidiPlayer::speedScale();
 		int tick = file->tick(newPos);
 		QList<TimeSignatureEvent*> *list = 0;
 		int ickInMeasure = 0;

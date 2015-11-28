@@ -42,7 +42,7 @@ void ProtocolWidget::setFile(MidiFile *f){
 	file = f;
 	protocolHasChanged = true;
 	nextChangeFromList = false;
-	connect(file->protocol(), SIGNAL(protocolChanged()), this, SLOT(protocolChanged()));
+	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(protocolChanged()));
 	update();
 }
 

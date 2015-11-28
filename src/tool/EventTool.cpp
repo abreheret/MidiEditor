@@ -83,6 +83,7 @@ void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 		selectedEvents->removeAll(event);
 	}
 	_mainWindow->eventWidget()->setEvents(*selectedEvents);
+	_mainWindow->eventWidget()->reportSelectionChangedByTool();
 }
 
 void EventTool::deselectEvent(MidiEvent *event){
@@ -96,6 +97,7 @@ void EventTool::clearSelection(){
 	selectedEvents->clear();
 	_mainWindow->eventWidget()->setEvents(*selectedEvents);
 	_mainWindow->eventWidget()->reload();
+	_mainWindow->eventWidget()->reportSelectionChangedByTool();
 }
 
 void EventTool::reloadState(ProtocolEntry *entry){
@@ -120,6 +122,7 @@ bool EventTool::pressKey(int key){
 		selectedEvents->clear();
 		_mainWindow->eventWidget()->setEvents(*selectedEvents);
 		_mainWindow->eventWidget()->reload();
+		_mainWindow->eventWidget()->reportSelectionChangedByTool();
 		protocol(toCopy, this);
 		currentFile()->protocol()->endAction();
 		return true;
@@ -131,12 +134,21 @@ void EventTool::paintSelectedEvents(QPainter *painter){
 	foreach(MidiEvent *event, *selectedEvents){
 
 		bool show = event->shown();
+
 		if(!show){
 			OnEvent *ev = dynamic_cast<OnEvent*>(event);
 			if(ev){
 				show = ev->offEvent() && ev->offEvent()->shown();
 			}
 		}
+
+		if(event->track()->hidden()){
+			show = false;
+		}
+		if(!(event->file()->channel(event->channel())->visible())){
+			show = false;
+		}
+
 		if(show){
             painter->setBrush(Qt::darkBlue);
             painter->setPen(Qt::lightGray);

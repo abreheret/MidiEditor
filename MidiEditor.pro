@@ -15,7 +15,6 @@ HEADERS += \
     src/Terminal.h \
     src/gui/RecordDialog.h \
     src/midi/MidiInput.h \
-    src/midi/rtmidi/RtError.h \
     src/midi/rtmidi/RtMidi.h \
     src/gui/FileLengthDialog.h \
     src/gui/AboutDialog.h \
@@ -141,6 +140,7 @@ FORMS +=
 RESOURCES += 
 unix: {
     DEFINES += __LINUX_ALSASEQ__
+    DEFINES += __LINUX_ALSA__
     LIBS += -lasound -lsfml-system -lsfml-audio
     CONFIG += release
    # QMAKE_LIBDIR += L/usr/lib/i386-linux-gnu/

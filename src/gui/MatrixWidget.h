@@ -49,6 +49,7 @@ class MatrixWidget : public PaintWidget {
 		MidiFile *midiFile();
 		QList<MidiEvent*> *activeEvents();
 		QList<MidiEvent*> *velocityEvents();
+
 		double lineHeight();
 		int lineAtY(int y);
 		int msOfXPos(int x);

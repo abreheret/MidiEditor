@@ -29,6 +29,7 @@
 PlayerThread *MidiPlayer::filePlayer = new PlayerThread();
 bool MidiPlayer::playing = false;
 SingleNotePlayer *MidiPlayer::singleNotePlayer = new SingleNotePlayer();
+double MidiPlayer::_speed = 1;
 
 void MidiPlayer::play(MidiFile *file){
 
@@ -113,4 +114,13 @@ void MidiPlayer::panic(){
 			}
 		}
 	}
+}
+
+
+double MidiPlayer::speedScale(){
+	return _speed;
+}
+
+void MidiPlayer::setSpeedScale(double d){
+	_speed = d;
 }

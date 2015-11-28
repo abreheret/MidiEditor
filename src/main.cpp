@@ -30,11 +30,10 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-	a.setAttribute(Qt::AA_DontShowIconsInMenus);
 	a.setApplicationVersion("3.0.1 (beta - non-official release)");
 	a.setApplicationName("MidiEditor");
 	a.setQuitOnLastWindowClosed(true);
-	a.setProperty("date_published", "Nov. 27th, 2015");
+	a.setProperty("date_published", "Nov. 28th, 2015");
 
 	MidiOutput::init();
     MidiInput::init();

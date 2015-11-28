@@ -199,9 +199,11 @@ MainWindow::MainWindow() : QMainWindow() {
 	// MatrixArea
 	QWidget *matrixArea = new QWidget(leftSplitter);
 	leftSplitter->addWidget(matrixArea);
+	matrixArea->setContentsMargins(0,0,0,0);
 	mw_matrixWidget = new MatrixWidget(matrixArea);
 	vert = new QScrollBar(Qt::Vertical, matrixArea);
 	QGridLayout *matrixAreaLayout = new QGridLayout(matrixArea);
+	matrixAreaLayout->setHorizontalSpacing(6);
     QWidget *placeholder0 = new QWidget(matrixArea);
     placeholder0->setFixedHeight(50);
 	matrixAreaLayout->setContentsMargins(0,0,0,0);
@@ -218,13 +220,16 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	// VelocityArea
 	QWidget *velocityArea = new QWidget(leftSplitter);
+	velocityArea->setContentsMargins(0,0,0,0);
 	leftSplitter->addWidget(velocityArea);
 	hori = new QScrollBar(Qt::Horizontal, velocityArea);
 	hori->setSingleStep(500);
 	QGridLayout *velocityAreaLayout = new QGridLayout(velocityArea);
-    velocityAreaLayout->setContentsMargins(0,0,0,0);
+	velocityAreaLayout->setContentsMargins(0,0,0,0);
+	velocityAreaLayout->setHorizontalSpacing(6);
     _miscWidgetControl = new QWidget(velocityArea);
-    _miscWidgetControl->setFixedWidth(110-velocityAreaLayout->horizontalSpacing());
+	_miscWidgetControl->setFixedWidth(110-velocityAreaLayout->horizontalSpacing());
+
     velocityAreaLayout->addWidget(_miscWidgetControl, 0,0,1,1);
 	// there is a Scrollbar on the right side of the velocityWidget doing
 	// nothing but making the VelocityWidget as big as the matrixWidget
@@ -237,12 +242,14 @@ MainWindow::MainWindow() : QMainWindow() {
 	velocityArea->setLayout(velocityAreaLayout);
 
     _miscWidget = new MiscWidget(mw_matrixWidget, velocityArea);
+	_miscWidget->setContentsMargins(0,0,0,0);
     velocityAreaLayout->addWidget(_miscWidget, 0, 1, 1, 1);
 
     // controls for velocity widget
     _miscControlLayout = new QGridLayout(_miscWidgetControl);
     _miscControlLayout->setHorizontalSpacing(0);
-    _miscWidgetControl->setContentsMargins(0,0,0,0);
+	//_miscWidgetControl->setContentsMargins(0,0,0,0);
+	//_miscControlLayout->setContentsMargins(0,0,0,0);
     _miscWidgetControl->setLayout(_miscControlLayout);
     _miscMode = new QComboBox(_miscWidgetControl);
     for(int i = 0; i<MiscModeEnd; i++){
@@ -267,7 +274,7 @@ MainWindow::MainWindow() : QMainWindow() {
     }
     _miscControlLayout->addWidget(_miscChannel, 5, 0, 1, 3);
     connect(_miscChannel, SIGNAL(currentIndexChanged(int)), _miscWidget, SLOT(setChannel(int)));
-
+	_miscControlLayout->setRowStretch(6, 1);
     _miscMode->setCurrentIndex(0);
     _miscChannel->setEnabled(false);
     _miscController->setEnabled(false);
@@ -407,7 +414,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	_eventWidget = new EventWidget(lowerTabWidget);
 	lowerTabWidget->addTab(_eventWidget, "Event");
 	MidiEvent::setEventWidget(_eventWidget);
-	connect(_eventWidget, SIGNAL(selectionChanged(bool)), this, SLOT(showEventWidget(bool)));
+	connect(_eventWidget, SIGNAL(selectionChangedByTool(bool)), this, SLOT(showEventWidget(bool)));
 
 	// below add two rows for choosing track/channel new events shall be assigned to
 	QWidget *chooser = new QWidget(rightSplitter);
@@ -465,7 +472,7 @@ MainWindow::MainWindow() : QMainWindow() {
 		colorsByTrack();
 	}
 
-    this->newFile();
+	QTimer::singleShot(200, this, SLOT(newFile()));
 }
 
 void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
@@ -479,8 +486,6 @@ void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
 
 void MainWindow::setFile(MidiFile *file){
 
-	NewNoteTool::setEditTrack(0);
-	NewNoteTool::setEditChannel(0);
 	EventTool::clearSelection();
 
 	Metronome::instance()->setFile(file);
@@ -498,11 +503,13 @@ void MainWindow::setFile(MidiFile *file){
 	setWindowTitle(QApplication::applicationName()+" - " +file->path()+"[*]");
 	connect(file,SIGNAL(cursorPositionChanged()),channelWidget,SLOT(update()));
 	connect(file,SIGNAL(recalcWidgetSize()),mw_matrixWidget,SLOT(calcSizes()));
-	connect(file->protocol(), SIGNAL(protocolChanged()), this, SLOT(markEdited()));
-	connect(file->protocol(), SIGNAL(protocolChanged()), eventWidget(), SLOT(reload()));
+	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(markEdited()));
+	connect(file->protocol(), SIGNAL(actionFinished()), eventWidget(), SLOT(reload()));
 	mw_matrixWidget->setFile(file);
 	updateChannelMenu();
 	updateTrackMenu();
+	mw_matrixWidget->update();
+	_miscWidget->update();
 }
 
 void MainWindow::matrixSizeChanged(int maxScrollTime, int maxScrollLine,
@@ -1207,6 +1214,7 @@ void MainWindow::deleteSelectedEvents(){
 		EventTool::selectedEventList()->clear();
 		eventWidget()->setEvents(*(EventTool::selectedEventList()));
 		eventWidget()->reload();
+		eventWidget()->reportSelectionChangedByTool();
     	file->protocol()->endAction();
 	}
 }

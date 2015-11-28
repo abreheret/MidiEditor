@@ -24,6 +24,7 @@
 #include <QPaintEvent>
 #include <QList>
 #include <QColor>
+#include <QResizeEvent>
 
 class QAction;
 class MidiFile;
