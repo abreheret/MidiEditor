@@ -157,7 +157,7 @@ QColor *MidiChannel::color(){
 	return _color;
 }
 
-void MidiChannel::insertNote(int note, int startTick, int endTick,int velocity, MidiTrack *track){
+NoteOnEvent* MidiChannel::insertNote(int note, int startTick, int endTick,int velocity, MidiTrack *track){
 	ProtocolEntry *toCopy = copy();
 	NoteOnEvent *onEvent = new NoteOnEvent(note, velocity, number(), track);
 
@@ -169,6 +169,8 @@ void MidiChannel::insertNote(int note, int startTick, int endTick,int velocity, 
 	onEvent->setMidiTime(startTick, false);
 
 	protocol(toCopy, this);
+
+	return onEvent;
 }
 
 void MidiChannel::removeEvent(MidiEvent *event){

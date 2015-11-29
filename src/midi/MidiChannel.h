@@ -34,6 +34,7 @@ class MidiFile;
 class MidiEvent;
 class QColor;
 class MidiTrack;
+class NoteOnEvent;
 
 /**
  * \class MidiChannel
@@ -96,7 +97,7 @@ class MidiChannel : public ProtocolEntry {
 		/**
 		 * \brief inserts a note to this channel.
 		 */
-		void insertNote(int note, int startTick, int endTick, int velocity, MidiTrack *track);
+		NoteOnEvent* insertNote(int note, int startTick, int endTick, int velocity, MidiTrack *track);
 
 		/**
 		 * \brief inserts event into the channels map.

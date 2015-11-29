@@ -50,7 +50,7 @@ class EventTool: public EditorTool {
 		static void setPasteChannel(int channel);
 		static int pasteChannel();
 
-		int rasteredX(int x);
+		int rasteredX(int x, int *tick = 0);
 
 		static void enableMagnet(bool enable);
 		static bool magnetEnabled();

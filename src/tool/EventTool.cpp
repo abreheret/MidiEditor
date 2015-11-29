@@ -158,14 +158,29 @@ void EventTool::paintSelectedEvents(QPainter *painter){
 	}
 }
 
-void EventTool::changeTick(MidiEvent* event, int shiftX){
+void EventTool::changeTick(MidiEvent* event, int shiftX) {
 	// TODO: falls event gezeigt ist, über matrixWidget tick erfragen (effizienter)
 	//int newMs = matrixWidget->msOfXPos(event->x()-shiftX);
 
 	int newMs = file()->msOfTick(event->midiTime())-matrixWidget->timeMsOfWidth(shiftX);
 	int tick = file()->tick(newMs);
+
 	if(tick < 0){
 		tick = 0;
+	}
+
+	// with magnet: set to div value if pixel refers to this tick
+	if(magnetEnabled()){
+
+		int newX = matrixWidget->xPosOfMs(newMs);
+		typedef QPair<int, int> TMPPair;
+		foreach(TMPPair p, matrixWidget->divs()){
+			int xt = p.first;
+			if(newX == xt){
+				tick = p.second;
+				break;
+			}
+		}
 	}
 	event->setMidiTime(tick);
 }
@@ -258,6 +273,8 @@ void EventTool::pasteAction(){
 		int diff = currentFile()->cursorTick()-firstTick;
 
 		// set the Positions and add the Events to the channels
+		clearSelection();
+
 		foreach(MidiEvent *event, copiedCopiedEvents){
 
 			// get channel
@@ -291,7 +308,9 @@ void EventTool::pasteAction(){
 			event->setTrack(track, false);
 			currentFile()->channel(channel)->insertEvent(event,
 					(int)(tickscale*event->midiTime())+diff);
+			selectEvent(event, false, true);
 		}
+
 		currentFile()->protocol()->endAction();
 	}
 }
@@ -316,16 +335,25 @@ int EventTool::pasteChannel(){
 	return _pasteChannel;
 }
 
-int EventTool::rasteredX(int x){
+int EventTool::rasteredX(int x, int *tick){
 	if(!_magnet){
+		if(tick){
+			*tick = -1;
+		}
 		return x;
 	}
 	typedef QPair<int, int> TMPPair;
 	foreach(TMPPair p, matrixWidget->divs()){
 		int xt = p.first;
 		if(qAbs(xt-x)<=5){
+			if(tick){
+				*tick = p.second;
+			}
 			return xt;
 		}
+	}
+	if(tick){
+		*tick = -1;
 	}
 	return x;
 }
