@@ -32,6 +32,7 @@
 #include "../midi/PlayerThread.h"
 #include "../midi/MidiInput.h"
 #include "../midi/MidiTrack.h"
+#include "../tool/Selection.h"
 
 #include <QList>
 #include <QtCore/qmath.h>
@@ -587,7 +588,7 @@ void MatrixWidget::paintChannel(QPainter *painter, int channel){
 				event->draw(painter, cC);
 
 
-				if(EventTool::selectedEventList()->contains(event)){
+				if(Selection::instance()->selectedEvents().contains(event)){
 					painter->setPen(Qt::gray);
 					painter->drawLine(lineNameWidth, y, this->width(), y);
 					painter->drawLine(lineNameWidth, y+height, this->width(), y+height);
@@ -680,7 +681,7 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 		}
 
 		bool selected = mouseY >= y && mouseY <= y+height && mouseX > lineNameWidth && mouseOver;
-		foreach(MidiEvent *event, *EventTool::selectedEventList()){
+		foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 			if(event->line() == 127-number){
 				selected = true;
 				break;

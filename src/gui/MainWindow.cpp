@@ -67,6 +67,7 @@
 #include "../tool/EventMoveTool.h"
 #include "../tool/EventTool.h"
 #include "../tool/ToolButton.h"
+#include "../tool/Selection.h"
 
 #include "../protocol/Protocol.h"
 #include "../Terminal.h"
@@ -487,7 +488,7 @@ void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
 void MainWindow::setFile(MidiFile *file){
 
 	EventTool::clearSelection();
-
+	Selection::setFile(file);
 	Metronome::instance()->setFile(file);
 	protocolWidget->setFile(file);
 	channelWidget->setFile(file);
@@ -1089,17 +1090,17 @@ void MainWindow::scaleSelection(){
     bool ok;
     double scale = QInputDialog::getDouble(this, "Scalefactor",
     		"Scalefactor:", 1.0, 0, 2147483647, 1, &ok);
-    if (ok && scale>0 && EventTool::selectedEventList()->size()>0 && file){
+	if(ok && scale>0 && Selection::instance()->selectedEvents().size()>0 && file){
     	// find minimum
     	int minTime = 2147483647;
-    	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
     		if(e->midiTime() < minTime){
     			minTime = e->midiTime();
     		}
     	}
 
     	file->protocol()->startNewAction("Scale events", 0);
-    	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
     		e->setMidiTime((e->midiTime()-minTime)*scale + minTime);
     		OnEvent *on = dynamic_cast<OnEvent*>(e);
     		if(on){
@@ -1112,17 +1113,17 @@ void MainWindow::scaleSelection(){
 }
 
 void MainWindow::alignLeft(){
-    if (EventTool::selectedEventList()->size()>1 && file){
+	if(Selection::instance()->selectedEvents().size()>1 && file){
         // find minimum
         int minTime = 2147483647;
-        foreach(MidiEvent *e, *EventTool::selectedEventList()){
+		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
                 if(e->midiTime() < minTime){
                         minTime = e->midiTime();
                 }
         }
 
 		file->protocol()->startNewAction("Align left", 0);
-        foreach(MidiEvent *e, *EventTool::selectedEventList()){
+		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
                 int onTime = e->midiTime();
                 e->setMidiTime(minTime);
                 OnEvent *on = dynamic_cast<OnEvent*>(e);
@@ -1136,21 +1137,21 @@ void MainWindow::alignLeft(){
 }
 
 void MainWindow::alignRight(){
-    if (EventTool::selectedEventList()->size()>1 && file){
+	if(Selection::instance()->selectedEvents().size()>1 && file){
         // find maximum
         int maxTime = 0;
-        foreach(MidiEvent *e, *EventTool::selectedEventList()){
-                OnEvent *on = dynamic_cast<OnEvent*>(e);
-				if(on){
-					MidiEvent *off = on->offEvent();
-					if(off->midiTime() > maxTime){
-							maxTime = off->midiTime();
-					}
+		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
+			OnEvent *on = dynamic_cast<OnEvent*>(e);
+			if(on){
+				MidiEvent *off = on->offEvent();
+				if(off->midiTime() > maxTime){
+						maxTime = off->midiTime();
 				}
+			}
         }
 
 		file->protocol()->startNewAction("Align right", 0);
-        foreach(MidiEvent *e, *EventTool::selectedEventList()){
+		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
                 int onTime = e->midiTime();
                 OnEvent *on = dynamic_cast<OnEvent*>(e);
                 if(on){
@@ -1165,32 +1166,32 @@ void MainWindow::alignRight(){
 
 void MainWindow::equalize()
 {
-    if (EventTool::selectedEventList()->size()>1 && file){
+	if(Selection::instance()->selectedEvents().size()>1 && file){
         // find average
         int avgStart = 0;
         int avgTime = 0;
         int count = 0;
-        foreach(MidiEvent *e, *EventTool::selectedEventList()){
-                OnEvent *on = dynamic_cast<OnEvent*>(e);
-				if(on){
-					MidiEvent *off = on->offEvent();
-					avgStart += e->midiTime();
-					avgTime += (off->midiTime() - e->midiTime());
-					count++;
-				}
+		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
+			OnEvent *on = dynamic_cast<OnEvent*>(e);
+			if(on){
+				MidiEvent *off = on->offEvent();
+				avgStart += e->midiTime();
+				avgTime += (off->midiTime() - e->midiTime());
+				count++;
+			}
         }
 		if(count > 1){
 			avgStart /= count;
 			avgTime /= count;
 
 			file->protocol()->startNewAction("Equalize", 0);
-			foreach(MidiEvent *e, *EventTool::selectedEventList()){
-					OnEvent *on = dynamic_cast<OnEvent*>(e);
-					if(on){
-							MidiEvent *off = on->offEvent();
-							e->setMidiTime(avgStart);
-							off->setMidiTime(avgStart + avgTime);
-					}
+			foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
+				OnEvent *on = dynamic_cast<OnEvent*>(e);
+				if(on){
+						MidiEvent *off = on->offEvent();
+						e->setMidiTime(avgStart);
+						off->setMidiTime(avgStart + avgTime);
+				}
 			}
 		}
         file->protocol()->endAction();
@@ -1205,14 +1206,14 @@ void MainWindow::deleteSelectedEvents(){
 			showsSelected = eventTool->showsSelection();
 		}
 	}
-	if(showsSelected && EventTool::selectedEventList()->size()>0 && file){
+	if(showsSelected && Selection::instance()->selectedEvents().size()>0 && file){
 
 		file->protocol()->startNewAction("Remove event(s)");
-		foreach(MidiEvent *ev, *EventTool::selectedEventList()){
+		foreach(MidiEvent *ev, Selection::instance()->selectedEvents()){
 			file->channel(ev->channel())->removeEvent(ev);
 		}
-		EventTool::selectedEventList()->clear();
-		eventWidget()->setEvents(*(EventTool::selectedEventList()));
+		Selection::instance()->clearSelection();
+		eventWidget()->setEvents(Selection::instance()->selectedEvents());
 		eventWidget()->reload();
 		eventWidget()->reportSelectionChangedByTool();
     	file->protocol()->endAction();
@@ -1241,9 +1242,9 @@ void MainWindow::moveSelectedEventsToChannel(QAction *action){
 	int num = action->data().toInt();
 	MidiChannel *channel = file->channel(num);
 
-    if (EventTool::selectedEventList()->size()>0){
+	if(Selection::instance()->selectedEvents().size()>0){
     	file->protocol()->startNewAction("Move selected events to channel "+QString::number(num));
-		foreach(MidiEvent *ev, *EventTool::selectedEventList()){
+		foreach(MidiEvent *ev, Selection::instance()->selectedEvents()){
 			file->channel(ev->channel())->removeEvent(ev);
 			ev->setChannel(num, true);
 			OnEvent *onevent = dynamic_cast<OnEvent*>(ev);
@@ -1267,9 +1268,9 @@ void MainWindow::moveSelectedEventsToTrack(QAction *action){
 	int num = action->data().toInt();
 	MidiTrack *track = file->track(num);
 
-    if (EventTool::selectedEventList()->size()>0){
+	if(Selection::instance()->selectedEvents().size()>0){
     	file->protocol()->startNewAction("Move selected events to track "+QString::number(num));
-		foreach(MidiEvent *ev, *EventTool::selectedEventList()){
+		foreach(MidiEvent *ev, Selection::instance()->selectedEvents()){
 			ev->setTrack(track, true);
 			OnEvent *onevent = dynamic_cast<OnEvent*>(ev);
 			if(onevent){
@@ -1697,7 +1698,7 @@ void MainWindow::transposeNSemitones(){
 	}
 
 	QList<NoteOnEvent*> events;
-	foreach(MidiEvent *event, *EventTool::selectedEventList()){
+	foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 		NoteOnEvent *on = dynamic_cast<NoteOnEvent*>(event);
 		if(on){
 			events.append(on);
@@ -1809,7 +1810,7 @@ void MainWindow::spreadSelection(){
 
 	QMultiMap<int, int> spreadChannel[19];
 
-	foreach(MidiEvent *event, *EventTool::selectedEventList()){
+	foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 		if(!spreadChannel[event->channel()].values(event->line()).contains(event->midiTime())){
 			spreadChannel[event->channel()].insert(event->line(), event->midiTime());
 		}
@@ -2660,7 +2661,7 @@ void MainWindow::quantizeSelection(){
 	QList<int> ticks = file->quantization(_quantizationGrid);
 
 	file->protocol()->startNewAction("Quantify events");
-	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+	foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 		int onTime = e->midiTime();
 		e->setMidiTime(quantize(onTime, ticks));
 		OnEvent *on = dynamic_cast<OnEvent*>(e);
@@ -2709,7 +2710,7 @@ int MainWindow::quantize(int t, QList<int> ticks){
 
 void MainWindow::quantizeNtoleDialog(){
 
-	if(!file || EventTool::selectedEventList()->isEmpty()){
+	if(!file || Selection::instance()->selectedEvents().isEmpty()){
 		return;
 	}
 
@@ -2724,7 +2725,7 @@ void MainWindow::quantizeNtoleDialog(){
 
 void MainWindow::quantizeNtole(){
 
-	if(!file || EventTool::selectedEventList()->isEmpty()){
+	if(!file || Selection::instance()->selectedEvents().isEmpty()){
 		return;
 	}
 
@@ -2735,7 +2736,7 @@ void MainWindow::quantizeNtole(){
 
 	// find minimum starting time
 	int startTick = -1;
-	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+	foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 		int onTime = e->midiTime();
 		if((startTick<0) || (onTime < startTick)){
 			startTick = onTime;
@@ -2755,7 +2756,7 @@ void MainWindow::quantizeNtole(){
 	}
 
 	// quantize
-	foreach(MidiEvent *e, *EventTool::selectedEventList()){
+	foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 		int onTime = e->midiTime();
 		e->setMidiTime(quantize(onTime, ntoleTicks));
 		OnEvent *on = dynamic_cast<OnEvent*>(e);

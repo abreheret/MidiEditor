@@ -9,6 +9,7 @@
 #include "../tool/SelectTool.h"
 #include "../tool/NewNoteTool.h"
 #include "../protocol/Protocol.h"
+#include "../tool/Selection.h"
 
 #include "../MidiEvent/ControlChangeEvent.h"
 #include "../MidiEvent/PitchBendEvent.h"
@@ -137,7 +138,7 @@ void MiscWidget::paintEvent(QPaintEvent *event){
         }
 
         // paint selected events above all others
-        foreach(MidiEvent* event, *(EventTool::selectedEventList())){
+		foreach(MidiEvent* event, Selection::instance()->selectedEvents()){
 
 			if(!event->file()->channel(event->channel())->visible()){
 				continue;
@@ -218,7 +219,7 @@ void MiscWidget::paintEvent(QPaintEvent *event){
 
 			if(edit_mode == SINGLE_MODE && (dragging || mouseOver)){
 
-				if(accordingEvents.at(i) && EventTool::selectedEventList()->contains(accordingEvents.at(i))){
+				if(accordingEvents.at(i) && Selection::instance()->selectedEvents().contains(accordingEvents.at(i))){
 					painter->setBrush(Qt::darkBlue);
 				}
 				painter->setPen(circlePen);
@@ -353,7 +354,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
 
             // check whether selection has to be changed.
             bool clickHandlesSelected = false;
-            foreach(MidiEvent *event, *(EventTool::selectedEventList())){
+			foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 
                 int velocity = 0;
                 NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
@@ -407,7 +408,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
             }
 
             // if nothing selected deselect all
-			if(EventTool::selectedEventList()->size()>0 && !clickHandlesSelected && !selectedNew){
+			if(Selection::instance()->selectedEvents().size()>0 && !clickHandlesSelected && !selectedNew){
                 matrixWidget->midiFile()->protocol()->
                         startNewAction("Cleared Selection");
 				ProtocolEntry* toCopy = _dummyTool->copy();
@@ -418,7 +419,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
             }
 
             // start drag
-            if(EventTool::selectedEventList()->size()>0){
+			if(Selection::instance()->selectedEvents().size()>0){
                 dragY = mouseY;
                 dragging = true;
             }
@@ -490,7 +491,7 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 							startNewAction("Changed Velocity");
 
                     int dV = 127*dX/height();
-                    foreach(MidiEvent *event, *(EventTool::selectedEventList())){
+					foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
                         NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
                         int v = dV+noteOn->velocity();
                         if(v>127){
@@ -715,8 +716,8 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
                 // when any events are selected, only use those. Else all
                 // in the range
 				QList<MidiEvent*> events;
-				if(EventTool::selectedEventList()->size()>0){
-					foreach(MidiEvent *event, *(EventTool::selectedEventList())){
+				if(Selection::instance()->selectedEvents().size()>0){
+					foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 						NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
 						if(noteOn){
 							if(noteOn->midiTime()>=minTick && noteOn->midiTime()<=maxTick){

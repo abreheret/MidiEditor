@@ -31,10 +31,10 @@
 #include "../gui/MainWindow.h"
 #include "../gui/EventWidget.h"
 #include "NewNoteTool.h"
+#include "Selection.h"
 
 #include <QtCore/qmath.h>
 
-QList<MidiEvent*> *EventTool::selectedEvents = new QList<MidiEvent*>;
 QList<MidiEvent*> *EventTool::copiedEvents = new QList<MidiEvent*>;
 
 int EventTool::_pasteChannel = -1;
@@ -43,16 +43,11 @@ int EventTool::_pasteTrack = -2;
 bool EventTool::_magnet = false;
 
 EventTool::EventTool() : EditorTool() {
-	ownSelectedEvents = 0;
+
 }
 
-EventTool::EventTool(EventTool &other) : EditorTool(other) {
-	ownSelectedEvents = new QList<MidiEvent*>;
-	ownSelectedEvents->append(*selectedEvents);
-}
+EventTool::EventTool(EventTool &other) : EditorTool(other){
 
-ProtocolEntry *EventTool::copy(){
-	return new EventTool(*this);
 }
 
 void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
@@ -65,73 +60,52 @@ void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 		return;
 	}
 
+	QList<MidiEvent*> selected = Selection::instance()->selectedEvents();
+
 	OffEvent *offevent = dynamic_cast<OffEvent*>(event);
 	if(offevent){
 		return;
 	}
 
 	if(single && !QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) && (!QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) || ignoreStr)){
-		selectedEvents->clear();
+		selected.clear();
 		NoteOnEvent *on = dynamic_cast<NoteOnEvent*>(event);
 		if(on){
 			MidiPlayer::play(on);
 		}
 	}
-	if(!selectedEvents->contains(event) && (!QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) || ignoreStr)){
-		selectedEvents->append(event);
+	if(!selected.contains(event) && (!QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) || ignoreStr)){
+		selected.append(event);
 	} else if(QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) && !ignoreStr){
-		selectedEvents->removeAll(event);
+		selected.removeAll(event);
 	}
-	_mainWindow->eventWidget()->setEvents(*selectedEvents);
+
+	Selection::instance()->setSelection(selected);
+
+	_mainWindow->eventWidget()->setEvents(selected);
 	_mainWindow->eventWidget()->reportSelectionChangedByTool();
 }
 
 void EventTool::deselectEvent(MidiEvent *event){
-	selectedEvents->removeAll(event);
+
+	QList<MidiEvent*> selected = Selection::instance()->selectedEvents();
+	selected.removeAll(event);
+	Selection::instance()->setSelection(selected);
+
 	if(_mainWindow->eventWidget()->events().contains(event)){
 		_mainWindow->eventWidget()->removeEvent(event);
 	}
 }
 
 void EventTool::clearSelection(){
-	selectedEvents->clear();
-	_mainWindow->eventWidget()->setEvents(*selectedEvents);
+	Selection::instance()->clearSelection();
+	_mainWindow->eventWidget()->setEvents(Selection::instance()->selectedEvents());
 	_mainWindow->eventWidget()->reload();
 	_mainWindow->eventWidget()->reportSelectionChangedByTool();
 }
 
-void EventTool::reloadState(ProtocolEntry *entry){
-	EventTool *other = dynamic_cast<EventTool*>(entry);
-	if(!other){
-		return;
-	}
-	EditorTool::reloadState(entry);
-	selectedEvents->clear();
-	selectedEvents->append(*(other->ownSelectedEvents));
-	_mainWindow->eventWidget()->setEvents(*selectedEvents);
-}
-
-bool EventTool::pressKey(int key){
-	if(key == Qt::Key_Delete && selectedEvents->size()>0){
-		ProtocolEntry *toCopy = copy();
-		// delete all selected Events
-		currentFile()->protocol()->startNewAction("Remove Event(s)");
-		foreach(MidiEvent *ev, *selectedEvents){
-			file()->channel(ev->channel())->removeEvent(ev);
-		}
-		selectedEvents->clear();
-		_mainWindow->eventWidget()->setEvents(*selectedEvents);
-		_mainWindow->eventWidget()->reload();
-		_mainWindow->eventWidget()->reportSelectionChangedByTool();
-		protocol(toCopy, this);
-		currentFile()->protocol()->endAction();
-		return true;
-	}
-	return false;
-}
-
 void EventTool::paintSelectedEvents(QPainter *painter){
-	foreach(MidiEvent *event, *selectedEvents){
+	foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 
 		bool show = event->shown();
 
@@ -185,17 +159,12 @@ void EventTool::changeTick(MidiEvent* event, int shiftX) {
 	event->setMidiTime(tick);
 }
 
-QList<MidiEvent*> *EventTool::selectedEventList(){
-	return selectedEvents;
-}
-
-
 void EventTool::copyAction(){
 
 	// clear old copied Events
 	copiedEvents->clear();
 
-	foreach(MidiEvent *event, *selectedEvents){
+	foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 
 		// add the current Event
 		MidiEvent *ev = dynamic_cast<MidiEvent*>(event->copy());
