@@ -2394,6 +2394,34 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	playbackMB->addSeparator();
 
+	QMenu *speedMenu = new QMenu("Playback speed...");
+	connect(speedMenu, SIGNAL(triggered(QAction*)), this, SLOT(setSpeed(QAction*)));
+
+	QList<double> speeds;
+	speeds.append(0.25);
+	speeds.append(0.5);
+	speeds.append(0.75);
+	speeds.append(1);
+	speeds.append(1.25);
+	speeds.append(1.5);
+	speeds.append(1.75);
+	speeds.append(2);
+	QActionGroup *speedGroup = new QActionGroup(this);
+	speedGroup->setExclusive(true);
+
+	foreach(double s, speeds){
+		QAction *speedAction = new QAction(QString::number(s), this);
+		speedAction->setData(QVariant::fromValue(s));
+		speedMenu->addAction(speedAction);
+		speedGroup->addAction(speedAction);
+		speedAction->setCheckable(true);
+		speedAction->setChecked(s==1);
+	}
+
+	playbackMB->addMenu(speedMenu);
+
+	playbackMB->addSeparator();
+
 	playbackMB->addAction(_allChannelsAudible);
 	playbackMB->addAction(_allChannelsMute);
 	playbackMB->addAction(_allTracksAudible);
@@ -2745,4 +2773,9 @@ void MainWindow::quantizeNtole(){
 		}
 	}
 	file->protocol()->endAction();
+}
+
+void MainWindow::setSpeed(QAction *action){
+	double d = action->data().toDouble();
+	MidiPlayer::setSpeedScale(d);
 }
