@@ -154,6 +154,8 @@ class MainWindow : public QMainWindow {
 		void quantizeNtoleDialog();
 		void quantizeNtole();
 
+		void setSpeed(QAction*);
+
 	protected:
 		void closeEvent(QCloseEvent *event);
 		void keyPressEvent(QKeyEvent* e);
