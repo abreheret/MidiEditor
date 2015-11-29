@@ -110,6 +110,7 @@ bool SizeChangeTool::press(bool leftClick){
 				event->y()+event->height()))
 		{
 			dragsOnEvent = true;
+			xPos = event->x();
 			inDrag = true;
 			return true;
 		}
@@ -118,6 +119,7 @@ bool SizeChangeTool::press(bool leftClick){
 		{
 			dragsOnEvent = false;
 			inDrag = true;
+			xPos = event->x()+event->width();
 			return true;
 		}
 	}
@@ -128,6 +130,7 @@ bool SizeChangeTool::press(bool leftClick){
 bool SizeChangeTool::release(){
 
 	int currentX = rasteredX(mouseX);
+
 	inDrag = false;
 	int endEventShift = 0;
 	int startEventShift = 0;

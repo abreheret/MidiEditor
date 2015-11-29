@@ -35,6 +35,7 @@
 #include "../MidiEvent/TextEvent.h"
 #include "../MidiEvent/UnknownEvent.h"
 #include "../MidiEvent/SysExEvent.h"
+#include "../MidiEvent/NoteOnEvent.h"
 #include "StandardTool.h"
 
 int NewNoteTool::_channel = 0;
@@ -96,6 +97,7 @@ bool NewNoteTool::press(bool leftClick){
 }
 
 bool NewNoteTool::release(){
+	int startTick, endTick;
 	int currentX = rasteredX(mouseX);
 	inDrag = false;
 	if(currentX<xPos || line>127){
@@ -103,6 +105,11 @@ bool NewNoteTool::release(){
 		currentX = xPos;
 		xPos = temp;
 	}
+
+	// get start/end tick if magnet
+	rasteredX(currentX, &endTick);
+	rasteredX(xPos, &startTick);
+
 	MidiTrack *track = file()->track(_track);
 	if(currentX-xPos>2 || line>127){
 
@@ -110,15 +117,18 @@ bool NewNoteTool::release(){
 		if(line>=0 && line<=127){
 			currentProtocol()->startNewAction("Create Note", image());
 
+			if(startTick == -1){
+				int startMs = matrixWidget->msOfXPos(xPos);
+				startTick = file()->tick(startMs);
+			}
+			if(endTick == -1){
+				int endMs = matrixWidget->msOfXPos(currentX);
+				endTick = file()->tick(endMs);
+			}
 
-			int startMs = matrixWidget->msOfXPos(xPos);
-			int startTick = file()->tick(startMs);
-
-			int endMs = matrixWidget->msOfXPos(currentX);
-			int endTick = file()->tick(endMs);
-
-			file()->channel(_channel)->insertNote(127-line,
+			NoteOnEvent *on = file()->channel(_channel)->insertNote(127-line,
 					startTick, endTick, 100, track);
+			selectEvent(on, true, true);
 			currentProtocol()->endAction();
 
 			if(_standardTool){
@@ -143,6 +153,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(_channel)->insertEvent(event, startTick);
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
 
 			} else if(line == MidiEvent::TIME_SIGNATURE_EVENT_LINE){
@@ -154,6 +165,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(18)->insertEvent(event, startTick);
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
 			} else if(line == MidiEvent::TEMPO_CHANGE_EVENT_LINE){
 				currentProtocol()->startNewAction("Create Tempo Change Event",
@@ -163,6 +175,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(17)->insertEvent(event, startTick);
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
 			}  else if(line == MidiEvent::KEY_SIGNATURE_EVENT_LINE){
 				currentProtocol()->startNewAction("Create Key Signature Event",
@@ -172,6 +185,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(16)->insertEvent(event, startTick);
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
 			} else if(line == MidiEvent::CONTROLLER_LINE){
 				currentProtocol()->startNewAction("Create Control Change Event",
@@ -180,6 +194,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(_channel)->insertEvent(event, startTick);
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
 			}  else if(line == MidiEvent::KEY_PRESSURE_LINE){
 				currentProtocol()->startNewAction("Create Key Pressure Event",
@@ -188,6 +203,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(_channel)->insertEvent(event, startTick);
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
 			}  else if(line == MidiEvent::CHANNEL_PRESSURE_LINE){
 				currentProtocol()->startNewAction(
@@ -196,6 +212,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(_channel)->insertEvent(event, startTick);
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
             } else if(line == MidiEvent::PITCH_BEND_LINE){
                 currentProtocol()->startNewAction(
@@ -204,6 +221,7 @@ bool NewNoteTool::release(){
                 int startMs = matrixWidget->msOfXPos(xPos);
                 int startTick = file()->tick(startMs);
                 file()->channel(_channel)->insertEvent(event, startTick);
+				selectEvent(event, true, true);
                 currentProtocol()->endAction();
             } else if(line == MidiEvent::TEXT_EVENT_LINE){
 				currentProtocol()->startNewAction(
@@ -215,7 +233,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(16)->insertEvent(event, startTick);
-
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
 			} else if(line == MidiEvent::UNKNOWN_LINE){
 				currentProtocol()->startNewAction(
@@ -224,7 +242,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(16)->insertEvent(event, startTick);
-
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
 			} else if(line == MidiEvent::SYSEX_LINE){
 				currentProtocol()->startNewAction(
@@ -233,7 +251,7 @@ bool NewNoteTool::release(){
 				int startMs = matrixWidget->msOfXPos(xPos);
 				int startTick = file()->tick(startMs);
 				file()->channel(16)->insertEvent(event, startTick);
-
+				selectEvent(event, true, true);
 				currentProtocol()->endAction();
 			}  else {
 				if(_standardTool){
