@@ -25,6 +25,7 @@
 #include "../protocol/Protocol.h"
 #include "../midi/MidiFile.h"
 #include "StandardTool.h"
+#include "Selection.h"
 
 EventMoveTool::EventMoveTool(bool upDown, bool leftRight) : EventTool() {
 	moveUpDown = upDown;
@@ -85,7 +86,7 @@ void EventMoveTool::draw(QPainter *painter){
 		}
 		int lineHeight = matrixWidget->lineHeight();
 		shiftY = shiftY/lineHeight*lineHeight;
-		foreach(MidiEvent *event, *selectedEvents){
+		foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 			int customShiftY = shiftY;
 			if(event->line()>127){
 				customShiftY = 0;
@@ -111,7 +112,7 @@ bool EventMoveTool::press(bool leftClick){
 	inDrag = true;
 	startX = mouseX;
 	startY = mouseY;
-	if(selectedEvents->count()>0){
+	if(Selection::instance()->selectedEvents().count()>0){
 		if(moveUpDown&&moveLeftRight){
 			matrixWidget->setCursor(Qt::SizeAllCursor);
 		} else if(moveUpDown){
@@ -140,7 +141,7 @@ bool EventMoveTool::release(){
 
 	// return when there shiftX/shiftY is too small or there are no selected
 	// events
-	if(selectedEvents->count()==0 ||
+	if(Selection::instance()->selectedEvents().count()==0 ||
 			(-2<=shiftX && shiftX<=2 && -2<=shiftY && shiftY<=2))
 	{
 		if(_standardTool){
@@ -154,8 +155,8 @@ bool EventMoveTool::release(){
 	currentProtocol()->startNewAction("Move Notes", image());
 
 	// backwards to hold stability
-	for(int i = selectedEvents->count()-1;i>=0;i--){
-		MidiEvent *event = selectedEvents->at(i);
+	for(int i = Selection::instance()->selectedEvents().count()-1;i>=0;i--){
+		MidiEvent *event = Selection::instance()->selectedEvents().at(i);
 		NoteOnEvent *ev = dynamic_cast<NoteOnEvent*>(event);
 		OffEvent *off = dynamic_cast<OffEvent*>(event);
 		if(ev){
@@ -217,7 +218,7 @@ int EventMoveTool::computeRaster(){
 	int firstTick = -1;
 	int lastTick = -1;
 
-	foreach(MidiEvent *event, *selectedEvents){
+	foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 
 		if((firstTick == -1) || (event->midiTime() < firstTick)){
 			firstTick = event->midiTime();

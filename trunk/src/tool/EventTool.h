@@ -22,24 +22,24 @@
 #include "EditorTool.h"
 
 #include <QList>
+
 class MidiEvent;
 class MidiTrack;
 
 class EventTool: public EditorTool {
 
 	public:
+
 		EventTool();
 		EventTool(EventTool &other);
+
 		static void selectEvent(MidiEvent *event, bool single, bool ignoreStr=false);
 		static void deselectEvent(MidiEvent *event);
 		static void clearSelection();
 		void paintSelectedEvents(QPainter *painter);
-		static QList<MidiEvent*> *selectedEventList();
-		void changeTick(MidiEvent* event, int shiftX);
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
 
-		virtual bool pressKey(int key);
+		void changeTick(MidiEvent* event, int shiftX);
+
 		static void copyAction();
 		static void pasteAction();
 
@@ -56,8 +56,7 @@ class EventTool: public EditorTool {
 		static bool magnetEnabled();
 
 	protected:
-		static QList<MidiEvent*> *selectedEvents, *copiedEvents;
-		QList<MidiEvent*> *ownSelectedEvents;
+		static QList<MidiEvent*> *copiedEvents;
 		static bool isCutAction;
 		static int _pasteChannel;
 		static int _pasteTrack;

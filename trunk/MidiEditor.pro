@@ -68,7 +68,8 @@ HEADERS += \
     src/gui/MidiSettingsWidget.h \
     src/gui/RemoteSettingsWidget.h \
     src/midi/Metronome.h \
-    src/gui/NToleQuantizationDialog.h
+    src/gui/NToleQuantizationDialog.h \
+    src/tool/Selection.h
 SOURCES += \
     src/MidiEvent/KeySignatureEvent.cpp \
     src/remote/RemoteServer.cpp \
@@ -135,7 +136,8 @@ SOURCES += \
     src/gui/MidiSettingsWidget.cpp \
     src/gui/RemoteSettingsWidget.cpp \
     src/midi/Metronome.cpp \
-    src/gui/NToleQuantizationDialog.cpp
+    src/gui/NToleQuantizationDialog.cpp \
+    src/tool/Selection.cpp
 FORMS += 
 RESOURCES += 
 unix: {

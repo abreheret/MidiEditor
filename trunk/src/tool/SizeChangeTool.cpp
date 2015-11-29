@@ -27,6 +27,8 @@
 #include "../protocol/Protocol.h"
 #include "StandardTool.h"
 
+#include "Selection.h"
+
 SizeChangeTool::SizeChangeTool() : EventTool() {
 	inDrag = false;
 	xPos = 0;
@@ -71,7 +73,7 @@ void SizeChangeTool::draw(QPainter *painter){
 	} else {
 		endEventShift = currentX-xPos;
 	}
-	foreach(MidiEvent* event, *selectedEvents){
+	foreach(MidiEvent* event, Selection::instance()->selectedEvents()){
 		bool show = event->shown();
 		if(!show){
 			OnEvent *ev = dynamic_cast<OnEvent*>(event);
@@ -105,7 +107,7 @@ bool SizeChangeTool::press(bool leftClick){
 
 	inDrag = false;
 	xPos = mouseX;
-	foreach(MidiEvent* event, *selectedEvents){
+	foreach(MidiEvent* event, Selection::instance()->selectedEvents()){
 		if(pointInRect(mouseX, mouseY, event->x()-2, event->y(), event->x()+2,
 				event->y()+event->height()))
 		{
@@ -140,9 +142,9 @@ bool SizeChangeTool::release(){
 		endEventShift = currentX-xPos;
 	}
 	xPos = 0;
-	if(selectedEvents->count()>0) {
+	if(Selection::instance()->selectedEvents().count()>0) {
 		currentProtocol()->startNewAction("change size", image());
-		foreach(MidiEvent* event, *selectedEvents){
+		foreach(MidiEvent* event,  Selection::instance()->selectedEvents()){
 			OnEvent *on = dynamic_cast<OnEvent*>(event);
 			OffEvent *off = dynamic_cast<OffEvent*>(event);
 			if(on){
@@ -178,7 +180,7 @@ bool SizeChangeTool::release(){
 
 bool SizeChangeTool::move(int mouseX, int mouseY){
 	EventTool::move(mouseX, mouseY);
-	foreach(MidiEvent* event, *selectedEvents){
+	foreach(MidiEvent* event, Selection::instance()->selectedEvents()){
 		if(pointInRect(mouseX, mouseY, event->x()-2, event->y(), event->x()+2,
 				event->y()+event->height()))
 		{
