@@ -95,15 +95,19 @@ TrackListItem::TrackListItem(MidiTrack *track, TrackListWidget *parent) : QWidge
 }
 
 void TrackListItem::toggleVisibility(bool visible){
-	trackList->midiFile()->protocol()->startNewAction("change visibility");
+	QString text = "Hide track";
+	if(visible){
+		text = "Show track";
+	}
+	trackList->midiFile()->protocol()->startNewAction(text);
 	track->setHidden(!visible);
 	trackList->midiFile()->protocol()->endAction();
 }
 
 void TrackListItem::toggleAudibility(bool audible){
-	QString text = "Muted track";
+	QString text = "Mute track";
 	if(audible){
-		text = "Unmuted track";
+		text = "Track audible";
 	}
 	trackList->midiFile()->protocol()->startNewAction(text);
 	track->setMuted(!audible);

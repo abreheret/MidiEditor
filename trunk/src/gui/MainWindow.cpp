@@ -97,6 +97,9 @@ MainWindow::MainWindow() : QMainWindow() {
 	file = 0;
 	_settings = new QSettings(QString("MidiEditor"), QString("NONE"));
 
+	_moveSelectedEventsToChannelMenu = 0;
+	_moveSelectedEventsToTrackMenu = 0;
+
 #ifdef ENABLE_REMOTE
 	bool ok;
 	int port = _settings->value("udp_client_port", -1).toInt(&ok);
@@ -280,11 +283,11 @@ MainWindow::MainWindow() : QMainWindow() {
     _miscChannel->setEnabled(false);
     _miscController->setEnabled(false);
 
-    setSingleMode = new QAction(QIcon("graphics/tool/misc_single.png"), "Select Single", this);
+	setSingleMode = new QAction(QIcon("graphics/tool/misc_single.png"), "Single mode", this);
     setSingleMode->setCheckable(true);
-    setFreehandMode = new QAction(QIcon("graphics/tool/misc_freehand.png"), "Free-hand", this);
+	setFreehandMode = new QAction(QIcon("graphics/tool/misc_freehand.png"), "Free-hand made", this);
     setFreehandMode->setCheckable(true);
-    setLineMode = new QAction(QIcon("graphics/tool/misc_line.png"),"Line Mode", this);
+	setLineMode = new QAction(QIcon("graphics/tool/misc_line.png"),"Line mode", this);
     setLineMode->setCheckable(true);
 
     QActionGroup *group = new QActionGroup(this);
@@ -326,7 +329,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	tracksTB->addSeparator();
 
-	_allTracksAudible = new QAction("Unmute all tracks", this);
+	_allTracksAudible = new QAction("All tracks audible", this);
 	_allTracksAudible->setIcon(QIcon("graphics/tool/all_audible.png"));
 	connect(_allTracksAudible, SIGNAL(triggered()), this,
 			SLOT(unmuteAllTracks()));
@@ -368,7 +371,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	channelsTB->setIconSize(QSize(20, 20));
 	channelsLayout->addWidget(channelsTB, 0, 0, 1, 1);
 
-	_allChannelsAudible = new QAction("Unmute all channels", this);
+	_allChannelsAudible = new QAction("All channels audible", this);
 	_allChannelsAudible->setIcon(QIcon("graphics/tool/all_audible.png"));
 	connect(_allChannelsAudible, SIGNAL(triggered()), this,
 			SLOT(unmuteAllChannels()));
@@ -413,6 +416,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	// EventWidget
 	_eventWidget = new EventWidget(lowerTabWidget);
+	Selection::_eventWidget = _eventWidget;
 	lowerTabWidget->addTab(_eventWidget, "Event");
 	MidiEvent::setEventWidget(_eventWidget);
 	connect(_eventWidget, SIGNAL(selectionChangedByTool(bool)), this, SLOT(showEventWidget(bool)));
@@ -472,7 +476,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	} else {
 		colorsByTrack();
 	}
-
+	copiedEventsChanged();
 	QTimer::singleShot(200, this, SLOT(newFile()));
 }
 
@@ -506,11 +510,13 @@ void MainWindow::setFile(MidiFile *file){
 	connect(file,SIGNAL(recalcWidgetSize()),mw_matrixWidget,SLOT(calcSizes()));
 	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(markEdited()));
 	connect(file->protocol(), SIGNAL(actionFinished()), eventWidget(), SLOT(reload()));
+	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(checkEnableActionsForSeelction()));
 	mw_matrixWidget->setFile(file);
 	updateChannelMenu();
 	updateTrackMenu();
 	mw_matrixWidget->update();
 	_miscWidget->update();
+	checkEnableActionsForSeelction();
 }
 
 void MainWindow::matrixSizeChanged(int maxScrollTime, int maxScrollLine,
@@ -739,24 +745,24 @@ void MainWindow::save(){
 
 		for(int i = 0; i<16; i++){
 			MidiChannel *ch = file->channel(i);
-			if(ch->mute() || !ch->visible()){
+			if(ch->mute()){
 				printMuteWarning = true;
 			}
 		}
 		foreach(MidiTrack *track , *(file->tracks())){
-			if(track->muted() || track->hidden()){
+			if(track->muted()){
 				printMuteWarning = true;
 			}
 		}
 
 		if(printMuteWarning){
 			QMessageBox::information(this, "Channels/Tracks mute",
-					"One or more channels/tracks are mute. They will be audible in the saved file!",
-					"Save file", 0, 0);
+				"One or more channels/tracks are not audible. They will be audible in the saved file.",
+				"Save file", 0, 0);
 		}
 
 		if(!file->save(file->path())){
-			QMessageBox::warning(this, "Error", QString("The file could not be saved!"));
+			QMessageBox::warning(this, "Error", QString("The file could not be saved. Please make sure that the destination directory exists and that you have the correct access rights to write into this directory."));
 		} else {
 			setWindowModified(false);
 		}
@@ -806,7 +812,7 @@ void MainWindow::saveas(){
 
 		if(printMuteWarning){
 			QMessageBox::information(this, "Channels/Tracks mute",
-					"One or more channels/tracks are mute. They will be audible in the saved file!",
+					"One or more channels/tracks are not audible. They will be audible in the saved file.",
 					"Save file", 0, 0);
 		}
 
@@ -815,7 +821,7 @@ void MainWindow::saveas(){
 		updateRecentPathsList();
 		setWindowModified(false);
 	} else {
-		QMessageBox::warning(this, "Error", QString("The file could not be saved!"));
+		QMessageBox::warning(this, "Error", QString("The file could not be saved. Please make sure that the destination directory exists and that you have the correct access rights to write into this directory."));
 	}
 }
 
@@ -882,22 +888,18 @@ void MainWindow::openFile(QString filePath){
 		setFile(mf);
 		updateRecentPathsList();
 	} else {
-		QMessageBox::warning(this, "Error", QString("The file is damaged and could not be opened. "));
+		QMessageBox::warning(this, "Error", QString("The file is damaged and cannot be opened. "));
 	}
 }
 
 void MainWindow::redo(){
 	if(file) file->protocol()->redo(true);
 	updateTrackMenu();
-	eventWidget()->reload();
-	//showEventWidget(false);
 }
 
 void MainWindow::undo(){
 	if(file) file->protocol()->undo(true);
 	updateTrackMenu();
-	eventWidget()->reload();
-	//showEventWidget(false);
 }
 
 EventWidget *MainWindow::eventWidget(){
@@ -906,7 +908,7 @@ EventWidget *MainWindow::eventWidget(){
 
 void MainWindow::muteAllChannels(){
 	if(!file) return;
-	file->protocol()->startNewAction("Mute all Channels");
+	file->protocol()->startNewAction("Mute all channels");
 	for(int i=0; i<19; i++){
 		file->channel(i)->setMute(true);
 	}
@@ -916,7 +918,7 @@ void MainWindow::muteAllChannels(){
 
 void MainWindow::unmuteAllChannels(){
 	if(!file) return;
-	file->protocol()->startNewAction("Unmute all Channels");
+	file->protocol()->startNewAction("All channels audible");
 	for(int i=0; i<19; i++){
 		file->channel(i)->setMute(false);
 	}
@@ -926,7 +928,7 @@ void MainWindow::unmuteAllChannels(){
 
 void MainWindow::allChannelsVisible(){
 	if(!file) return;
-	file->protocol()->startNewAction("Set all Channels visible");
+	file->protocol()->startNewAction("All channels visible");
 	for(int i=0; i<19; i++){
 		file->channel(i)->setVisible(true);
 	}
@@ -936,7 +938,7 @@ void MainWindow::allChannelsVisible(){
 
 void MainWindow::allChannelsInvisible(){
 	if(!file) return;
-	file->protocol()->startNewAction("Set all Channels invisible");
+	file->protocol()->startNewAction("Hide all channels");
 	for(int i=0; i<19; i++){
 		file->channel(i)->setVisible(false);
 	}
@@ -1117,20 +1119,20 @@ void MainWindow::alignLeft(){
         // find minimum
         int minTime = 2147483647;
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
-                if(e->midiTime() < minTime){
-                        minTime = e->midiTime();
-                }
+			if(e->midiTime() < minTime){
+				minTime = e->midiTime();
+			}
         }
 
-		file->protocol()->startNewAction("Align left", 0);
+		file->protocol()->startNewAction("Align left", new QImage("graphics/tool/align_left.png"));
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
-                int onTime = e->midiTime();
-                e->setMidiTime(minTime);
-                OnEvent *on = dynamic_cast<OnEvent*>(e);
-                if(on){
-                        MidiEvent *off = on->offEvent();
-                        off->setMidiTime(minTime + (off->midiTime()-onTime));
-                }
+			int onTime = e->midiTime();
+			e->setMidiTime(minTime);
+			OnEvent *on = dynamic_cast<OnEvent*>(e);
+			if(on){
+				MidiEvent *off = on->offEvent();
+				off->setMidiTime(minTime + (off->midiTime()-onTime));
+			}
         }
         file->protocol()->endAction();
     }
@@ -1150,7 +1152,7 @@ void MainWindow::alignRight(){
 			}
         }
 
-		file->protocol()->startNewAction("Align right", 0);
+		file->protocol()->startNewAction("Align right", new QImage("graphics/tool/align_right.png"));
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
                 int onTime = e->midiTime();
                 OnEvent *on = dynamic_cast<OnEvent*>(e);
@@ -1184,7 +1186,7 @@ void MainWindow::equalize()
 			avgStart /= count;
 			avgTime /= count;
 
-			file->protocol()->startNewAction("Equalize", 0);
+			file->protocol()->startNewAction("Equalize", new QImage("graphics/tool/equalize.png"));
 			foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 				OnEvent *on = dynamic_cast<OnEvent*>(e);
 				if(on){
@@ -1213,8 +1215,6 @@ void MainWindow::deleteSelectedEvents(){
 			file->channel(ev->channel())->removeEvent(ev);
 		}
 		Selection::instance()->clearSelection();
-		eventWidget()->setEvents(Selection::instance()->selectedEvents());
-		eventWidget()->reload();
 		eventWidget()->reportSelectionChangedByTool();
     	file->protocol()->endAction();
 	}
@@ -1228,6 +1228,12 @@ void MainWindow::deleteChannel(QAction *action){
 
 	int num = action->data().toInt();
 	file->protocol()->startNewAction("Remove all events from channel "+QString::number(num));
+	foreach(MidiEvent *event, file->channel(num)->eventMap()->values()){
+		if(Selection::instance()->selectedEvents().contains(event)){
+			EventTool::deselectEvent(event);
+		}
+	}
+
 	file->channel(num)->deleteAllEvents();
 	file->protocol()->endAction();
 }
@@ -1542,9 +1548,14 @@ void MainWindow::removeTrack(int tracknumber){
 		return;
 	}
 	MidiTrack *track = file->track(tracknumber);
-	file->protocol()->startNewAction("Remove Track");
+	file->protocol()->startNewAction("Remove track");
+	foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
+		if(event->track() == track){
+			EventTool::deselectEvent(event);
+		}
+	}
 	if(!file->removeTrack(track)){
-		QMessageBox::warning(this, "Error", QString("The selected track can\'t be removed!\n It\'s the last track of the File!"));
+		QMessageBox::warning(this, "Error", QString("The selected track can\'t be removed!\n It\'s the last track of the file."));
 	}
 	file->protocol()->endAction();
 	updateTrackMenu();
@@ -1583,7 +1594,7 @@ void MainWindow::muteAllTracks(){
 
 void MainWindow::unmuteAllTracks(){
 	if(!file) return;
-	file->protocol()->startNewAction("Unmute all tracks");
+	file->protocol()->startNewAction("All tracks audible");
 	foreach(MidiTrack *track, *(file->tracks())){
 		track->setMuted(false);
 	}
@@ -1978,13 +1989,13 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     fileMB->addAction(quitAction);
 
     // Edit
-    QAction *undoAction = new QAction("Undo", this);
+	undoAction = new QAction("Undo", this);
 	undoAction->setShortcut(QKeySequence::Undo);
     undoAction->setIcon(QIcon("graphics/tool/undo.png"));
     connect(undoAction, SIGNAL(triggered()), this, SLOT(undo()));
     editMB->addAction(undoAction);
 
-    QAction *redoAction = new QAction("Redo", this);
+	redoAction = new QAction("Redo", this);
 	redoAction->setShortcut(QKeySequence::Redo);
     redoAction->setIcon(QIcon("graphics/tool/redo.png"));
     connect(redoAction, SIGNAL(triggered()), this, SLOT(redo()));
@@ -2023,16 +2034,17 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     editMB->addSeparator();
 
 	QAction *copyAction = new QAction("Copy events", this);
+	_activateWithSelections.append(copyAction);
 	copyAction->setIcon(QIcon("graphics/tool/copy.png"));
 	copyAction->setShortcut(QKeySequence::Copy);
     connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
     editMB->addAction(copyAction);
 
-	QAction *pasteAction = new QAction("Paste events", this);
-	pasteAction->setToolTip("Paste events at cursor position");
-	pasteAction->setShortcut(QKeySequence::Paste);
-	pasteAction->setIcon(QIcon("graphics/tool/paste.png"));
-	connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
+	_pasteAction = new QAction("Paste events", this);
+	_pasteAction->setToolTip("Paste events at cursor position");
+	_pasteAction->setShortcut(QKeySequence::Paste);
+	_pasteAction->setIcon(QIcon("graphics/tool/paste.png"));
+	connect(_pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
 
 	_pasteToTrackMenu = new QMenu("Paste to track...");
 	_pasteToChannelMenu = new QMenu("Paste to channel...");
@@ -2060,7 +2072,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 		pasteToChannelAction->setChecked(i<0);
 	}
 	pasteOptionsMenu->addMenu(_pasteToTrackMenu);
-	editMB->addAction(pasteAction);
+	editMB->addAction(_pasteAction);
 	editMB->addMenu(pasteOptionsMenu);
 
 	editMB->addSeparator();
@@ -2075,7 +2087,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	StandardTool *tool = new StandardTool();
 	Tool::setCurrentTool(tool);
-	QAction *stdToolAction = new ToolButton(tool, QKeySequence(Qt::Key_F1), toolsToolsMenu);
+	stdToolAction = new ToolButton(tool, QKeySequence(Qt::Key_F1), toolsToolsMenu);
 	toolsToolsMenu->addAction(stdToolAction);
 	tool->buttonClick();
 
@@ -2090,12 +2102,16 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	toolsToolsMenu->addSeparator();
 	QAction *moveAllAction = new ToolButton(new EventMoveTool(true, true), QKeySequence(Qt::Key_F6), toolsToolsMenu);
+	_activateWithSelections.append(moveAllAction);
 	toolsToolsMenu->addAction(moveAllAction);
 	QAction *moveLRAction = new ToolButton(new EventMoveTool(false, true), QKeySequence(Qt::Key_F7), toolsToolsMenu);
+	_activateWithSelections.append(moveLRAction);
 	toolsToolsMenu->addAction(moveLRAction);
 	QAction *moveUDAction = new ToolButton(new EventMoveTool(true, false), QKeySequence(Qt::Key_F8), toolsToolsMenu);
+	_activateWithSelections.append(moveUDAction);
 	toolsToolsMenu->addAction(moveUDAction);
 	QAction *sizeChangeAction = new ToolButton(new SizeChangeTool(), QKeySequence(Qt::Key_F9), toolsToolsMenu);
+	_activateWithSelections.append(sizeChangeAction);
 	toolsToolsMenu->addAction(sizeChangeAction);
 
 	toolsToolsMenu->addSeparator();
@@ -2108,6 +2124,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	toolsMB->addMenu(toolsToolsMenu);
 
 	QAction *deleteAction = new QAction("Remove events", this);
+	_activateWithSelections.append(deleteAction);
 	deleteAction->setToolTip("Remove selected events");
 	deleteAction->setShortcut(QKeySequence::Delete);
     deleteAction->setIcon(QIcon("graphics/tool/eraser.png"));
@@ -2117,18 +2134,21 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	toolsMB->addSeparator();
 
 	QAction *alignLeftAction = new QAction("Align left", this);
+	_activateWithSelections.append(alignLeftAction);
 	alignLeftAction->setShortcut(QKeySequence(Qt::Key_Left + Qt::CTRL));
     alignLeftAction->setIcon(QIcon("graphics/tool/align_left.png"));
     connect(alignLeftAction, SIGNAL(triggered()), this, SLOT(alignLeft()));
 	toolsMB->addAction(alignLeftAction);
 
 	QAction *alignRightAction = new QAction("Align right", this);
+	_activateWithSelections.append(alignRightAction);
 	alignRightAction->setIcon(QIcon("graphics/tool/align_right.png"));
 	alignRightAction->setShortcut(QKeySequence(Qt::Key_Right + Qt::CTRL));
     connect(alignRightAction, SIGNAL(triggered()), this, SLOT(alignRight()));
 	toolsMB->addAction(alignRightAction);
 
 	QAction *equalizeAction = new QAction("Equalize selection", this);
+	_activateWithSelections.append(equalizeAction);
 	equalizeAction->setIcon(QIcon("graphics/tool/equalize.png"));
 	equalizeAction->setShortcut(QKeySequence(Qt::Key_Up + Qt::CTRL));
     connect(equalizeAction, SIGNAL(triggered()), this, SLOT(equalize()));
@@ -2137,6 +2157,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	toolsMB->addSeparator();
 
 	QAction *quantizeAction = new QAction("Quantify selection", this);
+	_activateWithSelections.append(quantizeAction);
 	quantizeAction->setIcon(QIcon("graphics/tool/quantize.png"));
 	quantizeAction->setShortcut(QKeySequence(Qt::Key_G + Qt::CTRL));
 	connect(quantizeAction, SIGNAL(triggered()), this, SLOT(quantizeSelection()));
@@ -2152,19 +2173,13 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 		QString text = "";
 
 		if(i == 0){
-			text = "Whole note (semibreve)";
+			text = "Whole note";
 		} else if(i == 1){
-			text = "Half note (minim)";
+			text = "Half note";
 		} else if(i == 2){
-			text = "Quarter note (crotchet)";
+			text = "Quarter note";
 		} else {
 			text = QString::number((int)qPow(2, i))+"th note";
-			if(i == 3){
-				text += " (quaver)";
-			}
-			if(i == 4){
-				text += " (semiquaver)";
-			}
 		}
 
 		QAction *a = new QAction(text, this);
@@ -2178,20 +2193,23 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	toolsMB->addMenu(quantMenu);
 
 	QAction *quantizeNToleAction = new QAction("Quantify tuplet...", this);
+	_activateWithSelections.append(quantizeNToleAction);
 	quantizeNToleAction->setShortcut(QKeySequence(Qt::Key_H + Qt::CTRL + Qt::SHIFT));
 	connect(quantizeNToleAction, SIGNAL(triggered()), this, SLOT(quantizeNtoleDialog()));
 	toolsMB->addAction(quantizeNToleAction);
 
 	QAction *quantizeNToleActionRepeat = new QAction("Repeat tuplet quantization", this);
+	_activateWithSelections.append(quantizeNToleActionRepeat);
 	quantizeNToleActionRepeat->setShortcut(QKeySequence(Qt::Key_H + Qt::CTRL));
 	connect(quantizeNToleActionRepeat, SIGNAL(triggered()), this, SLOT(quantizeNtole()));
 	toolsMB->addAction(quantizeNToleActionRepeat);
 
-	toolsMB->addSeparator();
+	//toolsMB->addSeparator();
 
 	QAction *spreadAction = new QAction("Spread selection", this);
+	_activateWithSelections.append(spreadAction);
     connect(spreadAction, SIGNAL(triggered()), this, SLOT(spreadSelection()));
-	toolsMB->addAction(spreadAction);
+	//toolsMB->addAction(spreadAction);
 
 	toolsMB->addSeparator();
 
@@ -2230,6 +2248,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	toolsMB->addSeparator();
 
 	QAction *transposeAction = new QAction("Transpose selection...", this);
+	_activateWithSelections.append(transposeAction);
 	transposeAction->setShortcut(QKeySequence(Qt::Key_T + Qt::CTRL));
     connect(transposeAction, SIGNAL(triggered()), this, SLOT(transposeNSemitones()));
 	toolsMB->addAction(transposeAction);
@@ -2241,6 +2260,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	toolsMB->addAction(setFileLengthMs);
 
 	QAction *scaleSelection = new QAction("Scale events", this);
+	_activateWithSelections.append(scaleSelection);
 	connect(scaleSelection, SIGNAL(triggered()), this,SLOT(scaleSelection()));
 	toolsMB->addAction(scaleSelection);
 
@@ -2328,19 +2348,13 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 		QVariant variant(i);
 		QString text = "Off";
 		if(i == 0){
-			text = "Whole note (semibreve)";
+			text = "Whole note";
 		} else if(i == 1){
-			text = "Half note (minim)";
+			text = "Half note";
 		} else if(i == 2){
-			text = "Quarter note (crotchet)";
+			text = "Quarter note";
 		} else if(i>0){
 			text = QString::number((int)qPow(2, i))+"th note";
-			if(i == 3){
-				text += " (quaver)";
-			}
-			if(i == 4){
-				text += " (semiquaver)";
-			}
 		}
 		QAction *a = new QAction(text, this);
 		a->setData(variant);
@@ -2543,7 +2557,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	lowerTB->addAction(copyAction);
 
-	QAction *pasteActionTB = new QAction("Paste events", this);
+	pasteActionTB = new QAction("Paste events", this);
 	pasteActionTB->setToolTip("Paste events at cursor position");
 	pasteActionTB->setIcon(QIcon("graphics/tool/paste.png"));
 	connect(pasteActionTB, SIGNAL(triggered()), this, SLOT(paste()));
@@ -2660,7 +2674,7 @@ void MainWindow::quantizeSelection(){
 	// get list with all quantization ticks
 	QList<int> ticks = file->quantization(_quantizationGrid);
 
-	file->protocol()->startNewAction("Quantify events");
+	file->protocol()->startNewAction("Quantify events", new QImage("graphics/tool/quantize.png"));
 	foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 		int onTime = e->midiTime();
 		e->setMidiTime(quantize(onTime, ticks));
@@ -2732,7 +2746,7 @@ void MainWindow::quantizeNtole(){
 	// get list with all quantization ticks
 	QList<int> ticks = file->quantization(_quantizationGrid);
 
-	file->protocol()->startNewAction("Quantify tuplet");
+	file->protocol()->startNewAction("Quantify tuplet", new QImage("graphics/tool/quantize.png"));
 
 	// find minimum starting time
 	int startTick = -1;
@@ -2779,4 +2793,36 @@ void MainWindow::quantizeNtole(){
 void MainWindow::setSpeed(QAction *action){
 	double d = action->data().toDouble();
 	MidiPlayer::setSpeedScale(d);
+}
+
+void MainWindow::checkEnableActionsForSeelction(){
+	bool enabled = Selection::instance()->selectedEvents().size()>0;
+	foreach(QAction *action, _activateWithSelections){
+		action->setEnabled(enabled);
+	}
+	if(_moveSelectedEventsToChannelMenu){
+		_moveSelectedEventsToChannelMenu->setEnabled(enabled);
+	}
+	if(_moveSelectedEventsToTrackMenu){
+		_moveSelectedEventsToTrackMenu->setEnabled(enabled);
+	}
+	if(Tool::currentTool() && Tool::currentTool()->button() && !Tool::currentTool()->button()->isEnabled()){
+		stdToolAction->trigger();
+	}
+	if(file){
+		undoAction->setEnabled(file->protocol()->stepsBack()>1);
+		redoAction->setEnabled(file->protocol()->stepsForward()>0);
+	}
+}
+
+void MainWindow::toolChanged(){
+	checkEnableActionsForSeelction();
+	_miscWidget->update();
+	mw_matrixWidget->update();
+}
+
+void MainWindow::copiedEventsChanged(){
+	bool enable = EventTool::copiedEvents->size()>0;
+	_pasteAction->setEnabled(enable);
+	pasteActionTB->setEnabled(enable);
 }

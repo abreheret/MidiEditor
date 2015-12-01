@@ -107,7 +107,7 @@ class MidiChannel : public ProtocolEntry {
 		/**
 		 * \brief removes event from the eventMap.
 		 */
-		void removeEvent(MidiEvent *event);
+		bool removeEvent(MidiEvent *event);
 
 		/**
 		 * \brief returns the program number of the midi program at tick.

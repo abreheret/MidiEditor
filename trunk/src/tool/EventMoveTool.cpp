@@ -38,10 +38,10 @@ EventMoveTool::EventMoveTool(bool upDown, bool leftRight) : EventTool() {
 		setToolTipText("Move Events (all directions)");
 	} else if(moveUpDown){
 		setImage("move_up_down.png");
-		setToolTipText("Move Events (Up and Down)");
+		setToolTipText("Move Events (up and down)");
 	} else {
 		setImage("move_left_right.png");
-		setToolTipText("Move Events (Left and Right)");
+		setToolTipText("Move Events (left and right)");
 	}
 }
 
@@ -84,8 +84,13 @@ void EventMoveTool::draw(QPainter *painter){
 		if(!moveUpDown){
 			shiftY = 0;
 		}
-		int lineHeight = matrixWidget->lineHeight();
-		shiftY = shiftY/lineHeight*lineHeight;
+		double lineHeight = matrixWidget->lineHeight();
+		int nLines = qAbs(shiftY)/lineHeight;
+		if(shiftY<0){
+			shiftY = -nLines*lineHeight;
+		} else {
+			shiftY = nLines*lineHeight;
+		}
 		foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 			int customShiftY = shiftY;
 			if(event->line()>127){
@@ -136,7 +141,7 @@ bool EventMoveTool::release(){
 	if(!moveUpDown){
 		shiftY = 0;
 	}
-	int lineHeight = matrixWidget->lineHeight();
+	double lineHeight = matrixWidget->lineHeight();
 	int numLines = shiftY/lineHeight;
 
 	// return when there shiftX/shiftY is too small or there are no selected
@@ -152,7 +157,7 @@ bool EventMoveTool::release(){
 		return true;
 	}
 
-	currentProtocol()->startNewAction("Move Notes", image());
+	currentProtocol()->startNewAction("Move events", image());
 
 	// backwards to hold stability
 	for(int i = Selection::instance()->selectedEvents().count()-1;i>=0;i--){
@@ -164,8 +169,8 @@ bool EventMoveTool::release(){
 			if(note<0){
 				note = 0;
 			}
-			if(note>128){
-				note = 128;
+			if(note>127){
+				note = 127;
 			}
 			ev->setNote(note);
 			changeTick(ev, shiftX);

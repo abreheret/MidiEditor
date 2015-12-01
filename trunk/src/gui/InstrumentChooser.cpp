@@ -49,12 +49,12 @@ InstrumentChooser::InstrumentChooser(MidiFile *f, int channel, QWidget *parent) 
 				progAtTick(0));
 
 	QLabel *endText = new QLabel("<b>Warning:</b> this will edit the event at tick 0 of the file."
-			"<br>If there is a ProgramChangeEvent after this tick,"
+			"<br>If there is a Program Change Event after this tick,"
 			"<br>the instrument selected there will be audible!"
-			"<br>If you want all other ProgramChangeEvents to be"
-			"<br>removed, select the box below!");
+			"<br>If you want all other Program Change Events to be"
+			"<br>removed, select the box below.");
 
-	_removeOthers = new QCheckBox("Remove other ProgramChangeEvents", this);
+	_removeOthers = new QCheckBox("Remove other Program Change Events", this);
 
 	QPushButton *breakButton = new QPushButton("Cancel");
 	connect(breakButton, SIGNAL(clicked()), this, SLOT(hide()));
@@ -93,7 +93,7 @@ void InstrumentChooser::accept(){
 
 	ProgChangeEvent *event = 0;
 
-	_file->protocol()->startNewAction("Edited Instrument for Channel");
+	_file->protocol()->startNewAction("Edited instrument for channel");
 	if(events.size()>0 && events.first()->midiTime() == 0){
 		event = events.first();
 		event->setProgram(program);

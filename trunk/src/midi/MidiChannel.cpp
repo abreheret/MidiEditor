@@ -173,12 +173,12 @@ NoteOnEvent* MidiChannel::insertNote(int note, int startTick, int endTick,int ve
 	return onEvent;
 }
 
-void MidiChannel::removeEvent(MidiEvent *event){
+bool MidiChannel::removeEvent(MidiEvent *event){
 
 	// if its once TimeSig / TempoChange at 0, dont delete event
 	if(number()==18 || number()==17){
-		if(event->midiTime()==0 && _events->count(0) == 1){
-			return;
+		if((event->midiTime()==0) && (_events->count(0) == 1)){
+			return false;
 		}
 	}
 
@@ -198,6 +198,7 @@ void MidiChannel::removeEvent(MidiEvent *event){
 	//if(MidiEvent::eventWidget()->events().contains(event)){
 	//	MidiEvent::eventWidget()->removeEvent(event);
 	//}
+	return true;
 }
 
 void MidiChannel::insertEvent(MidiEvent *event, int tick){

@@ -1140,6 +1140,10 @@ void MidiFile::addTrack(){
 	}
 	_tracks->append(track);
 	track->setName("New Track");
+	int n = 0;
+	foreach(MidiTrack *track, *_tracks){
+		track->setNumber(n++);
+	}
 	ProtocolEntry::protocol(toCopy, this);
 	connect(track, SIGNAL(trackChanged()), this, SIGNAL(trackChanged()));
 }
@@ -1161,16 +1165,19 @@ bool MidiFile::removeTrack(MidiTrack *track){
 		}
 	}
 
+	_tracks->removeAll(track);
+
 	QMultiMap<int, MidiEvent*>::iterator it=allEvents.begin();
 	while(it!=allEvents.end()){
 		MidiEvent *event = it.value();
 		if(event->track() == track){
-			channels[event->channel()]->removeEvent(event);
+			if(!channels[event->channel()]->removeEvent(event)){
+				event->setTrack(_tracks->first());
+			}
 		}
 		it++;
 	}
 
-	_tracks->removeAll(track);
 
 	// remove links from pasted tracks
 	foreach(MidiFile *fileFrom, pasteTracks.keys()){
@@ -1186,6 +1193,11 @@ bool MidiFile::removeTrack(MidiTrack *track){
 		}
 		pasteTracks.insert(fileFrom, tracks);
 	}
+	int n = 0;
+	foreach(MidiTrack *track, *_tracks){
+		track->setNumber(n++);
+	}
+
 	ProtocolEntry::protocol(toCopy, this);
 
 	return true;

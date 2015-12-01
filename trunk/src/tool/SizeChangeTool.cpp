@@ -34,7 +34,7 @@ SizeChangeTool::SizeChangeTool() : EventTool() {
 	xPos = 0;
 	dragsOnEvent = false;
 	setImage("change_size.png");
-	setToolTipText("Change the width of the selected Event");
+	setToolTipText("Change the duration of the selected event");
 }
 
 SizeChangeTool::SizeChangeTool(SizeChangeTool &other) : EventTool(other){
@@ -143,7 +143,7 @@ bool SizeChangeTool::release(){
 	}
 	xPos = 0;
 	if(Selection::instance()->selectedEvents().count()>0) {
-		currentProtocol()->startNewAction("change size", image());
+		currentProtocol()->startNewAction("Change event duration", image());
 		foreach(MidiEvent* event,  Selection::instance()->selectedEvents()){
 			OnEvent *on = dynamic_cast<OnEvent*>(event);
 			OffEvent *off = dynamic_cast<OffEvent*>(event);

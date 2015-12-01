@@ -138,32 +138,36 @@ void MiscWidget::paintEvent(QPaintEvent *event){
         }
 
         // paint selected events above all others
-		foreach(MidiEvent* event, Selection::instance()->selectedEvents()){
+		EventTool *t = dynamic_cast<EventTool*>(Tool::currentTool());
+		if(t && t->showsSelection()){
+			foreach(MidiEvent* event, Selection::instance()->selectedEvents()){
 
-			if(!event->file()->channel(event->channel())->visible()){
-				continue;
+				if(!event->file()->channel(event->channel())->visible()){
+					continue;
+				}
+
+				if(event->track()->hidden()){
+					continue;
+				}
+
+
+				int velocity = 0;
+				NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
+
+				if(noteOn && noteOn->midiTime()>=matrixWidget->minVisibleMidiTime() && noteOn->midiTime()<=matrixWidget->maxVisibleMidiTime()){
+					velocity=noteOn->velocity();
+				}
+				if(velocity>0){
+					int h = (height()*velocity)/128;
+					if(edit_mode==SINGLE_MODE && dragging){
+						h+=(dragY-mouseY);
+					}
+					painter->setBrush(Qt::darkBlue);
+					painter->setPen(Qt::lightGray);
+					painter->drawRoundedRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h, WIDTH, h, 1, 1);
+				}
 			}
-
-			if(event->track()->hidden()){
-				continue;
-			}
-
-            int velocity = 0;
-            NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
-
-            if(noteOn && noteOn->midiTime()>=matrixWidget->minVisibleMidiTime() && noteOn->midiTime()<=matrixWidget->maxVisibleMidiTime()){
-                velocity=noteOn->velocity();
-            }
-            if(velocity>0){
-                int h = (height()*velocity)/128;
-                if(edit_mode==SINGLE_MODE && dragging){
-                    h+=(dragY-mouseY);
-                }
-                painter->setBrush(Qt::darkBlue);
-                painter->setPen(Qt::lightGray);
-                painter->drawRoundedRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h, WIDTH, h, 1, 1);
-            }
-        }
+		}
     }
 
 
@@ -394,7 +398,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
                         int h = (height()*velocity)/128;
                         if(mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
                             matrixWidget->midiFile()->protocol()->
-                                    startNewAction("Changed Selection");
+									startNewAction("Changed selection");
 							ProtocolEntry* toCopy = _dummyTool->copy();
                             EventTool::selectEvent(event, true);
                             matrixWidget->update();
@@ -410,7 +414,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
             // if nothing selected deselect all
 			if(Selection::instance()->selectedEvents().size()>0 && !clickHandlesSelected && !selectedNew){
                 matrixWidget->midiFile()->protocol()->
-                        startNewAction("Cleared Selection");
+						startNewAction("Cleared selection");
 				ProtocolEntry* toCopy = _dummyTool->copy();
                 EventTool::clearSelection();
 				_dummyTool->protocol(toCopy, _dummyTool);
@@ -439,7 +443,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
 
 					if(accordingEvents.at(i)){
 						matrixWidget->midiFile()->protocol()->
-								startNewAction("Changed Selection");
+								startNewAction("Changed selection");
 						ProtocolEntry* toCopy = _dummyTool->copy();
 						EventTool::clearSelection();
 						EventTool::selectEvent(accordingEvents.at(i), true, true);
@@ -488,7 +492,7 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 
                 if(dX<-3 || dX>3){
                     matrixWidget->midiFile()->protocol()->
-							startNewAction("Changed Velocity");
+							startNewAction("Edited velocity");
 
                     int dV = 127*dX/height();
 					foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
@@ -749,7 +753,7 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 				if(events.size()>0){
 
 					matrixWidget->midiFile()->protocol()->
-							startNewAction("Changed Velocity");
+							startNewAction("Changed velocity");
 
 					// process per event
 					foreach(MidiEvent *event, events){
@@ -923,7 +927,7 @@ QList<QPair<int, int> > MiscWidget::getTrack(QList<MidiEvent*> *accordingEvents)
     QList<QPair<int, int> > track;
 
     // get list of all events in window
-    QList<MidiEvent*> *list = matrixWidget->velocityEvents();
+	QList<MidiEvent*> *list = matrixWidget->velocityEvents();
 
     // get all events before the start tick to find out value before start
     int startTick = matrixWidget->minVisibleMidiTime();
@@ -957,7 +961,7 @@ QList<QPair<int, int> > MiscWidget::getTrack(QList<MidiEvent*> *accordingEvents)
 		accordingEvents->append(evBef);
 	}
     // filter and extract values
-    for(int i = 0; i<list->size(); i++){
+	for(int i = list->size()-1; i>=0; i--){
         if(list->at(i) && list->at(i)->channel() == channel){
             QPair<int, int> p = processEvent(list->at(i), &ok);
             if(ok){

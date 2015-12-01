@@ -141,7 +141,7 @@ void Protocol::goTo(ProtocolStep *toGo){
 	if(_undoSteps->contains(toGo)){
 
 		// do undo() until toGo is the last Step on the undoStack
-		while(_undoSteps->last()!=toGo){
+		while(_undoSteps->last()!=toGo && _undoSteps->size()>1){
 			undo(false);
 		}
 

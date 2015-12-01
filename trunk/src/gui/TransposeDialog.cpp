@@ -29,7 +29,7 @@
 
 TransposeDialog::TransposeDialog(QList<NoteOnEvent*> toTranspose, MidiFile *file, QWidget *parent){
 
-	QLabel *text = new QLabel("Number of Semitones: ", this);
+	QLabel *text = new QLabel("Number of semitones: ", this);
 	_valueBox = new QSpinBox(this);
 	_valueBox->setMinimum(1);
 	_valueBox->setMaximum(2147483647);
@@ -63,7 +63,7 @@ TransposeDialog::TransposeDialog(QList<NoteOnEvent*> toTranspose, MidiFile *file
 
 void TransposeDialog::accept(){
 
-	_file->protocol()->startNewAction("Transpose");
+	_file->protocol()->startNewAction("Transpose selection");
 
 	int num = _valueBox->value();
 	if(_down->isChecked()){
@@ -72,7 +72,7 @@ void TransposeDialog::accept(){
 	foreach(NoteOnEvent* onEvent, _toTranspose){
 		int oldVal = onEvent->note();
 
-		if(oldVal + num >= 0 && oldVal + num <= 128){
+		if(oldVal + num >= 0 && oldVal + num < 128){
 			onEvent->setNote(oldVal+num);
 		}
 	}

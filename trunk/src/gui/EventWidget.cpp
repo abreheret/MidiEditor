@@ -323,7 +323,7 @@ void EventWidgetDelegate::setModelData(QWidget *editor, QAbstractItemModel *mode
 	EventWidget::EditorField field = static_cast<EventWidget::EditorField>(index.data(Qt::UserRole).toInt());
 
 	// set values
-	eventWidget->file()->protocol()->startNewAction("Edited "+index.data(Qt::UserRole+1).toString());
+	eventWidget->file()->protocol()->startNewAction("Edited "+index.data(Qt::UserRole+1).toString().toLower());
 	switch(field){
 		case EventWidget::MidiEventTick: {
 			QSpinBox *spin = dynamic_cast<QSpinBox*>(editor);

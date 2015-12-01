@@ -29,7 +29,7 @@ FileLengthDialog::FileLengthDialog(MidiFile *f, QWidget *parent) :
 		QDialog(parent)
 {
 	_file = f;
-	QLabel *text = new QLabel("Max. Time: ", this);
+	QLabel *text = new QLabel("File duration (ms): ", this);
 	_box = new QSpinBox(this);
 	_box->setMinimum(1);
 	_box->setMaximum(2147483647);
@@ -49,10 +49,11 @@ FileLengthDialog::FileLengthDialog(MidiFile *f, QWidget *parent) :
 	connect(_box, SIGNAL(valueChanged(int)), acceptButton, SLOT(setFocus()));
 
 	acceptButton->setFocus();
+	setWindowTitle("File duration");
 }
 
 void FileLengthDialog::accept(){
-	_file->protocol()->startNewAction("Change max. Length");
+	_file->protocol()->startNewAction("Change file duration");
 	_file->setMaxLengthMs(_box->value());
 	_file->protocol()->endAction();
 	hide();

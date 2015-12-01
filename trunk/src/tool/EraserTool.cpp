@@ -23,10 +23,11 @@
 #include "../midi/MidiFile.h"
 #include "../MidiEvent/MidiEvent.h"
 #include "../protocol/Protocol.h"
+#include "Selection.h"
 
 EraserTool::EraserTool()  : EventTool(){
 	setImage("eraser.png");
-	setToolTipText("Eraser (deletes Events)");
+	setToolTipText("Eraser (remove Events)");
 }
 
 EraserTool::EraserTool(EraserTool &other) : EventTool(other){
@@ -61,12 +62,15 @@ bool EraserTool::move(int mouseX, int mouseY){
 }
 
 bool EraserTool::release(){
-	currentProtocol()->startNewAction("Remove Event(s)", image());
+	currentProtocol()->startNewAction("Remove event", image());
 	foreach(MidiEvent *ev, *(matrixWidget->activeEvents())){
 		if(pointInRect(mouseX, mouseY, ev->x(), ev->y(), ev->x()+ev->width(),
 				ev->y()+ev->height()))
 		{
 			file()->channel(ev->channel())->removeEvent(ev);
+			if(Selection::instance()->selectedEvents().contains(ev)){
+				deselectEvent(ev);
+			}
 		}
 	}
 	currentProtocol()->endAction();
