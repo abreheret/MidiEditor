@@ -41,19 +41,13 @@ NToleQuantizationDialog::NToleQuantizationDialog(QWidget *parent) : QDialog(pare
 		QString text = "";
 
 		if(i == 0){
-			text = "Whole note (semibreve)";
+			text = "Whole note";
 		} else if(i == 1){
-			text = "Half note (minim)";
+			text = "Half note";
 		} else if(i == 2){
-			text = "Quarter note (crotchet)";
+			text = "Quarter note";
 		} else {
 			text = QString::number((int)qPow(2, i))+"th note";
-			if(i == 3){
-				text += " (quaver)";
-			}
-			if(i == 4){
-				text += " (semiquaver)";
-			}
 		}
 
 		ntoleBeat->addItem(text);

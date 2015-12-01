@@ -212,7 +212,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 		// fill the pianos background white
 		int pianoKeys = numLines;
 		if(endLineY>127){
-			pianoKeys-=(endLineY-128);
+			pianoKeys-=(endLineY-127);
 		}
 		if(pianoKeys>0){
             pixpainter->fillRect(0, timeHeight,lineNameWidth-10,
@@ -381,6 +381,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 		pixpainter->setClipping(false);
 
 		pixpainter->setPen(Qt::black);
+
 
 
 

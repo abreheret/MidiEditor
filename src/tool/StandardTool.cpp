@@ -63,12 +63,18 @@ bool StandardTool::press(bool leftClick){
 	if(leftClick){
 		// find event to handle
 		MidiEvent *event = 0;
+		bool onSelectedEvent = false;
 		int minDiffToMouse = 0;
 		int action = NO_ACTION;
 		foreach(MidiEvent *ev, *(matrixWidget->activeEvents())){
 			if(pointInRect(mouseX, mouseY, ev->x()-2, ev->y(), ev->x()+ev->width()+2,
 					ev->y()+ev->height()))
 			{
+
+				if(Selection::instance()->selectedEvents().contains(ev)){
+					onSelectedEvent = true;
+				}
+
 				int diffToMousePos = 0;
 				int currentAction = NO_ACTION;
 
@@ -132,12 +138,13 @@ bool StandardTool::press(bool leftClick){
 				}
 
 				case SIZE_CHANGE_ACTION: {
-					file()->protocol()->startNewAction("Selection changed", image());
-					ProtocolEntry* toCopy = copy();
-					EventTool::selectEvent(event, !Selection::instance()->selectedEvents().contains(event));
-					protocol(toCopy, this);
-					file()->protocol()->endAction();
-
+					if(!onSelectedEvent){
+						file()->protocol()->startNewAction("Selection changed", image());
+						ProtocolEntry* toCopy = copy();
+						EventTool::selectEvent(event, !Selection::instance()->selectedEvents().contains(event));
+						protocol(toCopy, this);
+						file()->protocol()->endAction();
+					}
 					Tool::setCurrentTool(sizeChangeTool);
 					sizeChangeTool->move(mouseX, mouseY);
 					sizeChangeTool->press(leftClick);
@@ -145,11 +152,13 @@ bool StandardTool::press(bool leftClick){
 				}
 
 				case MOVE_ACTION: {
-					file()->protocol()->startNewAction("Moved Events", image());
-					ProtocolEntry* toCopy = copy();
-					EventTool::selectEvent(event, !Selection::instance()->selectedEvents().contains(event));
-					protocol(toCopy, this);
-					file()->protocol()->endAction();
+					if(!onSelectedEvent){
+						file()->protocol()->startNewAction("Selection changed", image());
+						ProtocolEntry* toCopy = copy();
+						EventTool::selectEvent(event, !Selection::instance()->selectedEvents().contains(event));
+						protocol(toCopy, this);
+						file()->protocol()->endAction();
+					}
 /* TODO reenable
 					if(altGrPressed){
 						moveTool->setDirections(true, false);

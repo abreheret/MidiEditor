@@ -48,7 +48,7 @@ NewNoteTool::NewNoteTool() : EventTool() {
 	_channel = 0;
 	_track = 0;
 	setImage("newnote.png");
-	setToolTipText("Create new Events (Adds the Events to the edited Channel)");
+	setToolTipText("Create new Events");
 }
 
 NewNoteTool::NewNoteTool(NewNoteTool &other) : EventTool(other){
@@ -115,7 +115,7 @@ bool NewNoteTool::release(){
 
 		// note
 		if(line>=0 && line<=127){
-			currentProtocol()->startNewAction("Create Note", image());
+			currentProtocol()->startNewAction("Create note", image());
 
 			if(startTick == -1){
 				int startMs = matrixWidget->msOfXPos(xPos);

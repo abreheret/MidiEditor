@@ -53,7 +53,7 @@ QString MidiTrack::name(){
 	if(_nameEvent){
 		return _nameEvent->text();
 	}
-	return "untitled track";
+	return "Untitled track";
 }
 
 void MidiTrack::setName(QString name){
@@ -125,7 +125,9 @@ void MidiTrack::reloadState(ProtocolEntry *entry){
 	if(!other){
 		return;
 	}
-	_number = other->_number;
+	if(_number != other->number()){
+		setNumber(other->_number);
+	}
 	_nameEvent = other->_nameEvent;
 	_file = other->_file;
 	_hidden = other->_hidden;

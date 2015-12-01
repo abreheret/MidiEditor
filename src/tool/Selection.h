@@ -5,6 +5,7 @@
 
 #include <QList>
 class MidiEvent;
+class EventWidget;
 
 class Selection : public ProtocolEntry {
 
@@ -25,6 +26,7 @@ class Selection : public ProtocolEntry {
 		void setSelection(QList<MidiEvent*> selections);
 		void clearSelection();
 
+		static EventWidget *_eventWidget;
 	private:
 		QList<MidiEvent*> _selectedEvents;
 		static Selection *_selectionInstance;

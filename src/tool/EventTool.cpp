@@ -81,8 +81,6 @@ void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 	}
 
 	Selection::instance()->setSelection(selected);
-
-	_mainWindow->eventWidget()->setEvents(selected);
 	_mainWindow->eventWidget()->reportSelectionChangedByTool();
 }
 
@@ -99,8 +97,6 @@ void EventTool::deselectEvent(MidiEvent *event){
 
 void EventTool::clearSelection(){
 	Selection::instance()->clearSelection();
-	_mainWindow->eventWidget()->setEvents(Selection::instance()->selectedEvents());
-	_mainWindow->eventWidget()->reload();
 	_mainWindow->eventWidget()->reportSelectionChangedByTool();
 }
 
@@ -161,28 +157,31 @@ void EventTool::changeTick(MidiEvent* event, int shiftX) {
 
 void EventTool::copyAction(){
 
-	// clear old copied Events
-	copiedEvents->clear();
+	if(Selection::instance()->selectedEvents().size()>0){
+		// clear old copied Events
+		copiedEvents->clear();
 
-	foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
+		foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 
-		// add the current Event
-		MidiEvent *ev = dynamic_cast<MidiEvent*>(event->copy());
-		if(ev){
-			// do not append off event here
-			OffEvent *off = dynamic_cast<OffEvent*>(ev);
-			if(!off){
-				copiedEvents->append(ev);
+			// add the current Event
+			MidiEvent *ev = dynamic_cast<MidiEvent*>(event->copy());
+			if(ev){
+				// do not append off event here
+				OffEvent *off = dynamic_cast<OffEvent*>(ev);
+				if(!off){
+					copiedEvents->append(ev);
+				}
+			}
+
+			// if its onEvent, add a copy of the OffEvent
+			OnEvent *onEv = dynamic_cast<OnEvent*>(ev);
+			if(onEv){
+				OffEvent *offEv = dynamic_cast<OffEvent*>(onEv->offEvent()->copy());
+				offEv->setOnEvent(onEv);
+				copiedEvents->append(offEv);
 			}
 		}
-
-		// if its onEvent, add a copy of the OffEvent
-		OnEvent *onEv = dynamic_cast<OnEvent*>(ev);
-		if(onEv){
-			OffEvent *offEv = dynamic_cast<OffEvent*>(onEv->offEvent()->copy());
-			offEv->setOnEvent(onEv);
-			copiedEvents->append(offEv);
-		}
+		_mainWindow->copiedEventsChanged();
 	}
 }
 
@@ -221,7 +220,7 @@ void EventTool::pasteAction(){
 
 		// Begin a new ProtocolAction
 		currentFile()->protocol()->startNewAction("Paste "+
-				QString::number(copiedCopiedEvents.count())+" Events");
+				QString::number(copiedCopiedEvents.count())+" events");
 
 		double tickscale = 1;
 		if(currentFile() != copiedEvents->first()->file()){

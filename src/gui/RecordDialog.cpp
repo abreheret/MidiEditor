@@ -58,7 +58,7 @@ RecordDialog::RecordDialog(MidiFile *file, QMultiMap<int, MidiEvent*> data, QSet
 
 	setWindowTitle("Add "+QString::number(data.size())+ " recorded Events");
 	// track
-	QLabel *tracklabel = new QLabel("Add to Track: ", this);
+	QLabel *tracklabel = new QLabel("Add to track: ", this);
 	layout->addWidget(tracklabel, 1, 0, 1, 1);
 	_trackBox = new QComboBox(this);
 	_trackBox->addItem("Same as selected for new events");
@@ -73,7 +73,7 @@ RecordDialog::RecordDialog(MidiFile *file, QMultiMap<int, MidiEvent*> data, QSet
 	_trackBox->setCurrentIndex(oldTrack);
 
 	// channel
-	QLabel *channellabel = new QLabel("Add to Channel: ", this);
+	QLabel *channellabel = new QLabel("Add tochannel: ", this);
 	layout->addWidget(channellabel, 2, 0, 1, 1);
 	_channelBox = new QComboBox(this);
 	_channelBox->addItem("Same as selected for new events");

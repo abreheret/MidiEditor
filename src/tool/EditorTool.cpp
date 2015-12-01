@@ -86,6 +86,7 @@ void EditorTool::select(){
     if(_button){
         _button->setChecked(true);
     }
+	_mainWindow->toolChanged();
 }
 
 bool EditorTool::selected(){

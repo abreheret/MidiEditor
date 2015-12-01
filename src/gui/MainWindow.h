@@ -156,6 +156,10 @@ class MainWindow : public QMainWindow {
 
 		void setSpeed(QAction*);
 
+		void checkEnableActionsForSeelction();
+		void toolChanged();
+		void copiedEventsChanged();
+
 	protected:
 		void closeEvent(QCloseEvent *event);
 		void keyPressEvent(QKeyEvent* e);
@@ -190,13 +194,14 @@ class MainWindow : public QMainWindow {
 
         QComboBox *_miscMode, *_miscController, *_miscChannel;
 		QAction *setSingleMode, *setLineMode, *setFreehandMode, *_allChannelsVisible, *_allChannelsInvisible, *_allTracksAudible, *_allTracksMute,
-			*_allChannelsAudible, *_allChannelsMute, *_allTracksVisible, *_allTracksInvisible;
-        MiscWidget *_miscWidget;
+			*_allChannelsAudible, *_allChannelsMute, *_allTracksVisible, *_allTracksInvisible, *stdToolAction, *undoAction, *redoAction, *_pasteAction, *pasteActionTB;
+		MiscWidget *_miscWidget;
 
 		QWidget *setupActions(QWidget *parent);
 
 		int _quantizationGrid;
 		int quantize(int t, QList<int> ticks);
+		QList<QAction*> _activateWithSelections;
 };
 
 #endif

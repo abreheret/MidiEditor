@@ -1,9 +1,15 @@
 #include "Selection.h"
+#include "../gui/EventWidget.h"
 
 Selection *Selection::_selectionInstance = new Selection(0);
+EventWidget *Selection::_eventWidget = 0;
 
 Selection::Selection(MidiFile *file){
 	_file = file;
+	if(_eventWidget){
+		_eventWidget->setEvents(_selectedEvents);
+		_eventWidget->reload();
+	}
 }
 
 Selection::Selection(Selection &other){
@@ -21,6 +27,10 @@ void Selection::reloadState(ProtocolEntry *entry){
 		return;
 	}
 	_selectedEvents = other->_selectedEvents;
+	if(_eventWidget){
+		_eventWidget->setEvents(_selectedEvents);
+		//_eventWidget->reload();
+	}
 }
 
 MidiFile *Selection::file(){
@@ -45,8 +55,16 @@ void Selection::setSelection(QList<MidiEvent*> selections){
 	ProtocolEntry *toCopy = copy();
 	_selectedEvents = selections;
 	protocol(toCopy, this);
+	if(_eventWidget){
+		_eventWidget->setEvents(_selectedEvents);
+		//_eventWidget->reload();
+	}
 }
 
 void Selection::clearSelection(){
 	setSelection(QList<MidiEvent*>());
+	if(_eventWidget){
+		_eventWidget->setEvents(_selectedEvents);
+		//_eventWidget->reload();
+	}
 }

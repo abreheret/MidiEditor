@@ -98,16 +98,20 @@ ChannelListItem::ChannelListItem(int ch, ChannelListWidget *parent) : QWidget(pa
 }
 
 void ChannelListItem::toggleVisibility(bool visible){
-	channelList->midiFile()->protocol()->startNewAction("change visibility");
+	QString text = "Hide channel";
+	if(visible){
+		text = "Show channel";
+	}
+	channelList->midiFile()->protocol()->startNewAction(text);
 	channelList->midiFile()->channel(channel)->setVisible(visible);
 	channelList->midiFile()->protocol()->endAction();
 	emit channelStateChanged();
 }
 
 void ChannelListItem::toggleAudibility(bool audible){
-	QString text = "Muted channel";
+	QString text = "Mute channel";
 	if(audible){
-		text = "Unmuted channel";
+		text = "Channel audible";
 	}
 	channelList->midiFile()->protocol()->startNewAction(text);
 	channelList->midiFile()->channel(channel)->setMute(!audible);
@@ -116,9 +120,9 @@ void ChannelListItem::toggleAudibility(bool audible){
 }
 
 void ChannelListItem::toggleSolo(bool solo){
-	QString text = "Entered solomode";
+	QString text = "Enter solo mode";
 	if(!solo){
-		text = "Exited solomode";
+		text = "Exited solo mode";
 	}
 	channelList->midiFile()->protocol()->startNewAction(text);
 	channelList->midiFile()->channel(channel)->setSolo(solo);

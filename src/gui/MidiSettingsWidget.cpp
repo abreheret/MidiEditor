@@ -83,7 +83,7 @@ MidiSettingsWidget::MidiSettingsWidget(QWidget *parent) : SettingsWidget("Midi I
 	layout->addWidget(playerModeInfo, 0, 0, 1, 6);
 
 	// output
-	layout->addWidget(new QLabel("Midi Output: ", this), 1,0,1,2);
+	layout->addWidget(new QLabel("Midi output: ", this), 1,0,1,2);
 	_outList = new QListWidget(this);
 	connect(_outList, SIGNAL(itemChanged(QListWidgetItem*)), this,
 			SLOT(outputChanged(QListWidgetItem*)));
@@ -100,7 +100,7 @@ MidiSettingsWidget::MidiSettingsWidget(QWidget *parent) : SettingsWidget("Midi I
 	reloadOutputPorts();
 
 	// input
-	layout->addWidget(new QLabel("Midi Input: ", this), 1,3,1,2);
+	layout->addWidget(new QLabel("Midi input: ", this), 1,3,1,2);
 	_inList = new QListWidget(this);
 	connect(_inList, SIGNAL(itemChanged(QListWidgetItem*)), this,
 			SLOT(inputChanged(QListWidgetItem*)));

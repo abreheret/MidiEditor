@@ -55,8 +55,9 @@ class EventTool: public EditorTool {
 		static void enableMagnet(bool enable);
 		static bool magnetEnabled();
 
-	protected:
 		static QList<MidiEvent*> *copiedEvents;
+
+	protected:
 		static bool isCutAction;
 		static int _pasteChannel;
 		static int _pasteTrack;
