@@ -145,7 +145,8 @@ unix: {
     DEFINES += __LINUX_ALSA__
     LIBS += -lasound -lsfml-system -lsfml-audio
     CONFIG += release
-   # QMAKE_LIBDIR += L/usr/lib/i386-linux-gnu/
+    OBJECTS_DIR = .tmp
+    MOC_DIR = .tmp
 }
 
 win32: {
@@ -154,9 +155,7 @@ win32: {
     CONFIG += release\
 	    assistant
     RC_FILE = midieditor.rc
+    OBJECTS_DIR = .tmp
+    MOC_DIR = .tmp
     Release:DESTDIR = bin
-    OBJECTS_DIR = .tmp_win
-    MOC_DIR = .tmp_win
 }
-
-#-spec linux-g++-32
