@@ -90,6 +90,9 @@
 #include "../MidiEvent/NoteOnEvent.h"
 #include "../midi/Metronome.h"
 
+#include "../UpdateManager.h"
+#include "UpdateDialog.h"
+
 #include <QtCore/qmath.h>
 
 MainWindow::MainWindow() : QMainWindow() {
@@ -137,6 +140,8 @@ MainWindow::MainWindow() : QMainWindow() {
 
 #endif
 
+	UpdateManager::setAutoCheckUpdatesEnabled(_settings->value("auto_update", true).toBool());
+	connect(UpdateManager::instance(), SIGNAL(updateDetected(Update*)), this, SLOT(updateDetected(Update*)));
 	_quantizationGrid = _settings->value("quantization", 3).toInt();
 
 	// metronome
@@ -285,7 +290,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
 	setSingleMode = new QAction(QIcon("graphics/tool/misc_single.png"), "Single mode", this);
     setSingleMode->setCheckable(true);
-	setFreehandMode = new QAction(QIcon("graphics/tool/misc_freehand.png"), "Free-hand made", this);
+	setFreehandMode = new QAction(QIcon("graphics/tool/misc_freehand.png"), "Free-hand mode", this);
     setFreehandMode->setCheckable(true);
 	setLineMode = new QAction(QIcon("graphics/tool/misc_line.png"),"Line mode", this);
     setLineMode->setCheckable(true);
@@ -478,6 +483,9 @@ MainWindow::MainWindow() : QMainWindow() {
 	}
 	copiedEventsChanged();
 	QTimer::singleShot(200, this, SLOT(newFile()));
+	if(UpdateManager::autoCheckForUpdates()){
+		QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates()));
+	}
 }
 
 void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
@@ -1011,6 +1019,8 @@ void MainWindow::closeEvent(QCloseEvent *event){
 	_settings->setValue("metronome", Metronome::enabled());
 	_settings->setValue("thru", MidiInput::thru());
 	_settings->setValue("quantization", _quantizationGrid);
+
+	_settings->setValue("auto_update", UpdateManager::autoCheckForUpdates());
 }
 
 void MainWindow::donate(){
@@ -2825,4 +2835,10 @@ void MainWindow::copiedEventsChanged(){
 	bool enable = EventTool::copiedEvents->size()>0;
 	_pasteAction->setEnabled(enable);
 	pasteActionTB->setEnabled(enable);
+}
+
+void MainWindow::updateDetected(Update *update){
+	UpdateDialog *d = new UpdateDialog(update, this);
+	d->setModal(true);
+	d->exec();
 }
