@@ -41,6 +41,7 @@ class MiscWidget;
 class QGridLayout;
 class MidiTrack;
 class QShowEvent;
+class Update;
 
 class MainWindow : public QMainWindow {
 
@@ -159,6 +160,8 @@ class MainWindow : public QMainWindow {
 		void checkEnableActionsForSeelction();
 		void toolChanged();
 		void copiedEventsChanged();
+
+		void updateDetected(Update *update);
 
 	protected:
 		void closeEvent(QCloseEvent *event);

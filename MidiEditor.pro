@@ -1,7 +1,8 @@
 TEMPLATE = app
 TARGET = MidiEditor
 QT += core \
-    network
+    network \
+    xml
 #DEFINES += ENABLE_REMOTE
 HEADERS += \
     src/MidiEvent/KeySignatureEvent.h \
@@ -69,7 +70,10 @@ HEADERS += \
     src/gui/RemoteSettingsWidget.h \
     src/midi/Metronome.h \
     src/gui/NToleQuantizationDialog.h \
-    src/tool/Selection.h
+    src/tool/Selection.h \
+    src/UpdateManager.h \
+    src/gui/UpdateSettingsWidget.h \
+    src/gui/UpdateDialog.h
 SOURCES += \
     src/MidiEvent/KeySignatureEvent.cpp \
     src/remote/RemoteServer.cpp \
@@ -137,9 +141,31 @@ SOURCES += \
     src/gui/RemoteSettingsWidget.cpp \
     src/midi/Metronome.cpp \
     src/gui/NToleQuantizationDialog.cpp \
-    src/tool/Selection.cpp
+    src/tool/Selection.cpp \
+    src/UpdateManager.cpp \
+    src/gui/UpdateSettingsWidget.cpp \
+    src/gui/UpdateDialog.cpp
 FORMS += 
 RESOURCES += 
+message(get arch)
+message($$(OVERRIDE_ARCH))
+ARCH_FORCE = $$(OVERRIDE_ARCH)
+contains(ARCH_FORCE, 64){
+    DEFINES += __ARCH64__
+    message(arch forced to 64 bit)
+} else {
+    contains(ARCH_FORCE, 32){
+	message(arch forced to 32 bit)
+    } else {
+	contains(QMAKE_HOST.arch, x86_64):{
+	    DEFINES += __ARCH64__
+	    message(arch recognized as 64 bit)
+	} else {
+	    message(arch recognized as 32 bit)
+	}
+    }
+}
+
 unix: {
     DEFINES += __LINUX_ALSASEQ__
     DEFINES += __LINUX_ALSA__
@@ -159,3 +185,6 @@ win32: {
     MOC_DIR = .tmp
     Release:DESTDIR = bin
 }
+
+OTHER_FILES += \
+    run_environment/version_info.xml

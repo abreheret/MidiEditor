@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AboutDialog.h"
+#include "UpdateDialog.h"
 
 #include <QIcon>
 #include <QLabel>
@@ -27,7 +27,9 @@
 #include <QTextBrowser>
 #include <QScrollArea>
 
-AboutDialog::AboutDialog(QWidget *parent):QDialog(parent) {
+#include "../UpdateManager.h"
+
+UpdateDialog::UpdateDialog(Update *update, QWidget *parent):QDialog(parent) {
 
 	setMinimumWidth(550);
 	setMaximumHeight(450);
@@ -40,11 +42,11 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent) {
 	icon->setFixedSize(80, 80);
 	layout->addWidget(icon, 0, 0, 3, 1);
 
-	QLabel *title = new QLabel("<h1>"+QApplication::applicationName()+"</h1>", this);
+	QLabel *title = new QLabel("<h1>Update Available</h1>", this);
 	layout->addWidget(title, 0, 1, 1, 2);
 	title->setStyleSheet("color: black");
 
-	QLabel *version = new QLabel("Version: "+QApplication::applicationVersion()+" ("+QApplication::instance()->property("arch").toString()+"-Bit, "+QApplication::instance()->property("date_published").toString()+")", this);
+	QLabel *version = new QLabel("New Version: "+update->versionString(), this);
 	layout->addWidget(version, 1, 1, 1, 2);
 	version->setStyleSheet("color: black");
 
@@ -52,29 +54,21 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent) {
 	QLabel *content = new QLabel("<html>"
 									 "<body>"
 									 "<p>"
-										"<a href=\"http://midieditor.sourceforge.net/\">www.midieditor.sourceforge.net</a><br>"
-										"bugs@markus-schwenk.de"
+										"Good news: a new version of MidiEditor has been released and is ready to be downloaded and istalled on your system. "
+										"Please read the instructions below to learn how to install the update."
 									 "</p>"
-									 "<h3>Author</h3>"
+									 "<h3>Update</h3>"
 									 "<p>"
-										 "Markus Schwenk<br>"
-										 "Email: kontakt@markus-schwenk.de<br>"
-										 "Website: <a href=\"http://www.markus-schwenk.de\">www.markus-schwenk.de</a><br>"
+										 "<b>New version: </b> "+update->versionString()+" (Current version: "+QApplication::applicationVersion()+")<br>"+
+										 "<b>Changes: </b> "+update->changelog()+
 									 "</p>"
-									 "<h3>Thanks to</h3>"
-									 "<p>Romain Behar</p>"
-									 "<h3>Credits</h3>"
+									 "<h3>How to install the Update</h3>"
+									 "<p>Click <a href=\""+update->path()+"\">here</a> to download the update. The link will open a browser window which contains a website which allows you to download the update. Close MidiEditor and execute the downloaded file to install the new version of MidiEditor.</p>"
+									 "<h3>Disable automatic Updates</h3>"
 									 "<p>"
-										 "3D icons by Double-J Design (http://www.doublejdesign.co.uk)<br>"
-										 "Flat icons designed by Freepik<br>"
-										 "Metronome sound by Mike Koenig<br>"
+										"In order to disable the automatic updates, plese open the editor's settings and uncheck the checkbox \"Automatically check for Updates\""
 									 "</p>"
-									 "<h3>Third party Libraries</h3>"
-									 "<p>"
-										 "SFML: http://www.sfml-dev.org/<br>"
-										 "RtMidi (Copyright (c) 2003-2014 Gary P. Scavone)"
-									 "</p>"
-									 "</body>"
+									"</body>"
 								 "</html>"
 								 );
 	a->setWidgetResizable(true);
@@ -86,6 +80,7 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent) {
 
 	content->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
 	content->setOpenExternalLinks(true);
+	content->setWordWrap(true);
 
 	layout->setRowStretch(3, 1);
 	layout->setColumnStretch(1, 1);
@@ -94,7 +89,7 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent) {
 	f->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 	layout->addWidget(f, 4, 0, 1, 3);
 
-	QPushButton *close = new QPushButton("Close");
+	QPushButton *close = new QPushButton("No, remind me later");
 	layout->addWidget(close, 5, 2, 1, 1);
 	connect(close, SIGNAL(clicked()), this, SLOT(hide()));
 }

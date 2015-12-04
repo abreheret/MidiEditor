@@ -26,14 +26,22 @@
 #include <QTextStream>
 
 #include <QMultiMap>
+#include "UpdateManager.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-	a.setApplicationVersion("3.0.1 (beta - non-official release)");
+	UpdateManager::instance()->init();
+	a.setApplicationVersion(UpdateManager::instance()->versionString());
 	a.setApplicationName("MidiEditor");
 	a.setQuitOnLastWindowClosed(true);
-	a.setProperty("date_published", "Nov. 28th, 2015");
+	a.setProperty("date_published", UpdateManager::instance()->date());
+
+#ifdef __ARCH64__
+	a.setProperty("arch", "64");
+#else
+	a.setProperty("arch", "32");
+#endif
 
 	MidiOutput::init();
     MidiInput::init();
