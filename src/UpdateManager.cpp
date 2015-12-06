@@ -27,9 +27,8 @@ UpdateManager::UpdateManager() : QObject(){
 }
 
 void UpdateManager::init(){
-
+	_mirrors.append("https://greric.de/midieditor");
 	_mirrors.append("http://midieditor.sourceforge.net/update");
-	_mirrors.append("http://www.markus-schwenk.de/midieditor/update");
 
 	// read own configuration
 	QDomDocument doc("version_info");
@@ -105,13 +104,13 @@ void UpdateManager::tryNextMirror(){
 
 void UpdateManager::fileDownloaded(QNetworkReply *reply){
 	if(reply->error()!=QNetworkReply::NoError){
-		QUrl possibleRedirectUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-		if(!possibleRedirectUrl.isEmpty()){
-			QNetworkRequest request(possibleRedirectUrl);
-			_webCtrl.get(request);
-			reply->deleteLater();
-			return;
-		}
+		//QUrl possibleRedirectUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+		//if(!possibleRedirectUrl.isEmpty()){
+		//	QNetworkRequest request(possibleRedirectUrl);
+		//	_webCtrl.get(request);
+		//	reply->deleteLater();
+		//	return;
+		//}
 		qWarning("Network error: %s", reply->errorString().toUtf8().constData());
 		tryNextMirror();
 		return;

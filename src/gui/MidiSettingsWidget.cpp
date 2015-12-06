@@ -31,7 +31,7 @@
 #include "../midi/MidiInput.h"
 #include "../Terminal.h"
 
-AdditionalMidiSettingsWidget::AdditionalMidiSettingsWidget(QSettings *settings, QWidget *parent) : SettingsWidget("Midi Settings", parent) {
+AdditionalMidiSettingsWidget::AdditionalMidiSettingsWidget(QSettings *settings, QWidget *parent) : SettingsWidget("Additional Midi Settings", parent) {
 
 	_settings = settings;
 
