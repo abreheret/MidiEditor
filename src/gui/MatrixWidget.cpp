@@ -110,7 +110,7 @@ void MatrixWidget::scrollXChanged(int scrollPositionX){
 
 	if(!file) return;
 
-	startTimeX = scrollPositionX;
+    startTimeX = scrollPositionX;
 	endTimeX = startTimeX + ((width()-lineNameWidth)*1000)/(PIXEL_PER_S*scaleX);
 
 	// more space than needed: scale x
@@ -125,7 +125,7 @@ void MatrixWidget::scrollXChanged(int scrollPositionX){
 		endTimeX=file->maxTime();
 	}
 	registerRelayout();
-	repaint();
+    repaint();
 }
 
 void MatrixWidget::scrollYChanged(int scrollPositionY){
@@ -193,6 +193,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 
 		startTick = file->tick(startTimeX, endTimeX, &currentTempoEvents,
 				&endTick, &msOfFirstEventInList);
+
 		TempoChangeEvent *ev = dynamic_cast<TempoChangeEvent*>(
 				currentTempoEvents->at(0));
 		if(!ev){
@@ -305,19 +306,20 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 
         // draw measures
 		int measure = file->measure(startTick,endTick, &currentTimeSignatureEvents);
+
 		TimeSignatureEvent *currentEvent = currentTimeSignatureEvents->at(0);
 		int i = 0;
 		if(!currentEvent){
 			return;
 		}
 		int tick = currentEvent->midiTime();
-		while(tick+currentEvent->ticksPerMeasure()<startTick){
+        while(tick+currentEvent->ticksPerMeasure()<=startTick){
 			tick += currentEvent->ticksPerMeasure();
-		}
+        }
 		while(tick<endTick){
 			TimeSignatureEvent *measureEvent = currentTimeSignatureEvents->at(i);
             int xfrom = xPosOfMs(msOfTick(tick));
-			currentDivs.append(QPair<int, int>(xfrom, tick));
+            currentDivs.append(QPair<int, int>(xfrom, tick));
 			measure++;
 			int measureStartTick = tick;
 			tick += currentEvent->ticksPerMeasure();

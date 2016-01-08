@@ -233,6 +233,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	leftSplitter->addWidget(velocityArea);
 	hori = new QScrollBar(Qt::Horizontal, velocityArea);
 	hori->setSingleStep(500);
+    hori->setPageStep(5000);
 	QGridLayout *velocityAreaLayout = new QGridLayout(velocityArea);
 	velocityAreaLayout->setContentsMargins(0,0,0,0);
 	velocityAreaLayout->setHorizontalSpacing(6);
