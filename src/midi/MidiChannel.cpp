@@ -221,13 +221,14 @@ int MidiChannel::progAtTick(int tick){
 	if(it == _events->end()){
 		it--;
 	}
-	while(it != _events->begin()){
-
-		ProgChangeEvent *ev = dynamic_cast<ProgChangeEvent*>(it.value());
-		if(ev && it.key()<=tick){
-			return ev->program();
+	if(_events->size() ) {
+		while(it != _events->begin()){
+			ProgChangeEvent *ev = dynamic_cast<ProgChangeEvent*>(it.value());
+			if(ev && it.key()<=tick){
+				return ev->program();
+			}
+			it--;
 		}
-		it--;
 	}
 
 	// default: first
