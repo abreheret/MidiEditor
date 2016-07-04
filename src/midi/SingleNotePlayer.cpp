@@ -30,7 +30,7 @@ SingleNotePlayer::SingleNotePlayer() {
 	timer = new QTimer();
 	timer->setInterval(SINGLE_NOTE_LENGTH_MS);
 	timer->setSingleShot(true);
-	connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
+	connect(timer, &QTimer::timeout, this, &SingleNotePlayer::timeout);
 }
 
 void SingleNotePlayer::play(NoteOnEvent *event){

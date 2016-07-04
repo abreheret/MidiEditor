@@ -26,7 +26,7 @@
 #include <iostream>
 #include <math.h>
 
-#include <QHostAddress>
+#include <QtNetwork/QHostAddress>
 
 using namespace std;
 
@@ -113,7 +113,7 @@ void RemoteServer::receive(QString message){
 
 void RemoteServer::sendMessage(QString message){
 	message+=newline;
-	udpSocket.writeDatagram(message.toAscii(), QHostAddress(_clientIp), _port);
+	udpSocket.writeDatagram(message.toLatin1(), QHostAddress(_clientIp), _port);
 }
 
 void RemoteServer::setTime(int ms){
@@ -129,7 +129,7 @@ void RemoteServer::setTonality(int tonality){
 
 void RemoteServer::setMeter(int num, int denum){
 	sendMessage("numerator="+QString::number(num));
-	sendMessage(QString("denumerator=")+QString::number(pow(2, denum)));
+	sendMessage(QString("denumerator=")+QString::number(powf(2, denum)));
 }
 
 void RemoteServer::play(){

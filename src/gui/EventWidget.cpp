@@ -581,8 +581,8 @@ EventWidget::EventWidget(QWidget *parent) : QTableWidget(0, 2, parent) {
 
 	QHeaderView *headerView = new QHeaderView(Qt::Horizontal, this);
 	setHorizontalHeader(headerView);
-	headerView->setResizeMode(0, QHeaderView::ResizeToContents);
-	headerView->setResizeMode(1, QHeaderView::Stretch);
+	headerView->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+	headerView->setSectionResizeMode(1, QHeaderView::Stretch);
 
 	QStringList headers;
 	headers.append("Property");
@@ -1219,6 +1219,7 @@ QVariant EventWidget::fieldContent(EditorField field){
 			return QVariant(data);
 		}
 	}
+	return QVariant("");
 }
 
 QStringList EventWidget::keyStrings(){

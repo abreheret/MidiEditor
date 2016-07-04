@@ -2,13 +2,13 @@
 
 #include <QSettings>
 
-#include <QDomElement>
-#include <QDomDocument>
+#include <QtXml/QDomElement>
+#include <QtXml/QDomDocument>
 #include <QFile>
 #include <QTextStream>
 #include <QFileInfo>
 
-UpdateManager *UpdateManager::_instance = new UpdateManager();
+UpdateManager *UpdateManager::_instance = NULL;
 bool UpdateManager::_autoMode = false;
 
 UpdateManager::UpdateManager() : QObject(){
@@ -32,7 +32,7 @@ void UpdateManager::init(){
 
 	// read own configuration
 	QDomDocument doc("version_info");
-	QFile file("version_info.xml");
+	QFile file("D:/DEV/git/MidiEditor/run_environment/version_info.xml");
 	if(file.open(QIODevice::ReadOnly)){
 		QString error;
 		if(doc.setContent(&file, &error)){
@@ -66,7 +66,9 @@ QString UpdateManager::date(){
 	return _date;
 }
 
-UpdateManager *UpdateManager::instance(){
+UpdateManager *UpdateManager::instance() {
+	if(_instance == NULL)
+		_instance = new UpdateManager();
 	return _instance;
 }
 

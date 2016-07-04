@@ -54,7 +54,7 @@ int TimeSignatureEvent::num32In4(){
 }
 
 int TimeSignatureEvent::ticksPerMeasure(){
-	return (4*numerator*file()->ticksPerQuarter())/pow(2, denominator);
+	return (4*numerator*file()->ticksPerQuarter())/powf(2, denominator);
 }
 
 int TimeSignatureEvent::measures(int ticks, int *ticksLeft){

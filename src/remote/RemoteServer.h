@@ -22,12 +22,12 @@
 
 #include <QObject>
 
-#include <QtNetwork>
+#include <QtNetwork/QtNetwork>
 #include <QObject>
-#include <QTcpServer>
-#include <QTcpSocket>
+#include <QtNetwork/QTcpServer>
+#include <QtNetwork/QTcpSocket>
 
-#include <QUdpSocket>
+#include <QtNetwork/QUdpSocket>
 
 class MidiFile;
 
