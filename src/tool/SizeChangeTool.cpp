@@ -33,7 +33,7 @@ SizeChangeTool::SizeChangeTool() : EventTool() {
 	inDrag = false;
 	xPos = 0;
 	dragsOnEvent = false;
-	setImage("change_size.png");
+	setImage(":/run_environment/graphics/tool/change_size.png");
 	setToolTipText("Change the duration of the selected event");
 }
 

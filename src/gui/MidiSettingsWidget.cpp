@@ -92,7 +92,7 @@ MidiSettingsWidget::MidiSettingsWidget(QWidget *parent) : SettingsWidget("Midi I
 	QPushButton *reloadOutputList = new QPushButton();
 	reloadOutputList->setToolTip("Refresh port list");
 	reloadOutputList->setFlat(true);
-	reloadOutputList->setIcon(QIcon("graphics/tool/refresh.png"));
+	reloadOutputList->setIcon(QIcon(":/run_environment/graphics/tool/refresh.png"));
 	reloadOutputList->setFixedSize(30, 30);
 	layout->addWidget(reloadOutputList, 1, 2, 1, 1);
 	connect(reloadOutputList, SIGNAL(clicked()), this,
@@ -110,7 +110,7 @@ MidiSettingsWidget::MidiSettingsWidget(QWidget *parent) : SettingsWidget("Midi I
 	reloadInputList->setFlat(true);
 	layout->addWidget(reloadInputList, 1, 5, 1, 1);
 	reloadInputList->setToolTip("Refresh port list");
-	reloadInputList->setIcon(QIcon("graphics/tool/refresh.png"));
+	reloadInputList->setIcon(QIcon(":/run_environment/graphics/tool/refresh.png"));
 	reloadInputList->setFixedSize(30, 30);
 	connect(reloadInputList, SIGNAL(clicked()), this,
 			SLOT(reloadInputPorts()));

@@ -47,7 +47,7 @@ NewNoteTool::NewNoteTool() : EventTool() {
 	xPos = 0;
 	_channel = 0;
 	_track = 0;
-	setImage("newnote.png");
+	setImage(":/run_environment/graphics/tool/newnote.png");
 	setToolTipText("Create new Events");
 }
 

@@ -34,7 +34,7 @@
 
 StandardTool::StandardTool() : EventTool() {
 
-	setImage("select.png");
+	setImage(":/run_environment/graphics/tool/select.png");
 
 	moveTool = new EventMoveTool(true, true);
 	moveTool->setStandardTool(this);

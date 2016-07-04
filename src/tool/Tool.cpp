@@ -44,7 +44,7 @@ void Tool::buttonClick(){
 }
 
 void Tool::setImage(QString name){
-	_image = new QImage("graphics/tool/"+name);
+	_image = new QImage(name);
 }
 
 QImage *Tool::image(){

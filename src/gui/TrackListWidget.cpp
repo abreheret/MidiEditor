@@ -62,14 +62,14 @@ TrackListItem::TrackListItem(MidiTrack *track, TrackListWidget *parent) : QWidge
 	palette.setColor(QPalette::Background, Qt::white);
 	toolBar->setPalette(palette);
 	// visibility
-	visibleAction = new QAction(QIcon("graphics/trackwidget/visible.png"), "Track visible", toolBar);
+	visibleAction = new QAction(QIcon(":/run_environment/graphics/trackwidget/visible.png"), "Track visible", toolBar);
 	visibleAction->setCheckable(true);
 	visibleAction->setChecked(true);
 	toolBar->addAction(visibleAction);
 	connect(visibleAction, SIGNAL(toggled(bool)), this, SLOT(toggleVisibility(bool)));
 
 	// audibility
-	loudAction = new QAction(QIcon("graphics/trackwidget/loud.png"), "Track audible", toolBar);
+	loudAction = new QAction(QIcon(":/run_environment/graphics/trackwidget/loud.png"), "Track audible", toolBar);
 	loudAction->setCheckable(true);
 	loudAction->setChecked(true);
 	toolBar->addAction(loudAction);
@@ -78,12 +78,12 @@ TrackListItem::TrackListItem(MidiTrack *track, TrackListWidget *parent) : QWidge
 	toolBar->addSeparator();
 
 	// name
-	QAction *renameAction = new QAction(QIcon("graphics/trackwidget/rename.png"), "Rename track", toolBar);
+	QAction *renameAction = new QAction(QIcon(":/run_environment/graphics/trackwidget/rename.png"), "Rename track", toolBar);
 	toolBar->addAction(renameAction);
 	connect(renameAction, SIGNAL(triggered()), this, SLOT(renameTrack()));
 
 	// remove
-	QAction *removeAction = new QAction(QIcon("graphics/trackwidget/remove.png"), "Remove track", toolBar);
+	QAction *removeAction = new QAction(QIcon(":/run_environment/graphics/trackwidget/remove.png"), "Remove track", toolBar);
 	toolBar->addAction(removeAction);
 	connect(removeAction, SIGNAL(triggered()), this, SLOT(removeTrack()));
 

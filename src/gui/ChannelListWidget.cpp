@@ -61,7 +61,7 @@ ChannelListItem::ChannelListItem(int ch, ChannelListWidget *parent) : QWidget(pa
 	toolBar->setPalette(palette);
 
 	// visibility
-	visibleAction = new QAction(QIcon("graphics/channelwidget/visible.png"), "Channel visible", toolBar);
+	visibleAction = new QAction(QIcon(":/run_environment/graphics/channelwidget/visible.png"), "Channel visible", toolBar);
 	visibleAction->setCheckable(true);
 	visibleAction->setChecked(true);
 	toolBar->addAction(visibleAction);
@@ -69,14 +69,14 @@ ChannelListItem::ChannelListItem(int ch, ChannelListWidget *parent) : QWidget(pa
 
 	// audibility
 	if(channel<16){
-		loudAction = new QAction(QIcon("graphics/channelwidget/loud.png"), "Channel audible", toolBar);
+		loudAction = new QAction(QIcon(":/run_environment/graphics/channelwidget/loud.png"), "Channel audible", toolBar);
 		loudAction->setCheckable(true);
 		loudAction->setChecked(true);
 		toolBar->addAction(loudAction);
 		connect(loudAction, SIGNAL(toggled(bool)), this, SLOT(toggleAudibility(bool)));
 
 		// solo
-		soloAction = new QAction(QIcon("graphics/channelwidget/solo.png"), "Solo mode", toolBar);
+		soloAction = new QAction(QIcon(":/run_environment/graphics/channelwidget/solo.png"), "Solo mode", toolBar);
 		soloAction->setCheckable(true);
 		soloAction->setChecked(false);
 		toolBar->addAction(soloAction);
@@ -85,7 +85,7 @@ ChannelListItem::ChannelListItem(int ch, ChannelListWidget *parent) : QWidget(pa
 		toolBar->addSeparator();
 
 		// instrument
-		QAction *instrumentAction = new QAction(QIcon("graphics/channelwidget/instrument.png"), "Select instrument", toolBar);
+		QAction *instrumentAction = new QAction(QIcon(":/run_environment/graphics/channelwidget/instrument.png"), "Select instrument", toolBar);
 		toolBar->addAction(instrumentAction);
 		connect(instrumentAction, SIGNAL(triggered()), this, SLOT(instrument()));
 	}

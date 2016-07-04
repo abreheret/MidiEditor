@@ -34,13 +34,13 @@ EventMoveTool::EventMoveTool(bool upDown, bool leftRight) : EventTool() {
 	startX = 0;
 	startY = 0;
 	if(moveUpDown&&moveLeftRight){
-		setImage("move_up_down_left_right.png");
+		setImage(":/run_environment/graphics/tool/move_up_down_left_right.png");
 		setToolTipText("Move Events (all directions)");
 	} else if(moveUpDown){
-		setImage("move_up_down.png");
+		setImage(":/run_environment/graphics/tool/move_up_down.png");
 		setToolTipText("Move Events (up and down)");
 	} else {
-		setImage("move_left_right.png");
+		setImage(":/run_environment/graphics/tool/move_left_right.png");
 		setToolTipText("Move Events (left and right)");
 	}
 }

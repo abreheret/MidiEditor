@@ -96,7 +96,7 @@
 #include <QtCore/qmath.h>
 
 MainWindow::MainWindow() : QMainWindow() {
-
+	
 	file = 0;
 	_settings = new QSettings(QString("MidiEditor"), QString("NONE"));
 
@@ -170,7 +170,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	EditorTool::setMainWindow(this);
 
 	setWindowTitle(QApplication::applicationName()+" "+QApplication::applicationVersion());
-	setWindowIcon(QIcon("graphics/icon.png"));
+	setWindowIcon(QIcon(":/run_environment/graphics/icon.png"));
 
 	QWidget *central = new QWidget(this);
 	QGridLayout *centralLayout = new QGridLayout(central);
@@ -289,11 +289,11 @@ MainWindow::MainWindow() : QMainWindow() {
     _miscChannel->setEnabled(false);
     _miscController->setEnabled(false);
 
-	setSingleMode = new QAction(QIcon("graphics/tool/misc_single.png"), "Single mode", this);
+	setSingleMode = new QAction(QIcon(":/run_environment/graphics/tool/misc_single.png"), "Single mode", this);
     setSingleMode->setCheckable(true);
-	setFreehandMode = new QAction(QIcon("graphics/tool/misc_freehand.png"), "Free-hand mode", this);
+	setFreehandMode = new QAction(QIcon(":/run_environment/graphics/tool/misc_freehand.png"), "Free-hand mode", this);
     setFreehandMode->setCheckable(true);
-	setLineMode = new QAction(QIcon("graphics/tool/misc_line.png"),"Line mode", this);
+	setLineMode = new QAction(QIcon(":/run_environment/graphics/tool/misc_line.png"),"Line mode", this);
     setLineMode->setCheckable(true);
 
     QActionGroup *group = new QActionGroup(this);
@@ -328,7 +328,7 @@ MainWindow::MainWindow() : QMainWindow() {
 	tracksLayout->addWidget(tracksTB, 0, 0, 1, 1);
 
 	QAction *newTrack = new QAction("Add track", this);
-	newTrack->setIcon(QIcon("graphics/tool/add.png"));
+	newTrack->setIcon(QIcon(":/run_environment/graphics/tool/add.png"));
 	connect(newTrack, SIGNAL(triggered()), this,
 			SLOT(addTrack()));
 	tracksTB->addAction(newTrack);
@@ -336,13 +336,13 @@ MainWindow::MainWindow() : QMainWindow() {
 	tracksTB->addSeparator();
 
 	_allTracksAudible = new QAction("All tracks audible", this);
-	_allTracksAudible->setIcon(QIcon("graphics/tool/all_audible.png"));
+	_allTracksAudible->setIcon(QIcon(":/run_environment/graphics/tool/all_audible.png"));
 	connect(_allTracksAudible, SIGNAL(triggered()), this,
 			SLOT(unmuteAllTracks()));
 	tracksTB->addAction(_allTracksAudible);
 
 	_allTracksMute = new QAction("Mute all tracks", this);
-	_allTracksMute->setIcon(QIcon("graphics/tool/all_mute.png"));
+	_allTracksMute->setIcon(QIcon(":/run_environment/graphics/tool/all_mute.png"));
 	connect(_allTracksMute, SIGNAL(triggered()), this,
 			SLOT(muteAllTracks()));
 	tracksTB->addAction(_allTracksMute);
@@ -350,13 +350,13 @@ MainWindow::MainWindow() : QMainWindow() {
 	tracksTB->addSeparator();
 
 	_allTracksVisible = new QAction("Show all tracks", this);
-	_allTracksVisible->setIcon(QIcon("graphics/tool/all_visible.png"));
+	_allTracksVisible->setIcon(QIcon(":/run_environment/graphics/tool/all_visible.png"));
 	connect(_allTracksVisible, SIGNAL(triggered()), this,
 			SLOT(allTracksVisible()));
 	tracksTB->addAction(_allTracksVisible);
 
 	_allTracksInvisible = new QAction("Hide all tracks", this);
-	_allTracksInvisible->setIcon(QIcon("graphics/tool/all_invisible.png"));
+	_allTracksInvisible->setIcon(QIcon(":/run_environment/graphics/tool/all_invisible.png"));
 	connect(_allTracksInvisible, SIGNAL(triggered()), this,
 			SLOT(allTracksInvisible()));
 	tracksTB->addAction(_allTracksInvisible);
@@ -378,13 +378,13 @@ MainWindow::MainWindow() : QMainWindow() {
 	channelsLayout->addWidget(channelsTB, 0, 0, 1, 1);
 
 	_allChannelsAudible = new QAction("All channels audible", this);
-	_allChannelsAudible->setIcon(QIcon("graphics/tool/all_audible.png"));
+	_allChannelsAudible->setIcon(QIcon(":/run_environment/graphics/tool/all_audible.png"));
 	connect(_allChannelsAudible, SIGNAL(triggered()), this,
 			SLOT(unmuteAllChannels()));
 	channelsTB->addAction(_allChannelsAudible);
 
 	_allChannelsMute = new QAction("Mute all channels", this);
-	_allChannelsMute->setIcon(QIcon("graphics/tool/all_mute.png"));
+	_allChannelsMute->setIcon(QIcon(":/run_environment/graphics/tool/all_mute.png"));
 	connect(_allChannelsMute, SIGNAL(triggered()), this,
 			SLOT(muteAllChannels()));
 	channelsTB->addAction(_allChannelsMute);
@@ -392,13 +392,13 @@ MainWindow::MainWindow() : QMainWindow() {
 	channelsTB->addSeparator();
 
 	_allChannelsVisible = new QAction("Show all channels", this);
-	_allChannelsVisible->setIcon(QIcon("graphics/tool/all_visible.png"));
+	_allChannelsVisible->setIcon(QIcon(":/run_environment/graphics/tool/all_visible.png"));
 	connect(_allChannelsVisible, SIGNAL(triggered()), this,
 			SLOT(allChannelsVisible()));
 	channelsTB->addAction(_allChannelsVisible);
 
 	_allChannelsInvisible = new QAction("Hide all channels", this);
-	_allChannelsInvisible->setIcon(QIcon("graphics/tool/all_invisible.png"));
+	_allChannelsInvisible->setIcon(QIcon(":/run_environment/graphics/tool/all_invisible.png"));
 	connect(_allChannelsInvisible, SIGNAL(triggered()), this,
 			SLOT(allChannelsInvisible()));
 	channelsTB->addAction(_allChannelsInvisible);
@@ -1135,7 +1135,7 @@ void MainWindow::alignLeft(){
 			}
         }
 
-		file->protocol()->startNewAction("Align left", new QImage("graphics/tool/align_left.png"));
+		file->protocol()->startNewAction("Align left", new QImage(":/run_environment/graphics/tool/align_left.png"));
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 			int onTime = e->midiTime();
 			e->setMidiTime(minTime);
@@ -1163,7 +1163,7 @@ void MainWindow::alignRight(){
 			}
         }
 
-		file->protocol()->startNewAction("Align right", new QImage("graphics/tool/align_right.png"));
+		file->protocol()->startNewAction("Align right", new QImage(":/run_environment/graphics/tool/align_right.png"));
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
                 int onTime = e->midiTime();
                 OnEvent *on = dynamic_cast<OnEvent*>(e);
@@ -1197,7 +1197,7 @@ void MainWindow::equalize()
 			avgStart /= count;
 			avgTime /= count;
 
-			file->protocol()->startNewAction("Equalize", new QImage("graphics/tool/equalize.png"));
+			file->protocol()->startNewAction("Equalize", new QImage(":/run_environment/graphics/tool/equalize.png"));
 			foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 				OnEvent *on = dynamic_cast<OnEvent*>(e);
 				if(on){
@@ -1960,18 +1960,18 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     // File
 	QAction *newAction = new QAction("New", this);
 	newAction->setShortcut(QKeySequence::New);
-    newAction->setIcon(QIcon("graphics/tool/new.png"));
+    newAction->setIcon(QIcon(":/run_environment/graphics/tool/new.png"));
     connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
     fileMB->addAction(newAction);
 
 	QAction *loadAction = new QAction("Open...", this);
 	loadAction->setShortcut(QKeySequence::Open);
-    loadAction->setIcon(QIcon("graphics/tool/load.png"));
+    loadAction->setIcon(QIcon(":/run_environment/graphics/tool/load.png"));
     connect(loadAction, SIGNAL(triggered()), this, SLOT(load()));
     fileMB->addAction(loadAction);
 
 	_recentPathsMenu = new QMenu("Open recent..", this);
-	_recentPathsMenu->setIcon(QIcon("graphics/tool/noicon.png"));
+	_recentPathsMenu->setIcon(QIcon(":/run_environment/graphics/tool/noicon.png"));
     fileMB->addMenu(_recentPathsMenu);
     connect(_recentPathsMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecent(QAction*)));
 
@@ -1981,13 +1981,13 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	QAction *saveAction = new QAction("Save", this);
 	saveAction->setShortcut(QKeySequence::Save);
-    saveAction->setIcon(QIcon("graphics/tool/save.png"));
+    saveAction->setIcon(QIcon(":/run_environment/graphics/tool/save.png"));
     connect(saveAction, SIGNAL(triggered()), this, SLOT(save()));
     fileMB->addAction(saveAction);
 
 	QAction *saveAsAction = new QAction("Save as...", this);
 	saveAsAction->setShortcut(QKeySequence::SaveAs);
-    saveAsAction->setIcon(QIcon("graphics/tool/saveas.png"));
+    saveAsAction->setIcon(QIcon(":/run_environment/graphics/tool/saveas.png"));
     connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveas()));
     fileMB->addAction(saveAsAction);
 
@@ -1995,20 +1995,20 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     QAction *quitAction = new QAction("Quit", this);
 	quitAction->setShortcut(QKeySequence::Quit);
-	quitAction->setIcon(QIcon("graphics/tool/noicon.png"));
+	quitAction->setIcon(QIcon(":/run_environment/graphics/tool/noicon.png"));
     connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
     fileMB->addAction(quitAction);
 
     // Edit
 	undoAction = new QAction("Undo", this);
 	undoAction->setShortcut(QKeySequence::Undo);
-    undoAction->setIcon(QIcon("graphics/tool/undo.png"));
+    undoAction->setIcon(QIcon(":/run_environment/graphics/tool/undo.png"));
     connect(undoAction, SIGNAL(triggered()), this, SLOT(undo()));
     editMB->addAction(undoAction);
 
 	redoAction = new QAction("Redo", this);
 	redoAction->setShortcut(QKeySequence::Redo);
-    redoAction->setIcon(QIcon("graphics/tool/redo.png"));
+    redoAction->setIcon(QIcon(":/run_environment/graphics/tool/redo.png"));
     connect(redoAction, SIGNAL(triggered()), this, SLOT(redo()));
     editMB->addAction(redoAction);
 
@@ -2046,7 +2046,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	QAction *copyAction = new QAction("Copy events", this);
 	_activateWithSelections.append(copyAction);
-	copyAction->setIcon(QIcon("graphics/tool/copy.png"));
+	copyAction->setIcon(QIcon(":/run_environment/graphics/tool/copy.png"));
 	copyAction->setShortcut(QKeySequence::Copy);
     connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
     editMB->addAction(copyAction);
@@ -2054,7 +2054,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	_pasteAction = new QAction("Paste events", this);
 	_pasteAction->setToolTip("Paste events at cursor position");
 	_pasteAction->setShortcut(QKeySequence::Paste);
-	_pasteAction->setIcon(QIcon("graphics/tool/paste.png"));
+	_pasteAction->setIcon(QIcon(":/run_environment/graphics/tool/paste.png"));
 	connect(_pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
 
 	_pasteToTrackMenu = new QMenu("Paste to track...");
@@ -2089,7 +2089,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	editMB->addSeparator();
 
 	QAction *configAction = new QAction("Settings...", this);
-	configAction->setIcon(QIcon("graphics/tool/config.png"));
+	configAction->setIcon(QIcon(":/run_environment/graphics/tool/config.png"));
 	connect(configAction, SIGNAL(triggered()), this, SLOT(openConfig()));
 	editMB->addAction(configAction);
 
@@ -2138,7 +2138,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	_activateWithSelections.append(deleteAction);
 	deleteAction->setToolTip("Remove selected events");
 	deleteAction->setShortcut(QKeySequence::Delete);
-    deleteAction->setIcon(QIcon("graphics/tool/eraser.png"));
+    deleteAction->setIcon(QIcon(":/run_environment/graphics/tool/eraser.png"));
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedEvents()));
 	toolsMB->addAction(deleteAction);
 
@@ -2147,20 +2147,20 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	QAction *alignLeftAction = new QAction("Align left", this);
 	_activateWithSelections.append(alignLeftAction);
 	alignLeftAction->setShortcut(QKeySequence(Qt::Key_Left + Qt::CTRL));
-    alignLeftAction->setIcon(QIcon("graphics/tool/align_left.png"));
+    alignLeftAction->setIcon(QIcon(":/run_environment/graphics/tool/align_left.png"));
     connect(alignLeftAction, SIGNAL(triggered()), this, SLOT(alignLeft()));
 	toolsMB->addAction(alignLeftAction);
 
 	QAction *alignRightAction = new QAction("Align right", this);
 	_activateWithSelections.append(alignRightAction);
-	alignRightAction->setIcon(QIcon("graphics/tool/align_right.png"));
+	alignRightAction->setIcon(QIcon(":/run_environment/graphics/tool/align_right.png"));
 	alignRightAction->setShortcut(QKeySequence(Qt::Key_Right + Qt::CTRL));
     connect(alignRightAction, SIGNAL(triggered()), this, SLOT(alignRight()));
 	toolsMB->addAction(alignRightAction);
 
 	QAction *equalizeAction = new QAction("Equalize selection", this);
 	_activateWithSelections.append(equalizeAction);
-	equalizeAction->setIcon(QIcon("graphics/tool/equalize.png"));
+	equalizeAction->setIcon(QIcon(":/run_environment/graphics/tool/equalize.png"));
 	equalizeAction->setShortcut(QKeySequence(Qt::Key_Up + Qt::CTRL));
     connect(equalizeAction, SIGNAL(triggered()), this, SLOT(equalize()));
 	toolsMB->addAction(equalizeAction);
@@ -2169,7 +2169,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	QAction *quantizeAction = new QAction("Quantify selection", this);
 	_activateWithSelections.append(quantizeAction);
-	quantizeAction->setIcon(QIcon("graphics/tool/quantize.png"));
+	quantizeAction->setIcon(QIcon(":/run_environment/graphics/tool/quantize.png"));
 	quantizeAction->setShortcut(QKeySequence(Qt::Key_G + Qt::CTRL));
 	connect(quantizeAction, SIGNAL(triggered()), this, SLOT(quantizeSelection()));
 	toolsMB->addAction(quantizeAction);
@@ -2280,7 +2280,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	QAction *magnetAction = new QAction("Magnet", editMB);
 	toolsMB->addAction(magnetAction);
 	magnetAction->setShortcut(QKeySequence(Qt::Key_M+Qt::CTRL));
-	magnetAction->setIcon(QIcon("graphics/tool/magnet.png"));
+	magnetAction->setIcon(QIcon(":/run_environment/graphics/tool/magnet.png"));
 	magnetAction->setCheckable(true);
 	magnetAction->setChecked(false);
 	magnetAction->setChecked(EventTool::magnetEnabled());
@@ -2290,27 +2290,27 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	QMenu *zoomMenu = new QMenu("Zoom...", viewMB);
 	QAction *zoomHorOutAction = new QAction("Horizontal out", this);
 	zoomHorOutAction->setShortcut(QKeySequence(Qt::Key_Minus+Qt::CTRL));
-    zoomHorOutAction->setIcon(QIcon("graphics/tool/zoom_hor_out.png"));
+    zoomHorOutAction->setIcon(QIcon(":/run_environment/graphics/tool/zoom_hor_out.png"));
     connect(zoomHorOutAction, SIGNAL(triggered()),
             mw_matrixWidget,SLOT(zoomHorOut()));
 	zoomMenu->addAction(zoomHorOutAction);
 
 	QAction *zoomHorInAction = new QAction("Horizontal in", this);
-    zoomHorInAction->setIcon(QIcon("graphics/tool/zoom_hor_in.png"));
+    zoomHorInAction->setIcon(QIcon(":/run_environment/graphics/tool/zoom_hor_in.png"));
 	zoomHorInAction->setShortcut(QKeySequence(Qt::Key_Plus+Qt::CTRL));
     connect(zoomHorInAction, SIGNAL(triggered()),
             mw_matrixWidget,SLOT(zoomHorIn()));
 	zoomMenu->addAction(zoomHorInAction);
 
 	QAction *zoomVerOutAction = new QAction("Vertical out", this);
-    zoomVerOutAction->setIcon(QIcon("graphics/tool/zoom_ver_out.png"));
+    zoomVerOutAction->setIcon(QIcon(":/run_environment/graphics/tool/zoom_ver_out.png"));
 	zoomVerOutAction->setShortcut(QKeySequence(Qt::Key_Minus+Qt::CTRL+Qt::ALT));
     connect(zoomVerOutAction, SIGNAL(triggered()),
             mw_matrixWidget,SLOT(zoomVerOut()));
 	zoomMenu->addAction(zoomVerOutAction);
 
 	QAction *zoomVerInAction = new QAction("Vertical in", this);
-    zoomVerInAction->setIcon(QIcon("graphics/tool/zoom_ver_in.png"));
+    zoomVerInAction->setIcon(QIcon(":/run_environment/graphics/tool/zoom_ver_in.png"));
 	zoomVerInAction->setShortcut(QKeySequence(Qt::Key_Plus+Qt::CTRL+Qt::ALT));
     connect(zoomVerInAction, SIGNAL(triggered()),
             mw_matrixWidget,SLOT(zoomVerIn()));
@@ -2379,24 +2379,24 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     // Playback
     QAction *playAction = new QAction("Play", this);
-    playAction->setIcon(QIcon("graphics/tool/play.png"));
+    playAction->setIcon(QIcon(":/run_environment/graphics/tool/play.png"));
 	playAction->setShortcut(QKeySequence(Qt::Key_P+Qt::CTRL));
     connect(playAction, SIGNAL(triggered()), this, SLOT(play()));
     playbackMB->addAction(playAction);
 
     QAction *pauseAction = new QAction("Pause", this);
-    pauseAction->setIcon(QIcon("graphics/tool/pause.png"));
+    pauseAction->setIcon(QIcon(":/run_environment/graphics/tool/pause.png"));
     connect(pauseAction, SIGNAL(triggered()), this, SLOT(pause()));
     playbackMB->addAction(pauseAction);
 
     QAction *recAction = new QAction("Record", this);
-    recAction->setIcon(QIcon("graphics/tool/record.png"));
+    recAction->setIcon(QIcon(":/run_environment/graphics/tool/record.png"));
 	recAction->setShortcut(QKeySequence(Qt::Key_R + Qt::CTRL));
     connect(recAction, SIGNAL(triggered()), this, SLOT(record()));
     playbackMB->addAction(recAction);
 
     QAction *stopAction = new QAction("Stop", this);
-	stopAction->setIcon(QIcon("graphics/tool/stop.png"));
+	stopAction->setIcon(QIcon(":/run_environment/graphics/tool/stop.png"));
 	stopAction->setShortcut(QKeySequence(Qt::Key_P+Qt::CTRL+Qt::ALT));
     connect(stopAction, SIGNAL(triggered()), this, SLOT(stop()));
     playbackMB->addAction(stopAction);
@@ -2404,17 +2404,17 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     playbackMB->addSeparator();
 
 	QAction *backToBeginAction = new QAction("Back to begin", this);
-    backToBeginAction->setIcon(QIcon("graphics/tool/back_to_begin.png"));
+    backToBeginAction->setIcon(QIcon(":/run_environment/graphics/tool/back_to_begin.png"));
     connect(backToBeginAction, SIGNAL(triggered()), this, SLOT(backToBegin()));
     playbackMB->addAction(backToBeginAction);
 
 	QAction *backAction = new QAction("Previous measure", this);
-    backAction->setIcon(QIcon("graphics/tool/back.png"));
+    backAction->setIcon(QIcon(":/run_environment/graphics/tool/back.png"));
     connect(backAction, SIGNAL(triggered()), this, SLOT(back()));
     playbackMB->addAction(backAction);
 
 	QAction *forwAction = new QAction("Next measure", this);
-	forwAction->setIcon(QIcon("graphics/tool/forward.png"));
+	forwAction->setIcon(QIcon(":/run_environment/graphics/tool/forward.png"));
     connect(forwAction, SIGNAL(triggered()), this, SLOT(forward()));
     playbackMB->addAction(forwAction);
 
@@ -2456,14 +2456,14 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	playbackMB->addSeparator();
 
 	QAction *lockAction = new QAction("Lock screen while playing", this);
-	lockAction->setIcon(QIcon("graphics/tool/screen_unlocked.png"));
+	lockAction->setIcon(QIcon(":/run_environment/graphics/tool/screen_unlocked.png"));
 	lockAction->setCheckable(true);
 	connect(lockAction, SIGNAL(toggled(bool)), this, SLOT(screenLockPressed(bool)));
 	playbackMB->addAction(lockAction);
 	lockAction->setChecked(mw_matrixWidget->screenLocked());
 
 	QAction *metronomeAction = new QAction("Metronome", this);
-	metronomeAction->setIcon(QIcon("graphics/tool/metronome.png"));
+	metronomeAction->setIcon(QIcon(":/run_environment/graphics/tool/metronome.png"));
 	metronomeAction->setCheckable(true);
 	metronomeAction->setChecked(Metronome::enabled());
 	connect(metronomeAction, SIGNAL(toggled(bool)), this, SLOT(enableMetronome(bool)));
@@ -2471,12 +2471,12 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     // Midi
 	QAction *configAction2 = new QAction("Settings...", this);
-	configAction2->setIcon(QIcon("graphics/tool/config.png"));
+	configAction2->setIcon(QIcon(":/run_environment/graphics/tool/config.png"));
 	connect(configAction2, SIGNAL(triggered()), this, SLOT(openConfig()));
 	midiMB->addAction(configAction2);
 
 	QAction *thruAction = new QAction("Connect Midi In/Out", this);
-	thruAction->setIcon(QIcon("graphics/tool/connection.png"));
+	thruAction->setIcon(QIcon(":/run_environment/graphics/tool/connection.png"));
 	thruAction->setCheckable(true);
 	thruAction->setChecked(MidiInput::thru());
 	connect(thruAction, SIGNAL(toggled(bool)), this, SLOT(enableThru(bool)));
@@ -2516,7 +2516,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     fileTB->addAction(newAction);
     fileTB->setStyleSheet("QToolBar { border: 0px }");
 	QAction *loadAction2 = new QAction("Open...", this);
-    loadAction2->setIcon(QIcon("graphics/tool/load.png"));
+    loadAction2->setIcon(QIcon(":/run_environment/graphics/tool/load.png"));
     connect(loadAction2, SIGNAL(triggered()), this, SLOT(load()));
     loadAction2->setMenu(_recentPathsMenu);
     fileTB->addAction(loadAction2);
@@ -2570,7 +2570,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	pasteActionTB = new QAction("Paste events", this);
 	pasteActionTB->setToolTip("Paste events at cursor position");
-	pasteActionTB->setIcon(QIcon("graphics/tool/paste.png"));
+	pasteActionTB->setIcon(QIcon(":/run_environment/graphics/tool/paste.png"));
 	connect(pasteActionTB, SIGNAL(triggered()), this, SLOT(paste()));
 	pasteActionTB->setMenu(pasteOptionsMenu);
 
@@ -2685,7 +2685,7 @@ void MainWindow::quantizeSelection(){
 	// get list with all quantization ticks
 	QList<int> ticks = file->quantization(_quantizationGrid);
 
-	file->protocol()->startNewAction("Quantify events", new QImage("graphics/tool/quantize.png"));
+	file->protocol()->startNewAction("Quantify events", new QImage(":/run_environment/graphics/tool/quantize.png"));
 	foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 		int onTime = e->midiTime();
 		e->setMidiTime(quantize(onTime, ticks));
@@ -2757,7 +2757,7 @@ void MainWindow::quantizeNtole(){
 	// get list with all quantization ticks
 	QList<int> ticks = file->quantization(_quantizationGrid);
 
-	file->protocol()->startNewAction("Quantify tuplet", new QImage("graphics/tool/quantize.png"));
+	file->protocol()->startNewAction("Quantify tuplet", new QImage(":/run_environment/graphics/tool/quantize.png"));
 
 	// find minimum starting time
 	int startTick = -1;

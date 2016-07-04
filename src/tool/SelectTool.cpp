@@ -30,22 +30,22 @@ SelectTool::SelectTool(int type) : EventTool() {
 	y_rect = 0;
 	switch(stool_type){
 		case SELECTION_TYPE_BOX: {
-			setImage("select_box.png");
+			setImage(":/run_environment/graphics/tool/select_box.png");
 			setToolTipText("Select Events (Box)");
 			break;
 		}
 		case SELECTION_TYPE_SINGLE: {
-			setImage("select_single.png");
+			setImage(":/run_environment/graphics/tool/select_single.png");
 			setToolTipText("Select single Events");
 			break;
 		}
 		case SELECTION_TYPE_LEFT: {
-			setImage("select_left.png");
+			setImage(":/run_environment/graphics/tool/select_left.png");
 			setToolTipText("Select all Events on the left side");
 			break;
 		}
 		case SELECTION_TYPE_RIGHT: {
-			setImage("select_right.png");
+			setImage(":/run_environment/graphics/tool/select_right.png");
 			setToolTipText("Select all Events on the right side");
 			break;
 		}

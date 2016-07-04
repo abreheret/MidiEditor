@@ -26,7 +26,7 @@
 #include "Selection.h"
 
 EraserTool::EraserTool()  : EventTool(){
-	setImage("eraser.png");
+	setImage(":/run_environment/graphics/tool/eraser.png");
 	setToolTipText("Eraser (remove Events)");
 }
 

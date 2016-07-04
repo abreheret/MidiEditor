@@ -27,9 +27,11 @@
 
 #include <QMultiMap>
 #include "UpdateManager.h"
+#include <QResource>
 
 int main(int argc, char *argv[])
 {
+	bool ok = QResource::registerResource("ressources.rcc");
     QApplication a(argc, argv);
 	UpdateManager::instance()->init();
 	a.setApplicationVersion(UpdateManager::instance()->versionString());

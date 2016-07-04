@@ -60,6 +60,6 @@ void ClickButton::buttonClick(){
 
 
 void ClickButton::setImageName(QString imageName) {
-	image = new QImage("graphics/tool/"+imageName);
+	image = new QImage(":/run_environment/graphics/tool/"+imageName);
 	repaint();
 }
