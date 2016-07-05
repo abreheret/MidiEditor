@@ -2,8 +2,9 @@ MidiEditor
 ===========
 
 ### Building Dependencies
-* [Qt5.x](https://www.qt.io/download-open-source/)
+* [Qt5.7](https://www.qt.io/download-open-source/)
 * [CMake](https://cmake.org/download/) >= 2.8.11 (Under Windows using Visual Studio 2013)
+* Linux : [sfml](http://www.sfml-dev.org/download-fr.php) `sudo apt-get install libsfml-dev`
 
 ### Introduction
 
