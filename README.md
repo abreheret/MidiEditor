@@ -1,6 +1,8 @@
 MidiEditor
 ===========
 
+Download : Windows [v3.1.0](https://github.com/abreheret/MidiEditor/releases/tag/v3.1.0)
+
 ### Building Dependencies
 * [Qt5.7](https://www.qt.io/download-open-source/)
 * [CMake](https://cmake.org/download/) >= 2.8.11 (Under Windows using Visual Studio 2013)
