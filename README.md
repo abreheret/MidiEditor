@@ -28,9 +28,9 @@ MidiEditor was developed by Markus Schwenk. It is entirely written in C++ (Qt) a
 
 Please feel free to contact the developer if you have any suggestions! Please also reach out to the developer if you found a bug.
 
-## Project Page
+## Origin Project Page
 
-[Here](https://sourceforge.net/projects/midieditor/) you can find the project page on sourceforge.net. You will find the code and a way to provide feedback.
+[Here](https://sourceforge.net/projects/midieditor/) you can find the original project page on sourceforge.net. You will find the code and a way to provide feedback.
 
 
 
