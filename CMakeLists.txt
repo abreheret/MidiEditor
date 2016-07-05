@@ -81,7 +81,7 @@ add_executable(MidiEditor
     ${gui}       ${guih}
     ${MidiEvent} ${MidiEventh}
     ${Remote}    ${Remoteh}
-    ${Tool}      ${Toolh}    )
+    ${Tool}      ${Toolh}   midieditor.rc  )
 
 include(ressources.cmake)
 set(MidiEditorDep Qt5::Widgets Qt5::Network Qt5::Xml ${ressources} )
@@ -102,12 +102,10 @@ else()
 	target_link_libraries(MidiEditor asound sfml-system sfml-audio pthread ${MidiEditorDep})
 endif()
 
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/metronome)
 
 if(INSTALL_WITH_CPACK)
 	install(TARGETS MidiEditor DESTINATION bin)
-	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION bin)
 	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ressources.rcc" DESTINATION bin)
 	install(FILES ${QT5_DLLs_DEP_RELEASE} DESTINATION bin)
 	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION bin/metronome)
