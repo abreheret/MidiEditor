@@ -1,6 +1,10 @@
 MidiEditor
 ===========
 
+### Building Dependencies
+* Qt5.7
+* CMake >= 2.8.11 (Under Windows using Visual Studio 2013)
+
 ### Introduction
 
 MidiEditor is a free software providing an interface to edit, record, and play Midi data.
@@ -33,11 +37,9 @@ Please feel free to contact the developer if you have any suggestions! Please al
 [Here](https://sourceforge.net/projects/midieditor/) you can find the original project page on sourceforge.net. You will find the code and a way to provide feedback.
 
 
- Building Dependencies
-=========
+### Manual 
 
-* Qt5.7
-* CMake >= 2.8.11 (Under Windows using Visual Studio 2013)
+[Here](http://midieditor.sourceforge.net/index.php?category=manual)
 
 
 
