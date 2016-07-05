@@ -29,24 +29,32 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)
 find_package(Qt5Xml REQUIRED)
 
-file( GLOB src 
-      src/*.cpp 
-	  src/gui/*.cpp
-	  src/MidiEvent/*.cpp
-	  src/protocol/*.cpp
-	  src/midi/*.cpp
-	  src/midi/rtmidi/*.cpp
-	  src/remote/*.cpp
-	  src/tool/*.cpp )
-file( GLOB hdr 
-      src/*.h 
-	  src/gui/*.h
-	  src/MidiEvent/*.h
-	  src/protocol/*.h
-	  src/midi/*.h
-	  src/midi/rtmidi/*.h
-	  src/remote/*.h
-	  src/tool/*.h )
+file( GLOB main      src/*.cpp            )
+file( GLOB gui       src/gui/*.cpp        )
+file( GLOB MidiEvent src/MidiEvent/*.cpp  )
+file( GLOB Protocol  src/protocol/*.cpp   )
+file( GLOB Midi      src/midi/*.cpp       )
+file( GLOB RTMidi    src/midi/rtmidi/*.cpp)
+file( GLOB Remote    src/remote/*.cpp     )
+file( GLOB Tool      src/tool/*.cpp       )
+
+file( GLOB mainh      src/*.h            )
+file( GLOB guih       src/gui/*.h        )
+file( GLOB MidiEventh src/MidiEvent/*.h  )
+file( GLOB Protocolh  src/protocol/*.h   )
+file( GLOB Midih      src/midi/*.h       )
+file( GLOB RTMidih    src/midi/rtmidi/*.h)
+file( GLOB Remoteh    src/remote/*.h     )
+file( GLOB Toolh      src/tool/*.h       )
+
+source_group( "main"        FILES ${main}      ${mainh}      )
+source_group( "gui"         FILES ${gui}       ${guih}       )
+source_group( "MidiEvent"   FILES ${MidiEvent} ${MidiEventh} )
+source_group( "protocol"    FILES ${Protocol}  ${Protocolh}  )
+source_group( "midi"        FILES ${Midi}      ${Midih}      )
+source_group( "midi/rtmidi" FILES ${RTMidi}    ${RTMidih}    )
+source_group( "remote"      FILES ${Remote}    ${Remoteh}    )
+source_group( "tool"        FILES ${Tool}      ${Toolh}      )
 
 add_definitions(${Qt5Core_DEFINITIONS})
 	
@@ -127,9 +135,17 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ressources.qrc" "<!DOCTYPE RCC><RCC vers
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 
-#qt5_add_resources(RESOURCES example.qrc)
+add_executable(MidiEditor 
+	${main}      ${mainh}      
+	${gui}       ${guih}      
+	${MidiEvent} ${MidiEventh}
+	${Protocol}  ${Protocolh} 
+	${Midi}      ${Midih}     
+	${RTMidi}    ${RTMidih}   
+	${Remote}    ${Remoteh}   
+	${Tool}      ${Toolh}     
+)
 
-add_executable(MidiEditor ${src} ${hdr})
 #qt5_add_binary_resources(MidiEditor "ressources.qrc" "ressources.rcc")
 if(MSVC)
 	target_link_libraries(MidiEditor Qt5::Widgets Qt5::Network Qt5::Xml Winmm.lib ${ressources})
