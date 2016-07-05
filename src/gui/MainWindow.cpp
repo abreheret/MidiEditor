@@ -1276,7 +1276,7 @@ void MainWindow::moveSelectedEventsToChannel(QAction *action){
     }
 }
 
-void MainWindow::moveSelectedEventsToTrack(QAction *action){
+void MainWindow::moveSelectedEventsToTrack(QAction *action) {
 
 	if(!file){
 		return;
@@ -1423,6 +1423,7 @@ void MainWindow::updateTrackMenu() {
 		QVariant variant(i);
 		QAction *moveToTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
 		moveToTrackAction->setData(variant);
+		moveToTrackAction->setShortcut(QKeySequence(Qt::Key_0+i + Qt::CTRL));
 		_moveSelectedEventsToTrackMenu->addAction(moveToTrackAction);
 	}
 
@@ -2254,7 +2255,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	_moveSelectedEventsToTrackMenu = new QMenu("Move events to track...", editMB);
 	toolsMB->addMenu(_moveSelectedEventsToTrackMenu);
-    connect(_moveSelectedEventsToTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(moveSelectedEventsToTrack(QAction*)));
+	connect(_moveSelectedEventsToTrackMenu, SIGNAL(triggered(QAction*)), this, SLOT(moveSelectedEventsToTrack(QAction*)));
 
 	toolsMB->addSeparator();
 
@@ -2380,12 +2381,13 @@ QWidget *MainWindow::setupActions(QWidget *parent){
     // Playback
     QAction *playAction = new QAction("Play", this);
     playAction->setIcon(QIcon(":/run_environment/graphics/tool/play.png"));
-	playAction->setShortcut(QKeySequence(Qt::Key_P+Qt::CTRL));
+	playAction->setShortcut(QKeySequence(Qt::Key_Space));
     connect(playAction, SIGNAL(triggered()), this, SLOT(play()));
     playbackMB->addAction(playAction);
 
     QAction *pauseAction = new QAction("Pause", this);
     pauseAction->setIcon(QIcon(":/run_environment/graphics/tool/pause.png"));
+	pauseAction->setShortcut(QKeySequence(Qt::Key_Space +Qt::CTRL));
     connect(pauseAction, SIGNAL(triggered()), this, SLOT(pause()));
     playbackMB->addAction(pauseAction);
 
@@ -2397,7 +2399,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     QAction *stopAction = new QAction("Stop", this);
 	stopAction->setIcon(QIcon(":/run_environment/graphics/tool/stop.png"));
-	stopAction->setShortcut(QKeySequence(Qt::Key_P+Qt::CTRL+Qt::ALT));
+	stopAction->setShortcut(QKeySequence(Qt::Key_Space+Qt::CTRL+Qt::ALT));
     connect(stopAction, SIGNAL(triggered()), this, SLOT(stop()));
     playbackMB->addAction(stopAction);
 
