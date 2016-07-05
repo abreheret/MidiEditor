@@ -2,8 +2,8 @@ MidiEditor
 ===========
 
 ### Building Dependencies
-* Qt5.7 [download](https://www.qt.io/download-open-source/)
-* CMake >= 2.8.11 (Under Windows using Visual Studio 2013)
+* [Qt5.x](https://www.qt.io/download-open-source/)
+* [CMake](https://cmake.org/download/) >= 2.8.11 (Under Windows using Visual Studio 2013)
 
 ### Introduction
 
