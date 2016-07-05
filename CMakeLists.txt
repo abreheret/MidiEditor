@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.11)
 
 project(MidiEditor)
+option(INSTALL_WITH_CPACK "Make deployment on Windows installer" OFF )
 
 if(MSVC12)
 	if( CMAKE_CL_64 OR CMAKE_SIZEOF_VOID_P EQUAL 8 ) 
@@ -87,3 +88,41 @@ if(MSVC)
 else()
 	target_link_libraries(MidiEditor libsfml-audio ${MidiEditorDep})
 endif()
+
+if(INSTALL_WITH_CPACK)
+	install(TARGETS MidiEditor DESTINATION bin)
+	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ressources.rcc" DESTINATION bin)
+	install(FILES "${QT5_DIR}/../../bin/Qt5Widgets.dll"        DESTINATION bin)
+	install(FILES "${QT5_DIR}/../../bin/Qt5Network.dll"        DESTINATION bin)
+	install(FILES "${QT5_DIR}/../../bin/Qt5Xml.dll"            DESTINATION bin)
+	install(FILES "${QT5_DIR}/../../bin/Qt5Gui.dll"            DESTINATION bin)
+	install(FILES "${QT5_DIR}/../../bin/Qt5Core.dll"           DESTINATION bin)
+	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION bin/metronome)
+	set(CPACK_GENERATOR NSIS)
+	set(CPACK_PACKAGE_NAME "MidiEditor")
+	set(CPACK_PACKAGE_VENDOR "http://midieditor.sourceforge.net/")
+	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "MidiEditor - Installation ")
+	set(CPACK_PACKAGE_VERSION "3.1.0")
+	set(CPACK_PACKAGE_VERSION_MAJOR "3")
+	set(CPACK_PACKAGE_VERSION_MINOR "1")
+	set(CPACK_PACKAGE_VERSION_PATCH "0")
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY "MidiEditor")
+	SET(CPACK_NSIS_MODIFY_PATH OFF)
+	INCLUDE(CPack)
+endif()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
