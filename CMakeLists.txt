@@ -4,10 +4,10 @@ project(MidiEditor)
 option(INSTALL_WITH_CPACK "Make deployment on Windows installer" OFF )
 
 if(MSVC12)
-	if( CMAKE_CL_64 OR CMAKE_SIZEOF_VOID_P EQUAL 8 ) 
+	if( CMAKE_CL_64 OR CMAKE_SIZEOF_VOID_P EQUAL 8 )
 		set(QT5_DIR "C:/Qt/5.7/msvc2013_64/lib/cmake" CACHE STRING "Additional search paths for QT5")
 		SET(ARCH "x64")
-	else( CMAKE_CL_64 OR CMAKE_SIZEOF_VOID_P EQUAL 8 ) 
+	else( CMAKE_CL_64 OR CMAKE_SIZEOF_VOID_P EQUAL 8 )
 		set(QT5_DIR "C:/Qt/5.7/msvc2013/lib/cmake" CACHE STRING "Additional search paths for QT5")
 		SET(ARCH "x86")
 	endif( CMAKE_CL_64 OR CMAKE_SIZEOF_VOID_P EQUAL 8 )
@@ -15,7 +15,7 @@ if(MSVC12)
 	find_path(Qt5Network_DIR Qt5NetworkConfig.cmake PATHS "${QT5_DIR}/Qt5Network" )
 	find_path(Qt5Xml_DIR     Qt5XmlConfig.cmake     PATHS "${QT5_DIR}/Qt5Xml"     )
 	add_definitions(/W3)
-	add_definitions(-D__WINDOWS_MM__ -D_UNICODE) 
+	add_definitions(-D__WINDOWS_MM__ -D_UNICODE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP") # multi processor compiliation.
 	MESSAGE(STATUS "ARCH = ${ARCH}")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
@@ -73,38 +73,38 @@ source_group( "tool\\inc"      FILES ${Toolh}     )
 source_group( ""               FILES ${main} ${mainh} )
 source_group( "midi\\rtmidi"   FILES ${RTMidi} ${RTMidih} )
 
-add_executable(MidiEditor 
-	${main}      ${mainh}     
-	${RTMidi}    ${RTMidih}   
-    ${Protocol}  ${Protocolh} 
-    ${Midi}      ${Midih}     
-    ${gui}       ${guih}      
+add_executable(MidiEditor
+	${main}      ${mainh}
+	${RTMidi}    ${RTMidih}
+    ${Protocol}  ${Protocolh}
+    ${Midi}      ${Midih}
+    ${gui}       ${guih}
     ${MidiEvent} ${MidiEventh}
-    ${Remote}    ${Remoteh}   
+    ${Remote}    ${Remoteh}
     ${Tool}      ${Toolh}    )
 
 include(ressources.cmake)
 set(MidiEditorDep Qt5::Widgets Qt5::Network Qt5::Xml ${ressources} )
 if(MSVC)
 	target_link_libraries(MidiEditor Winmm.lib ${MidiEditorDep})
+  set(QT5_DLLs_DEP_RELEASE "${QT5_DIR}/../../bin/Qt5Widgets.dll"
+    "${QT5_DIR}/../../bin/Qt5Network.dll"
+    "${QT5_DIR}/../../bin/Qt5Xml.dll"
+    "${QT5_DIR}/../../bin/Qt5Gui.dll"
+  "${QT5_DIR}/../../bin/Qt5Core.dll")
+  set(QT5_DLLs_DEP_DEBUG "${QT5_DIR}/../../bin/Qt5Widgetsd.dll"
+    "${QT5_DIR}/../../bin/Qt5Networkd.dll"
+    "${QT5_DIR}/../../bin/Qt5Xmld.dll"
+    "${QT5_DIR}/../../bin/Qt5Guid.dll"
+  "${QT5_DIR}/../../bin/Qt5Cored.dll")
+  file(COPY ${QT5_DLLs_DEP_RELEASE} ${QT5_DLLs_DEP_DEBUG} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 else()
-	target_link_libraries(MidiEditor libasound libsfml-system libsfml-audio ${MidiEditorDep})
+	target_link_libraries(MidiEditor asound sfml-system sfml-audio pthread ${MidiEditorDep})
 endif()
 
-set(QT5_DLLs_DEP_RELEASE "${QT5_DIR}/../../bin/Qt5Widgets.dll" 
-                 "${QT5_DIR}/../../bin/Qt5Network.dll"
-                 "${QT5_DIR}/../../bin/Qt5Xml.dll"    
-                 "${QT5_DIR}/../../bin/Qt5Gui.dll" 
-                 "${QT5_DIR}/../../bin/Qt5Core.dll")
-set(QT5_DLLs_DEP_DEBUG "${QT5_DIR}/../../bin/Qt5Widgetsd.dll" 
-                 "${QT5_DIR}/../../bin/Qt5Networkd.dll"
-                 "${QT5_DIR}/../../bin/Qt5Xmld.dll"    
-                 "${QT5_DIR}/../../bin/Qt5Guid.dll" 
-                 "${QT5_DIR}/../../bin/Qt5Cored.dll")				 
-file(COPY ${QT5_DLLs_DEP_RELEASE} ${QT5_DLLs_DEP_DEBUG} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/metronome)
-		   
+
 if(INSTALL_WITH_CPACK)
 	install(TARGETS MidiEditor DESTINATION bin)
 	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION bin)
@@ -123,19 +123,3 @@ if(INSTALL_WITH_CPACK)
 	SET(CPACK_NSIS_MODIFY_PATH OFF)
 	INCLUDE(CPack)
 endif()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
