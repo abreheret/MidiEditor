@@ -40,7 +40,7 @@ int UnknownEvent::line(){
 
 QByteArray UnknownEvent::save(){
 	QByteArray s;
-	s.append(0xFF);
+	s.append(char(0xFF));
 	s.append(_type);
 	s.append(MidiFile::writeVariableLengthValue(_data.length()));
 	s.append(_data);

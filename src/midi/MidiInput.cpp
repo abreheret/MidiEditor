@@ -118,7 +118,7 @@ QStringList MidiInput::inputPorts(){
 		try {
 			ports.append(QString::fromStdString(_midiIn->getPortName(i)));
 		}
-		catch (RtMidiError &error) {}
+		catch (RtMidiError &) {}
 	}
 
 	return ports;
@@ -144,7 +144,7 @@ bool MidiInput::setInputPort(QString name){
 			}
 
 		}
-		catch (RtMidiError &error) {}
+		catch (RtMidiError &) {}
 	}
 
 	// port not found

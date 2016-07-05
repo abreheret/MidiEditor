@@ -58,9 +58,9 @@ int TempoChangeEvent::line(){
 QByteArray TempoChangeEvent::save(){
 	QByteArray array = QByteArray();
 
-	array.append(0xFF);
-	array.append(0x51);
-	array.append(0x03);
+	array.append(char(0xFF));
+	array.append(char(0x51));
+	array.append(char(0x03));
 	int value = 60000000/_beats;
 	for(int i = 2; i >=0; i--){
 		array.append((value & (0xFF << 8*i)) >>8*i);

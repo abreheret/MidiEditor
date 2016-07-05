@@ -59,7 +59,7 @@ QByteArray TextEvent::save(){
 
 	QByteArray array = QByteArray();
 
-	array.append(0xFF);
+	array.append(char(0xFF));
 	array.append(_type);
 	array.append(MidiFile::writeVariableLengthValue(_text.length()));
 
@@ -98,4 +98,5 @@ QString TextEvent::textTypeString(int type){
 		case MARKER: return "Marker";
 		case COMMENT: return "Comment";
 	}
+	return QString();
 }

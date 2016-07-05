@@ -38,7 +38,7 @@ QString KeySignatureEvent::toMessage(){
 
 QByteArray KeySignatureEvent::save(){
 	QByteArray array = QByteArray();
-	array.append(0xFF);
+	array.append(char(0xFF));
 	array.append(0x59 | channel());
 	array.append(0x02);
 	array.append(tonality());

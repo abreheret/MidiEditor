@@ -1026,8 +1026,8 @@ bool MidiFile::save(QString path){
 		QByteArray deltaTime = writeDeltaTime(time);
 		numBytes += deltaTime.count();
 		data.append(deltaTime);
-		data.append(0xFF);
-		data.append(0x2F);
+		data.append(char(0xFF));
+		data.append(char(0x2F));
 		data.append('\0');
 		numBytes+=3;
 

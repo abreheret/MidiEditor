@@ -97,12 +97,16 @@ void OffEvent::reloadState(ProtocolEntry *entry){
 QByteArray OffEvent::save(){
 	if(onEvent()){
 		return onEvent()->saveOffEvent();
+	} else {
+		return QByteArray();
 	}
 }
 
 QString OffEvent::toMessage(){
 	if(onEvent()){
 		return onEvent()->offEventMessage();
+	} else {
+		return QString();
 	}
 }
 

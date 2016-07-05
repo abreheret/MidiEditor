@@ -93,7 +93,7 @@ QStringList MidiOutput::outputPorts(){
 		try {
 			ports.append(QString::fromStdString(_midiOut->getPortName(i)));
 		}
-		catch (RtMidiError &error) {}
+		catch (RtMidiError &) {}
 	}
 
 	return ports;
@@ -119,7 +119,7 @@ bool MidiOutput::setOutputPort(QString name){
 			}
 
 		}
-		catch (RtMidiError &error) {}
+		catch (RtMidiError &) {}
 
 	}
 
