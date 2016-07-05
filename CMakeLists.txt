@@ -20,6 +20,8 @@ if(MSVC12)
 	MESSAGE(STATUS "ARCH = ${ARCH}")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-std=c++11)
+	add_definitions(-D__LINUX_ALSASEQ__)
+	add_definitions(-D__LINUX_ALSA__)
 	set(QT5_DIR "~/Qt/5.7/gcc_64/lib/cmake" CACHE STRING "Additional search paths for QT5")
 	find_path(Qt5Widgets_DIR Qt5WidgetsConfig.cmake PATHS "${QT5_DIR}/Qt5Widgets" )
 	find_path(Qt5Network_DIR Qt5NetworkConfig.cmake PATHS "${QT5_DIR}/Qt5Network" )
@@ -86,17 +88,28 @@ set(MidiEditorDep Qt5::Widgets Qt5::Network Qt5::Xml ${ressources} )
 if(MSVC)
 	target_link_libraries(MidiEditor Winmm.lib ${MidiEditorDep})
 else()
-	target_link_libraries(MidiEditor libsfml-audio ${MidiEditorDep})
+	target_link_libraries(MidiEditor libasound libsfml-system libsfml-audio ${MidiEditorDep})
 endif()
 
+set(QT5_DLLs_DEP_RELEASE "${QT5_DIR}/../../bin/Qt5Widgets.dll" 
+                 "${QT5_DIR}/../../bin/Qt5Network.dll"
+                 "${QT5_DIR}/../../bin/Qt5Xml.dll"    
+                 "${QT5_DIR}/../../bin/Qt5Gui.dll" 
+                 "${QT5_DIR}/../../bin/Qt5Core.dll")
+set(QT5_DLLs_DEP_DEBUG "${QT5_DIR}/../../bin/Qt5Widgetsd.dll" 
+                 "${QT5_DIR}/../../bin/Qt5Networkd.dll"
+                 "${QT5_DIR}/../../bin/Qt5Xmld.dll"    
+                 "${QT5_DIR}/../../bin/Qt5Guid.dll" 
+                 "${QT5_DIR}/../../bin/Qt5Cored.dll")				 
+file(COPY ${QT5_DLLs_DEP_RELEASE} ${QT5_DLLs_DEP_DEBUG} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/metronome)
+		   
 if(INSTALL_WITH_CPACK)
 	install(TARGETS MidiEditor DESTINATION bin)
+	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION bin)
 	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ressources.rcc" DESTINATION bin)
-	install(FILES "${QT5_DIR}/../../bin/Qt5Widgets.dll"        DESTINATION bin)
-	install(FILES "${QT5_DIR}/../../bin/Qt5Network.dll"        DESTINATION bin)
-	install(FILES "${QT5_DIR}/../../bin/Qt5Xml.dll"            DESTINATION bin)
-	install(FILES "${QT5_DIR}/../../bin/Qt5Gui.dll"            DESTINATION bin)
-	install(FILES "${QT5_DIR}/../../bin/Qt5Core.dll"           DESTINATION bin)
+	install(FILES ${QT5_DLLs_DEP_RELEASE} DESTINATION bin)
 	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION bin/metronome)
 	set(CPACK_GENERATOR NSIS)
 	set(CPACK_PACKAGE_NAME "MidiEditor")
