@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(MidiEditor)
 
-if(WIN32)
+if(MSVC12)
 	if( CMAKE_CL_64 OR CMAKE_SIZEOF_VOID_P EQUAL 8 ) 
 		set(QT5_DIR "C:/Qt/5.7/msvc2013_64/lib/cmake" CACHE STRING "Additional search paths for QT5")
 		SET(ARCH "x64")
@@ -14,13 +14,22 @@ if(WIN32)
 	find_path(Qt5Network_DIR Qt5NetworkConfig.cmake PATHS "${QT5_DIR}/Qt5Network" )
 	find_path(Qt5Xml_DIR     Qt5XmlConfig.cmake     PATHS "${QT5_DIR}/Qt5Xml"     )
 	add_definitions(/W3)
-	add_definitions(-D__WINDOWS_MM__ -D_UNICODE)
+	add_definitions(-D__WINDOWS_MM__ -D_UNICODE) 
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP") # multi processor compiliation.
 	MESSAGE(STATUS "ARCH = ${ARCH}")
+elseif(CMAKE_COMPILER_IS_GNUCXX)
+    add_definitions(-std=c++11)
+	set(QT5_DIR "~/Qt/5.7/gcc_64/lib/cmake" CACHE STRING "Additional search paths for QT5")
+	find_path(Qt5Widgets_DIR Qt5WidgetsConfig.cmake PATHS "${QT5_DIR}/Qt5Widgets" )
+	find_path(Qt5Network_DIR Qt5NetworkConfig.cmake PATHS "${QT5_DIR}/Qt5Network" )
+	find_path(Qt5Xml_DIR     Qt5XmlConfig.cmake     PATHS "${QT5_DIR}/Qt5Xml"     )
+else()
+	message(FATAL_ERROR "Your compiler is not managed by this CMakeLists, only MSVC12 or G++ is managed")
 endif()
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)
-find_package(Qt5Xml REQUIRED)
+find_package(Qt5Xml     REQUIRED)
 
 # Turn on automatic invocation of the MOC
 set(CMAKE_AUTOMOC ON)
@@ -62,18 +71,19 @@ source_group( ""               FILES ${main} ${mainh} )
 source_group( "midi\\rtmidi"   FILES ${RTMidi} ${RTMidih} )
 
 add_executable(MidiEditor 
-	${main}      ${mainh}      
-	${gui}       ${guih}      
-	${MidiEvent} ${MidiEventh}
-	${Protocol}  ${Protocolh} 
-	${Midi}      ${Midih}     
+	${main}      ${mainh}     
 	${RTMidi}    ${RTMidih}   
-	${Remote}    ${Remoteh}   
-	${Tool}      ${Toolh}     
-)
+    ${Protocol}  ${Protocolh} 
+    ${Midi}      ${Midih}     
+    ${gui}       ${guih}      
+    ${MidiEvent} ${MidiEventh}
+    ${Remote}    ${Remoteh}   
+    ${Tool}      ${Toolh}    )
+
 include(ressources.cmake)
+set(MidiEditorDep Qt5::Widgets Qt5::Network Qt5::Xml ${ressources} )
 if(MSVC)
-	target_link_libraries(MidiEditor Qt5::Widgets Qt5::Network Qt5::Xml Winmm.lib ${ressources})
+	target_link_libraries(MidiEditor Winmm.lib ${MidiEditorDep})
 else()
-	target_link_libraries(MidiEditor Qt5::Widgets Qt5::Network Qt5::Xml )
+	target_link_libraries(MidiEditor libsfml-audio ${MidiEditorDep})
 endif()
