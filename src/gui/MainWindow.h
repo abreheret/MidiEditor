@@ -56,6 +56,7 @@ class MainWindow : public QMainWindow {
 	public slots:
 		void matrixSizeChanged(int maxScrollTime, int maxScrollLine, int vX, int vY);
 		void play();
+		void playStop();
 		void stop(bool autoConfirmRecord = false, bool addEvents = true, bool resetPause = true);
 		void pause();
 		void forward();
@@ -187,7 +188,7 @@ class MainWindow : public QMainWindow {
 		QAction *_colorsByChannel, *_colorsByTracks;
 
 		QComboBox *_chooseEditTrack, *_chooseEditChannel;
-
+		
 #ifdef ENABLE_REMOTE
 		RemoteServer *_remoteServer;
 #endif

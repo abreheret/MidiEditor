@@ -538,10 +538,17 @@ void MainWindow::matrixSizeChanged(int maxScrollTime, int maxScrollLine,
 	mw_matrixWidget->repaint();
 }
 
+void MainWindow::playStop() {
+	if (MidiPlayer::isPlaying()) {
+		stop();
+	} else {
+		play();
+	}
+}
+
 void MainWindow::play(){
 
 	if(file && !MidiInput::recording() && !MidiPlayer::isPlaying()){
-
 		mw_matrixWidget->timeMsChanged(file->msOfTick(file->cursorTick()), true);
 
         _miscWidget->setEnabled(false);
@@ -2379,9 +2386,13 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	viewMB->addMenu(divMenu);
 
     // Playback
+	QAction *playStopAction = new QAction("PlayStop");
+	playStopAction->setShortcut(QKeySequence(Qt::Key_Space));
+	connect(playStopAction, SIGNAL(triggered()), this, SLOT(playStop()));
+	playbackMB->addAction(playStopAction);
+
     QAction *playAction = new QAction("Play", this);
     playAction->setIcon(QIcon(":/run_environment/graphics/tool/play.png"));
-	playAction->setShortcut(QKeySequence(Qt::Key_Space));
     connect(playAction, SIGNAL(triggered()), this, SLOT(play()));
     playbackMB->addAction(playAction);
 
@@ -2399,7 +2410,6 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     QAction *stopAction = new QAction("Stop", this);
 	stopAction->setIcon(QIcon(":/run_environment/graphics/tool/stop.png"));
-	stopAction->setShortcut(QKeySequence(Qt::Key_Space+Qt::CTRL+Qt::ALT));
     connect(stopAction, SIGNAL(triggered()), this, SLOT(stop()));
     playbackMB->addAction(stopAction);
 
