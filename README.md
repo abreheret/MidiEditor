@@ -7,6 +7,7 @@ MidiEditor
 * Linux : 
      * [sfml](http://www.sfml-dev.org/download-fr.php) `sudo apt-get install libsfml-dev`
      * asound `sudo apt-get install libasound2-dev`
+* Windows deployment : [nsis](http://nsis.sourceforge.net/Download)
  
 ### Introduction
 
