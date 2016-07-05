@@ -1,4 +1,8 @@
-MidiEditor
+
+
+<img align="right" width="70px" src="run_environment/midieditor.ico">
+
+MidiEditor 
 ===========
 
 Download : Windows [v3.1.0](https://github.com/abreheret/MidiEditor/releases/tag/v3.1.0)
