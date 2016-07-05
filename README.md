@@ -1,4 +1,6 @@
-<img align="left" width="50px" src="run_environment/midieditor.ico">
+
+
+<img align="right" width="70px" src="run_environment/midieditor.ico">
 
 MidiEditor 
 ===========
