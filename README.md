@@ -5,7 +5,7 @@ MidiEditor
 * [Qt5.7](https://www.qt.io/download-open-source/)
 * [CMake](https://cmake.org/download/) >= 2.8.11 (Under Windows using Visual Studio 2013)
 * Linux : [sfml](http://www.sfml-dev.org/download-fr.php) `sudo apt-get install libsfml-dev`
-
+          asound `sudo apt-get install libasound2-dev`
 ### Introduction
 
 MidiEditor is a free software providing an interface to edit, record, and play Midi data.
