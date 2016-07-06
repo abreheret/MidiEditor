@@ -5,7 +5,7 @@
 MidiEditor 
 ===========
 
-Download : Windows [v3.1.0](https://github.com/abreheret/MidiEditor/releases/tag/v3.1.0)
+Download : Windows [last release](https://github.com/abreheret/MidiEditor/releases/)
 
 ### Building Dependencies
 * [Qt5.7](https://www.qt.io/download-open-source/)
