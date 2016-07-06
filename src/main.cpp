@@ -29,10 +29,19 @@
 #include "UpdateManager.h"
 #include <QResource>
 
+#ifdef NO_CONSOLE_MODE
+int WinMain(int argc, char *argv[])
+#else
 int main(int argc, char *argv[])
+#endif
 {
-	bool ok = QResource::registerResource("ressources.rcc");
+	
     QApplication a(argc, argv);
+	bool ok = QResource::registerResource(a.applicationDirPath() + "/ressources.rcc");
+	if (!ok) {
+		ok = QResource::registerResource("ressources.rcc");
+	}
+
 	UpdateManager::instance()->init();
 	a.setApplicationVersion(UpdateManager::instance()->versionString());
 	a.setApplicationName("MidiEditor");
