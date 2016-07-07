@@ -1074,14 +1074,12 @@ void MatrixWidget::wheelEvent(QWheelEvent *event){
 			} else {
 				zoomVerOut();
 			}
-			printf("vertical zoom\n");
 		} else if (km == Qt::ControlModifier) {
 			if (event->delta() > 0) {
 				zoomHorIn();
 			} else {
 				zoomHorOut();
 			}
-			printf("horizontal zoom\n");
 		}
 	} else {
 		if (!file) return;
