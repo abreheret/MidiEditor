@@ -129,7 +129,6 @@ void MatrixWidget::scrollXChanged(int scrollPositionX){
 }
 
 void MatrixWidget::scrollYChanged(int scrollPositionY){
-
 	if(!file) return;
 
 	startLineY = scrollPositionY;
@@ -1067,34 +1066,53 @@ int MatrixWidget::maxVisibleMidiTime(){
 }
 
 void MatrixWidget::wheelEvent(QWheelEvent *event){
-	if(!file) return;
-
-	int maxTimeInFile = file->maxTime();
-	int widgetRange = endTimeX-startTimeX;
-
-	if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier)){
-
-		int scroll = -1*event->delta()*widgetRange/1000;
-
-		int newStartTime = startTimeX+scroll;
-
-		scrollXChanged(newStartTime);
-		emit scrollChanged(startTimeX, maxTimeInFile-widgetRange, startLineY, NUM_LINES-(endLineY-startLineY));
+	Qt::KeyboardModifiers km = event->modifiers();
+	if (km) {
+		if (km == Qt::ShiftModifier) {
+			if (event->delta() > 0) {
+				zoomVerIn();
+			} else {
+				zoomVerOut();
+			}
+			printf("vertical zoom\n");
+		} else if (km == Qt::ControlModifier) {
+			if (event->delta() > 0) {
+				zoomHorIn();
+			} else {
+				zoomHorOut();
+			}
+			printf("horizontal zoom\n");
+		}
 	} else {
-		int newStartLineY = startLineY;
+		if (!file) return;
+		int maxTimeInFile = file->maxTime();
+		int widgetRange = endTimeX - startTimeX;
+		if (QApplication::keyboardModifiers().testFlag(Qt::AltModifier)){
 
-		if(event->delta() > 0){
-			newStartLineY-=3;
-		} else {
-			newStartLineY+=3;
-		}
+			int scroll = -1 * event->delta()*widgetRange / 1000;
 
-		if(newStartLineY < 0){
-			newStartLineY = 0;
+			int newStartTime = startTimeX + scroll;
+
+			scrollXChanged(newStartTime);
+			emit scrollChanged(startTimeX, maxTimeInFile - widgetRange, startLineY, NUM_LINES - (endLineY - startLineY));
 		}
-		// endline too large handled in scrollYchanged()
-		scrollYChanged(newStartLineY);
-		emit scrollChanged(startTimeX, maxTimeInFile-widgetRange, startLineY, NUM_LINES-(endLineY-startLineY));
+		else {
+			int newStartLineY = startLineY;
+
+			if (event->delta() > 0){
+				newStartLineY -= 3;
+			}
+			else {
+				newStartLineY += 3;
+			}
+
+			if (newStartLineY < 0){
+				newStartLineY = 0;
+			}
+			// endline too large handled in scrollYchanged()
+			scrollYChanged(newStartLineY);
+			emit scrollChanged(startTimeX, maxTimeInFile - widgetRange, startLineY, NUM_LINES - (endLineY - startLineY));
+		}
 	}
 }
 
