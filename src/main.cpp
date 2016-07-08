@@ -57,9 +57,12 @@ int main(int argc, char *argv[])
 	MidiOutput::init();
     MidiInput::init();
 
-    MainWindow *w = new MainWindow();
+	MainWindow *w;
+	if (argc == 2)
+		w = new MainWindow(argv[1]);
+	else
+		w = new MainWindow();
 	w->resize(QSize(1280, 800));
-    w->show();
-
+	w->show();
     return a.exec();
 }

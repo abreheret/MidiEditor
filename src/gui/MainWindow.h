@@ -48,12 +48,15 @@ class MainWindow : public QMainWindow {
 	Q_OBJECT
 
 	public:
-		MainWindow();
+		MainWindow(QString initFile="");
 		void setFile(MidiFile *f);
 		EventWidget *eventWidget();
 		void setStartDir(QString dir);
+		void setInitFile(const char * file);
 
 	public slots:
+
+		void loadInitFile();
 		void matrixSizeChanged(int maxScrollTime, int maxScrollLine, int vX, int vY);
 		void play();
 		void playStop();
@@ -63,6 +66,7 @@ class MainWindow : public QMainWindow {
 		void back();
 		void backToBegin();
 		void load();
+		void loadFile(QString file);
 		void openFile(QString filePath);
 		void save();
 		void saveas();
@@ -176,7 +180,7 @@ class MainWindow : public QMainWindow {
 		ProtocolWidget *protocolWidget;
 		TrackListWidget *_trackWidget;
 		MidiFile *file;
-		QString startDirectory;
+		QString startDirectory,_initFile;
 		EventWidget *_eventWidget;
 		QSettings *_settings;
 		QStringList _recentFilePaths;

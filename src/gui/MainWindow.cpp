@@ -95,7 +95,7 @@
 
 #include <QtCore/qmath.h>
 
-MainWindow::MainWindow() : QMainWindow() {
+MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	
 	file = 0;
 	_settings = new QSettings(QString("MidiEditor"), QString("NONE"));
@@ -483,10 +483,19 @@ MainWindow::MainWindow() : QMainWindow() {
 		colorsByTrack();
 	}
 	copiedEventsChanged();
-	QTimer::singleShot(200, this, SLOT(newFile()));
-	//if(UpdateManager::autoCheckForUpdates()){
-	//	QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates()));
-	//}
+	setAcceptDrops(true);
+	QTimer::singleShot(200, this, SLOT(loadInitFile()));
+	//if(UpdateManager::autoCheckForUpdates()){ 
+	//  QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates())); 
+	//} 
+}
+
+void MainWindow::loadInitFile() {
+	printf("_initFile = [%s]\n", _initFile.toStdString().c_str());
+	if (_initFile != "")
+		loadFile(_initFile);
+	else
+		newFile();
 }
 
 void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
@@ -884,6 +893,41 @@ void MainWindow::load(){
 	}
 }
 
+void MainWindow::loadFile(QString nfile) {
+	QString oldPath = startDirectory;
+	if (file){
+		oldPath = file->path();
+		if (!file->saved()){
+			switch (QMessageBox::question(this, "Save file?", "Save file " +
+				file->path() +
+				" before closing?", "Save", "Close without saving", "Cancel", 0, 2))
+			{
+			case 0: {
+				// save
+				if (QFile(file->path()).exists()){
+					file->save(file->path());
+				}
+				else {
+					saveas();
+				}
+				break;
+			}
+			case 1: {
+				// close
+				break;
+			}
+			case 2: {
+				// break
+				return;
+			}
+			}
+		}
+	}
+	if (!nfile.isEmpty()){
+		openFile(nfile);
+	}
+}
+
 void MainWindow::openFile(QString filePath){
 
 	bool ok = true;
@@ -892,7 +936,7 @@ void MainWindow::openFile(QString filePath){
 
 	if(!nf.exists()){
 
-		QMessageBox::warning(this, "Error", QString("The file does not exist!"));
+		QMessageBox::warning(this, "Error", QString("The file [" + filePath + "]does not exist!"));
 		return;
 	}
 
@@ -901,6 +945,7 @@ void MainWindow::openFile(QString filePath){
 	MidiFile *mf = new MidiFile(filePath, &ok);
 
 	if(ok){
+		stop();
 		setFile(mf);
 		updateRecentPathsList();
 	} else {
