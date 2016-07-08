@@ -484,9 +484,9 @@ MainWindow::MainWindow() : QMainWindow() {
 	}
 	copiedEventsChanged();
 	QTimer::singleShot(200, this, SLOT(newFile()));
-	if(UpdateManager::autoCheckForUpdates()){
-		QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates()));
-	}
+	//if(UpdateManager::autoCheckForUpdates()){
+	//	QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates()));
+	//}
 }
 
 void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
