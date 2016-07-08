@@ -53,6 +53,9 @@ class MainWindow : public QMainWindow {
 		EventWidget *eventWidget();
 		void setStartDir(QString dir);
 		void setInitFile(const char * file);
+	protected:
+		void dropEvent(QDropEvent *ev);
+		void dragEnterEvent(QDragEnterEvent *ev);
 
 	public slots:
 

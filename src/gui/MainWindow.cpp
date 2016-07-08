@@ -41,6 +41,7 @@
 #include <QTextEdit>
 #include <QToolBar>
 #include <QScrollArea>
+#include <QMimeData>
 
 #include "DonateDialog.h"
 #include "AboutDialog.h"
@@ -496,6 +497,23 @@ void MainWindow::loadInitFile() {
 		loadFile(_initFile);
 	else
 		newFile();
+}
+
+void MainWindow::dropEvent(QDropEvent *ev)
+{
+	QList<QUrl> urls = ev->mimeData()->urls();
+	foreach(QUrl url, urls) {
+		QString newFile = url.toLocalFile();
+		if (!newFile.isEmpty()) {
+			loadFile(newFile);
+			break;
+		}
+	}
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *ev)
+{
+	ev->accept();
 }
 
 void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
