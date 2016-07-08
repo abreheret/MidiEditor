@@ -58,7 +58,8 @@ int main(int argc, char *argv[])
     MidiInput::init();
 
     MainWindow *w = new MainWindow();
-    w->showMaximized();
+	w->resize(QSize(1280, 800));
+    w->show();
 
     return a.exec();
 }
