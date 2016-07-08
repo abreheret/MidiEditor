@@ -492,7 +492,6 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 }
 
 void MainWindow::loadInitFile() {
-	printf("_initFile = [%s]\n", _initFile.toStdString().c_str());
 	if (_initFile != "")
 		loadFile(_initFile);
 	else
