@@ -32,7 +32,7 @@ if(MSVC12)
 	endif()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP") # multi processor compiliation.
 	MESSAGE(STATUS "ARCH = ${ARCH}")
-else
+else()
     add_definitions(-std=c++11)
 	add_definitions(-D__LINUX_ALSASEQ__)
 	add_definitions(-D__LINUX_ALSA__)
@@ -129,7 +129,7 @@ if(INSTALL_WITH_CPACK)
 		set(CPACK_PACKAGE_INSTALL_DIRECTORY "MidiEditor")
 		set(CPACK_PACKAGE_EXECUTABLES "MidiEditor" "MidiEditor" ${CPACK_PACKAGE_EXECUTABLES}) 
 		set(CPACK_NSIS_MODIFY_PATH OFF)
-	else #UNIX
+	else() #UNIX
 		set(CPACK_GENERATOR "DEB")
 		SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Amaury Bréhéret") #required
 	endif()
