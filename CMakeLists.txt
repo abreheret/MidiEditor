@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(MidiEditor)
 
+configure_file(
+  ${CMAKE_SOURCE_DIR}/version.cmake.in
+  ${CMAKE_BINARY_DIR}/version.cmake
+)
+include_directories(${CMAKE_BINARY_DIR})
+
 # check compiler
 if(MSVC12)
 	message(STATUS "Your compiler is managed")
@@ -116,6 +122,7 @@ if(MSVC12)
 else()
 	target_link_libraries(MidiEditor asound sfml-system sfml-audio pthread ${MidiEditorDep})
 endif()
+add_custom_command(TARGET MidiEditor PRE_BUILD COMMAND cmake -P ${CMAKE_BINARY_DIR}/version.cmake)
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/metronome)

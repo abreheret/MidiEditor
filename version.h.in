@@ -1,0 +1,25 @@
+#ifndef   version_info_h
+#define   version_info_h
+
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+#define GIT_BRANCH      "@GIT_BRANCH@"      /*! Current name of the branch     */
+#define GIT_COMMIT_HASH "@GIT_COMMIT_HASH@" /*! Current hash of the git branch */
+#define GIT_DATE        "@GIT_COMMIT_DATE@" /*! Current date of the git branch */
+#define GIT_TAG         "@GIT_TAG@"         /*! Current tag of the git branch  */
+
+#if _DEBUG
+#define CONF_MODE       "DEBUG" /*! Last compilation mode used */
+#else
+#define CONF_MODE       "RELEASE"/*! Last compilation mode used */
+#endif
+
+#define META_INFO       "@GIT_BRANCH@ - @GIT_TAG@ - @GIT_COMMIT_HASH@ - @GIT_COMMIT_DATE@ - "CONF_MODE /*! Version name */
+
+# ifdef __cplusplus
+}
+# endif
+
+#endif //version_info_h

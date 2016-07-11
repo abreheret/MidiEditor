@@ -17,6 +17,7 @@
  */
 
 #include "AboutDialog.h"
+#include "version.h"
 
 #include <QIcon>
 #include <QLabel>
@@ -44,22 +45,27 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent) {
 	layout->addWidget(title, 0, 1, 1, 2);
 	title->setStyleSheet("color: black");
 
-	QLabel *version = new QLabel("Version: "+QApplication::applicationVersion()+" ("+QApplication::instance()->property("arch").toString()+"-Bit, "+QApplication::instance()->property("date_published").toString()+")", this);
+	QLabel *version = new QLabel("Version: " + QString(GIT_TAG) + " (" + QApplication::instance()->property("arch").toString() + "-Bit, " + QString(GIT_DATE) + ")", this);
 	layout->addWidget(version, 1, 1, 1, 2);
 	version->setStyleSheet("color: black");
 
 	QScrollArea *a = new QScrollArea(this);
-	QLabel *content = new QLabel("<html>"
+	QLabel *content = new QLabel(QString::fromLatin1("<html>"
 									 "<body>"
 									 "<p>"
-										"<a href=\"http://midieditor.sourceforge.net/\">www.midieditor.sourceforge.net</a><br>"
-										"bugs@markus-schwenk.de"
+										"<a href=\"http://midieditor.sourceforge.net/\">www.midieditor.sourceforge.net</a>"
+										"bugs@markus-schwenk.de<br>"
+										"<a href=\"https://github.com/abreheret/MidiEditor/\">https://github.com/abreheret/MidiEditor</a>"
+										"abreheret@gmail.com<br>"
 									 "</p>"
-									 "<h3>Author</h3>"
+									 "<h3>Authors</h3>"
 									 "<p>"
 										 "Markus Schwenk<br>"
 										 "Email: kontakt@markus-schwenk.de<br>"
 										 "Website: <a href=\"http://www.markus-schwenk.de\">www.markus-schwenk.de</a><br>"
+										 "Amaury Bréhéret<br>"
+										 "Email: abreheret@gmail.com<br>"
+										 "Github: <a href=\"https://github.com/abreheret\">https://github.com/abreheret</a><br>"
 									 "</p>"
 									 "<h3>Thanks to</h3>"
 									 "<p>Romain Behar</p>"
@@ -76,7 +82,7 @@ AboutDialog::AboutDialog(QWidget *parent):QDialog(parent) {
 									 "</p>"
 									 "</body>"
 								 "</html>"
-								 );
+								 ));
 	a->setWidgetResizable(true);
 	a->setWidget(content);
 	a->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
