@@ -32,7 +32,7 @@ void UpdateManager::init(){
 
 	// read own configuration
 	QDomDocument doc("version_info");
-	QFile file("D:/DEV/git/MidiEditor/run_environment/version_info.xml");
+	QFile file("version_info.xml");
 	if(file.open(QIODevice::ReadOnly)){
 		QString error;
 		if(doc.setContent(&file, &error)){
