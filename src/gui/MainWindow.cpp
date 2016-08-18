@@ -1171,7 +1171,7 @@ void MainWindow::screenLockPressed(bool enable) {
 void MainWindow::scaleSelection(){
     bool ok;
     double scale = QInputDialog::getDouble(this, "Scalefactor",
-    		"Scalefactor:", 1.0, 0, 2147483647, 1, &ok);
+            "Scalefactor:", 1.0, 0, 2147483647, 17, &ok);
 	if(ok && scale>0 && Selection::instance()->selectedEvents().size()>0 && file){
     	// find minimum
     	int minTime = 2147483647;
