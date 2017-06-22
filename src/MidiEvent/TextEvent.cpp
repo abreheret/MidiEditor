@@ -56,15 +56,22 @@ int TextEvent::line(){
 }
 
 QByteArray TextEvent::save(){
+	mbtstate_t mbs;
+	mbrlen(NULL, 0, &mbs);
 
 	QByteArray array = QByteArray();
 
 	array.append(char(0xFF));
 	array.append(_type);
 	array.append(MidiFile::writeVariableLengthValue(_text.length()));
-
-	for(int i = 0; i < _text.length(); i++){
-		array.append(_text.at(i));
+	
+	wchar_t text_wchar [128] = L"";
+	_text.toWCharArray(text_wchar);
+	
+	for(int i = 0; i < wcslen(text_wchar); i++){
+		char buffer [4];
+		wcrtomb(buffer, text_wchar[i], &mbs);
+		array.append(buffer);
 	}
 
 	return array;
