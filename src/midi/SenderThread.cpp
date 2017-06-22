@@ -41,5 +41,5 @@ void SenderThread::enqueue(MidiEvent *event){
 	if (dynamic_cast <NoteOnEvent*>(event)) 
 		_eventQueue->push_back(event);
 	else 
-		_eventQueut->push_front(event);
+		_eventQueue->push_front(event);
 }
