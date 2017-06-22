@@ -548,13 +548,13 @@ void MainWindow::setFile(MidiFile *file){
 	connect(file,SIGNAL(recalcWidgetSize()),mw_matrixWidget,SLOT(calcSizes()));
 	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(markEdited()));
 	connect(file->protocol(), SIGNAL(actionFinished()), eventWidget(), SLOT(reload()));
-	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(checkEnableActionsForSeelction()));
+	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(checkEnableActionsForSelection()));
 	mw_matrixWidget->setFile(file);
 	updateChannelMenu();
 	updateTrackMenu();
 	mw_matrixWidget->update();
 	_miscWidget->update();
-	checkEnableActionsForSeelction();
+	checkEnableActionsForSelection();
 }
 
 void MainWindow::matrixSizeChanged(int maxScrollTime, int maxScrollLine,
@@ -2901,7 +2901,7 @@ void MainWindow::setSpeed(QAction *action){
 	MidiPlayer::setSpeedScale(d);
 }
 
-void MainWindow::checkEnableActionsForSeelction(){
+void MainWindow::checkEnableActionsForSelection(){
 	bool enabled = Selection::instance()->selectedEvents().size()>0;
 	foreach(QAction *action, _activateWithSelections){
 		action->setEnabled(enabled);
@@ -2922,7 +2922,7 @@ void MainWindow::checkEnableActionsForSeelction(){
 }
 
 void MainWindow::toolChanged(){
-	checkEnableActionsForSeelction();
+	checkEnableActionsForSelection();
 	_miscWidget->update();
 	mw_matrixWidget->update();
 }
