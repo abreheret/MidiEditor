@@ -38,6 +38,8 @@
 
 #include <QtCore/qmath.h>
 
+int defaultTimePerQuarter = 192;
+
 MidiFile::MidiFile(){
 	_saved = true;
 	midiTicks = 0;
@@ -50,7 +52,7 @@ MidiFile::MidiFile(){
 		channels[i] = new MidiChannel(this, i);
 	}
 
-	timePerQuarter = 192;
+	timePerQuarter = MidiFile::defaultTimePerQuarter;
 	_midiFormat = 1;
 
 	_tracks = new QList<MidiTrack*>();

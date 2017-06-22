@@ -111,6 +111,9 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 #endif
 	bool alternativeStop = _settings->value("alt_stop", false).toBool();
 	MidiOutput::isAlternativePlayer = alternativeStop;
+	bool ticksOK;
+	int ticksPerQuarter = _settings->value("ticks_per_quarter", 192).toInt(&ticksOK);
+	MidiFile::defaultTimePerQuarter = ticksPerQuarter;
 	bool magnet = _settings->value("magnet", false).toBool();
 	EventTool::enableMagnet(magnet);
 
@@ -1080,6 +1083,7 @@ void MainWindow::closeEvent(QCloseEvent *event){
 	// save the current Path
 	_settings->setValue("open_path", startDirectory);
 	_settings->setValue("alt_stop", MidiOutput::isAlternativePlayer);
+	_settings->setValue("ticks_per_quarter", MidiFile::defaultTimePerQuarter);
 	_settings->setValue("screen_locked", mw_matrixWidget->screenLocked());
 	_settings->setValue("magnet", EventTool::magnetEnabled());
 
