@@ -127,13 +127,13 @@ void MiscWidget::paintEvent(QPaintEvent *event){
             NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
             if(noteOn){
                 velocity=noteOn->velocity();
-            }
 
-            if(velocity>0){
-                int h = (height()*velocity)/128;
-                painter->setBrush(*c);
-                painter->setPen(Qt::lightGray);
-                painter->drawRoundedRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h, WIDTH, h, 1, 1);
+                if(velocity>0){
+                    int h = (height()*velocity)/128;
+                    painter->setBrush(*c);
+                    painter->setPen(Qt::lightGray);
+                    painter->drawRoundedRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h, WIDTH, h, 1, 1);
+                }
             }
         }
 
@@ -150,22 +150,22 @@ void MiscWidget::paintEvent(QPaintEvent *event){
 					continue;
 				}
 
-
 				int velocity = 0;
 				NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
 
 				if(noteOn && noteOn->midiTime()>=matrixWidget->minVisibleMidiTime() && noteOn->midiTime()<=matrixWidget->maxVisibleMidiTime()){
 					velocity=noteOn->velocity();
-				}
-				if(velocity>0){
-					int h = (height()*velocity)/128;
-					if(edit_mode==SINGLE_MODE && dragging){
-						h+=(dragY-mouseY);
-					}
-					painter->setBrush(Qt::darkBlue);
-					painter->setPen(Qt::lightGray);
-					painter->drawRoundedRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h, WIDTH, h, 1, 1);
-				}
+
+                    if(velocity>0){
+                        int h = (height()*velocity)/128;
+                        if(edit_mode==SINGLE_MODE && dragging){
+                            h+=(dragY-mouseY);
+                        }
+                        painter->setBrush(Qt::darkBlue);
+                        painter->setPen(Qt::lightGray);
+                        painter->drawRoundedRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h, WIDTH, h, 1, 1);
+                    }
+                }
 			}
 		}
     }
@@ -290,12 +290,13 @@ void MiscWidget::mouseMoveEvent(QMouseEvent *event){
                     NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
                     if(noteOn){
                         velocity=noteOn->velocity();
-                    }
-                    if(velocity>0){
-                        int h = (height()*velocity)/128;
-                        if(mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
-                            above = true;
-                            break;
+
+                        if(velocity>0){
+                            int h = (height()*velocity)/128;
+                            if(mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
+                                above = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -497,14 +498,16 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
                     int dV = 127*dX/height();
 					foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
                         NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
-                        int v = dV+noteOn->velocity();
-                        if(v>127){
-                            v = 127;
+                        if (noteOn) {
+                            int v = dV+noteOn->velocity();
+                            if(v>127){
+                                v = 127;
+                            }
+                            if(v<0){
+                                v=0;
+                            }
+                            noteOn->setVelocity(v);
                         }
-                        if(v<0){
-                            v=0;
-                        }
-                        noteOn->setVelocity(v);
                     }
 
                     matrixWidget->midiFile()->protocol()->endAction();
