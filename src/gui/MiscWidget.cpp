@@ -293,7 +293,7 @@ void MiscWidget::mouseMoveEvent(QMouseEvent *event){
 
                         if(velocity>0){
                             int h = (height()*velocity)/128;
-                            if(mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
+                            if(!dragging && mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
                                 above = true;
                                 break;
                             }
@@ -369,7 +369,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
                 }
                 if(velocity>0){
                     int h = (height()*velocity)/128;
-                    if(mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
+                    if(!dragging && mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
                         clickHandlesSelected = true;
                         break;
                     }
@@ -397,7 +397,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
                     }
                     if(velocity>0){
                         int h = (height()*velocity)/128;
-                        if(mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
+                        if(!dragging && mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
                             matrixWidget->midiFile()->protocol()->
 									startNewAction("Changed selection");
 							ProtocolEntry* toCopy = _dummyTool->copy();
@@ -439,7 +439,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
 				int xPix = track.at(i).first;
 				int yPix = height()-((double)track.at(i).second/(double)_max)*height();
 
-				if(mouseInRect(xPix-4, yPix-4, 8, 8)){
+				if(!dragging && mouseInRect(xPix-4, yPix-4, 8, 8)){
 					trackIndex = i;
 
 					if(accordingEvents.at(i)){
@@ -500,11 +500,11 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
                         NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
                         if (noteOn) {
                             int v = dV+noteOn->velocity();
-                            if(v>127){
+                            if(v > 127){
                                 v = 127;
                             }
-                            if(v<0){
-                                v=0;
+                            if(v < 0){
+                                v = 0;
                             }
                             noteOn->setVelocity(v);
                         }
@@ -555,11 +555,14 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 							startNewAction(text);
 
 					if(ev){
-
+						if (v < 0)
+							v = 0;
 						switch(mode){
 							case ControllEditor: {
 								ControlChangeEvent *ctrl = dynamic_cast<ControlChangeEvent*>(ev);
 								if(ctrl){
+									if (v > 127)
+										v = 127;
 									ctrl->setValue(v);
 								}
 								break;
@@ -567,6 +570,8 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 							case PitchBendEditor: {
 								PitchBendEvent *event = dynamic_cast<PitchBendEvent*>(ev);
 								if(event){
+									if (v > 16383)
+										v = 16383;
 									event->setValue(v);
 								}
 								break;
@@ -574,6 +579,8 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 							case KeyPressureEditor: {
 								KeyPressureEvent *event = dynamic_cast<KeyPressureEvent*>(ev);
 								if(event){
+									if (v > 127)
+										v = 127;
 									event->setValue(v);
 								}
 								break;
@@ -581,6 +588,8 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 							case ChannelPressureEditor: {
 								ChannelPressureEvent *event = dynamic_cast<ChannelPressureEvent*>(ev);
 								if(event){
+									if (v > 127)
+										v = 127;
 									event->setValue(v);
 								}
 								break;
@@ -588,31 +597,43 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 						}
 
 					} else {
-
-
+						
 						MidiTrack *track = matrixWidget->midiFile()->track(NewNoteTool::editTrack());
 						if(!track){
 							return;
 						}
 
 						int tick = matrixWidget->minVisibleMidiTime();
+						
+						if (v < 0)
+							v = 0;
+						if (tick < 0)
+							tick = 0;
 						switch(mode){
 							case ControllEditor: {
+								if (v > 127)
+									v = 127;
 								ControlChangeEvent *ctrl = new ControlChangeEvent(channel, controller, v, track);
 								matrixWidget->midiFile()->channel(channel)->insertEvent(ctrl, tick);
 								break;
 							}
 							case PitchBendEditor: {
+								if (v > 16383)
+									v = 16383;
 								PitchBendEvent *event = new PitchBendEvent(channel, v, track);
 								matrixWidget->midiFile()->channel(channel)->insertEvent(event, tick);
 								break;
 							}
 							case KeyPressureEditor: {
+								if (v > 127)
+									v = 127;
 								KeyPressureEvent *event = new KeyPressureEvent(channel, v, controller, track);
 								matrixWidget->midiFile()->channel(channel)->insertEvent(event, tick);
 								break;
 							}
 							case ChannelPressureEditor: {
+								if (v > 127)
+									v = 127;
 								ChannelPressureEvent *event = new ChannelPressureEvent(channel, v, track);
 								matrixWidget->midiFile()->channel(channel)->insertEvent(event, tick);
 								break;
@@ -658,23 +679,35 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 				if(!track){
 					return;
 				}
+				if (v < 0)
+					v = 0;
+				if (tick < 0)
+					tick = 0;
 				switch(mode){
 					case ControllEditor: {
+						if (v > 127)
+							v = 127;
 						ControlChangeEvent *ctrl = new ControlChangeEvent(channel, controller, v, track);
 						matrixWidget->midiFile()->channel(channel)->insertEvent(ctrl, tick);
 						break;
 					}
 					case PitchBendEditor: {
+						if (v > 16383)
+							v = 16383;
 						PitchBendEvent *event = new PitchBendEvent(channel, v, track);
 						matrixWidget->midiFile()->channel(channel)->insertEvent(event, tick);
 						break;
 					}
 					case KeyPressureEditor: {
+						if (v > 127)
+							v = 127;
 						KeyPressureEvent *event = new KeyPressureEvent(channel, v, controller, track);
 						matrixWidget->midiFile()->channel(channel)->insertEvent(event, tick);
 						break;
 					}
 					case ChannelPressureEditor: {
+						if (v > 127)
+							v = 127;
 						ChannelPressureEvent *event = new ChannelPressureEvent(channel, v, track);
 						matrixWidget->midiFile()->channel(channel)->insertEvent(event, tick);
 						break;
