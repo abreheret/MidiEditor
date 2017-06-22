@@ -783,7 +783,8 @@ void MatrixWidget::setFile(MidiFile *f){
 	scaleY = 1;
 
 	startTimeX = 0;
-	startLineY = 0;
+	// Roughly vertically center on Middle C. 
+	startLineY = 50;
 
 
 	connect(file->protocol(), SIGNAL(actionFinished()), this,
@@ -794,9 +795,9 @@ void MatrixWidget::setFile(MidiFile *f){
 
 	calcSizes();
 
-		// scroll down to see events
+	// scroll down to see events
 	int maxNote = -1;
-	for(int channel = 0; channel<16; channel++){
+	for(int channel = 0; channel < 16; channel++){
 
 		QMultiMap<int, MidiEvent*> *map = file->channelEvents(channel);
 
@@ -1069,48 +1070,46 @@ void MatrixWidget::wheelEvent(QWheelEvent *event){
 	Qt::KeyboardModifiers km = event->modifiers();
 	if (km) {
 		if (km == Qt::ShiftModifier) {
-			if (event->delta() > 0) {
+			if (event->delta() > 0) 
 				zoomVerIn();
-			} else {
+			else
 				zoomVerOut();
-			}
 		} else if (km == Qt::ControlModifier) {
-			if (event->delta() > 0) {
+			if (event->delta() > 0)
 				zoomHorIn();
-			} else {
+			else
 				zoomHorOut();
-			}
-		}
-	} else {
-		if (!file) return;
-		int maxTimeInFile = file->maxTime();
-		int widgetRange = endTimeX - startTimeX;
-		if (QApplication::keyboardModifiers().testFlag(Qt::AltModifier)){
+        } else if (km == Qt::AltModifier) {
+            if (!file) return;
+            int maxTimeInFile = file->maxTime();
+            int widgetRange = endTimeX - startTimeX;
 
-			int scroll = -1 * event->delta()*widgetRange / 1000;
+            int scroll = -1 * event->delta()*widgetRange / 1000;
 
-			int newStartTime = startTimeX + scroll;
+            int newStartTime = startTimeX + scroll;
 
-			scrollXChanged(newStartTime);
-			emit scrollChanged(startTimeX, maxTimeInFile - widgetRange, startLineY, NUM_LINES - (endLineY - startLineY));
-		}
-		else {
-			int newStartLineY = startLineY;
+            scrollXChanged(newStartTime);
+            emit scrollChanged(startTimeX, maxTimeInFile - widgetRange, startLineY, NUM_LINES - (endLineY - startLineY));
+        }
+    } else {
+        if (!file) return;
+        int maxTimeInFile = file->maxTime();
+        int widgetRange = endTimeX - startTimeX;
 
-			if (event->delta() > 0){
-				newStartLineY -= 3;
-			}
-			else {
-				newStartLineY += 3;
-			}
+        int newStartLineY = startLineY;
 
-			if (newStartLineY < 0){
-				newStartLineY = 0;
-			}
-			// endline too large handled in scrollYchanged()
-			scrollYChanged(newStartLineY);
-			emit scrollChanged(startTimeX, maxTimeInFile - widgetRange, startLineY, NUM_LINES - (endLineY - startLineY));
-		}
+        if (event->delta() > 0)
+            newStartLineY -= 5;
+		else
+            newStartLineY += 5;
+
+        if (newStartLineY < 0)
+            newStartLineY = 0;
+
+        // endline too large handled in scrollYchanged()
+        scrollYChanged(newStartLineY);
+        emit scrollChanged(startTimeX, maxTimeInFile - widgetRange, startLineY, NUM_LINES - (endLineY - startLineY));
+
 	}
 }
 

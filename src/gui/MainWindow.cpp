@@ -1496,7 +1496,7 @@ void MainWindow::updateTrackMenu() {
 		QVariant variant(i);
 		QAction *moveToTrackAction = new QAction(QString::number(i)+" "+file->tracks()->at(i)->name(), this);
 		moveToTrackAction->setData(variant);
-		moveToTrackAction->setShortcut(QKeySequence(Qt::Key_0+i + Qt::CTRL));
+		moveToTrackAction->setShortcut(QKeySequence(Qt::Key_0+i + Qt::ALT));
 		_moveSelectedEventsToTrackMenu->addAction(moveToTrackAction);
 	}
 
@@ -2438,7 +2438,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 			text = "Half note";
 		} else if(i == 2){
 			text = "Quarter note";
-		} else if(i>0){
+		} else if(i > 0){
 			text = QString::number((int)qPow(2, i))+"th note";
 		}
 		QAction *a = new QAction(text, this);
@@ -2453,7 +2453,11 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     // Playback
 	QAction *playStopAction = new QAction("PlayStop");
-	playStopAction->setShortcut(QKeySequence(Qt::Key_Space));
+	QList<QKeySequence> playStopActionShortcuts;
+	playStopActionShortcuts << QKeySequence(Qt::Key_Space)
+							<< QKeySequence(Qt::Key_K)
+							<< QKeySequence(Qt::Key_P + Qt::CTRL);
+	playStopAction->setShortcuts(playStopActionShortcuts);
 	connect(playStopAction, SIGNAL(triggered()), this, SLOT(playStop()));
 	playbackMB->addAction(playStopAction);
 
@@ -2464,7 +2468,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
     QAction *pauseAction = new QAction("Pause", this);
     pauseAction->setIcon(QIcon(":/run_environment/graphics/tool/pause.png"));
-	pauseAction->setShortcut(QKeySequence(Qt::Key_Space +Qt::CTRL));
+	pauseAction->setShortcut(QKeySequence(Qt::Key_Space + Qt::CTRL));
     connect(pauseAction, SIGNAL(triggered()), this, SLOT(pause()));
     playbackMB->addAction(pauseAction);
 
@@ -2483,16 +2487,29 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	QAction *backToBeginAction = new QAction("Back to begin", this);
     backToBeginAction->setIcon(QIcon(":/run_environment/graphics/tool/back_to_begin.png"));
+	QList<QKeySequence> backToBeginActionShortcuts;
+	backToBeginActionShortcuts << QKeySequence(Qt::Key_Home)
+							   << QKeySequence(Qt::Key_J + Qt::SHIFT)
+							   << QKeySequence(Qt::Key_Left + Qt:: SHIFT);
+	backToBeginAction->setShortcuts(backToBeginActionShortcuts);
     connect(backToBeginAction, SIGNAL(triggered()), this, SLOT(backToBegin()));
     playbackMB->addAction(backToBeginAction);
 
 	QAction *backAction = new QAction("Previous measure", this);
     backAction->setIcon(QIcon(":/run_environment/graphics/tool/back.png"));
+	QList<QKeySequence> backActionShortcuts;
+	backActionShortcuts << QKeySequence(Qt::Key_J)
+						<< QKeySequence(Qt::Key_Left);
+	backActionShortcuts->setShortcuts(backActionShortcuts);
     connect(backAction, SIGNAL(triggered()), this, SLOT(back()));
     playbackMB->addAction(backAction);
 
 	QAction *forwAction = new QAction("Next measure", this);
 	forwAction->setIcon(QIcon(":/run_environment/graphics/tool/forward.png"));
+	QList<QKeySequence> forwActionShortcuts;
+	forwActionShortcuts << QKeySequence(Qt::Key_L)
+						<< QKeySequence(Qt::Key_Right);
+	forwActionShortcuts->setShortcuts(forwActionShortcuts);
     connect(forwAction, SIGNAL(triggered()), this, SLOT(forward()));
     playbackMB->addAction(forwAction);
 
