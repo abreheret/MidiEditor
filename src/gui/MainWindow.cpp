@@ -2500,7 +2500,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	QList<QKeySequence> backActionShortcuts;
 	backActionShortcuts << QKeySequence(Qt::Key_J)
 						<< QKeySequence(Qt::Key_Left);
-	backActionShortcuts->setShortcuts(backActionShortcuts);
+    backAction->setShortcuts(backActionShortcuts);
     connect(backAction, SIGNAL(triggered()), this, SLOT(back()));
     playbackMB->addAction(backAction);
 
@@ -2509,7 +2509,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	QList<QKeySequence> forwActionShortcuts;
 	forwActionShortcuts << QKeySequence(Qt::Key_L)
 						<< QKeySequence(Qt::Key_Right);
-	forwActionShortcuts->setShortcuts(forwActionShortcuts);
+    forwAction->setShortcuts(forwActionShortcuts);
     connect(forwAction, SIGNAL(triggered()), this, SLOT(forward()));
     playbackMB->addAction(forwAction);
 
