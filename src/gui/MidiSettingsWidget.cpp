@@ -64,9 +64,9 @@ AdditionalMidiSettingsWidget::AdditionalMidiSettingsWidget(QSettings *settings, 
 
 	layout->addWidget(separator(), 5, 0, 1, 6);
 
-	layout->addWidget(new QLabel("Start command:", this), 6, 0, 1, 1);
+	layout->addWidget(new QLabel("Start command:", this), 6, 0, 1, 2);
 	startCmd = new QLineEdit(this);
-	layout->addWidget(startCmd, 6, 1, 1, 5);
+	layout->addWidget(startCmd, 6, 1, 1, 4);
 
 	QWidget *startCmdInfo = createInfoBox("The start command can be used to start additional software components (e.g. Midi synthesizers) each time, MidiEditor is started. You can see the output of the started software / script in the field below.");
 	layout->addWidget(startCmdInfo, 7, 0, 1, 6);
