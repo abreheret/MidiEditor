@@ -46,7 +46,7 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PaintWidget(parent) {
 
 	screen_locked = false;
 	startTimeX = 0;
-	startLineY = 0;
+	startLineY = 50;
 	endTimeX = 0;
 	endLineY = 0;
 	file = 0;
