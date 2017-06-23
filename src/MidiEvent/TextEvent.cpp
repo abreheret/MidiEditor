@@ -56,7 +56,7 @@ int TextEvent::line(){
 }
 
 QByteArray TextEvent::save(){
-	mbtstate_t mbs;
+	mbstate_t mbs;
 	mbrlen(NULL, 0, &mbs);
 
 	QByteArray array = QByteArray();
