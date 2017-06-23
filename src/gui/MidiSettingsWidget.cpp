@@ -48,7 +48,7 @@ AdditionalMidiSettingsWidget::AdditionalMidiSettingsWidget(QSettings *settings, 
 	connect(_tpqBox, SIGNAL(valueChanged(int)), this, SLOT(setDefaultTimePerQuarter(int)));
 	layout->addWidget(_tpqBox, 0, 2, 1, 4);
 	
-    QWidget *tpqInfo = createInfoBox("Note: There aren't many reasons to change this. MIDI files have a resolution for how many ticks can fit in a quarter note. Higher values = more detail. Lower values may be required for compatibility. Only affects new files.");
+	QWidget *tpqInfo = createInfoBox("Note: There aren't many reasons to change this. MIDI files have a resolution for how many ticks can fit in a quarter note. Higher values = more detail. Lower values may be required for compatibility. Only affects new files.");
 	layout->addWidget(tpqInfo, 1, 0, 1, 6);
 	
 	layout->addWidget(separator(), 2, 0, 1, 6);
@@ -66,7 +66,7 @@ AdditionalMidiSettingsWidget::AdditionalMidiSettingsWidget(QSettings *settings, 
 
 	layout->addWidget(new QLabel("Start command:", this), 6, 0, 1, 2);
 	startCmd = new QLineEdit(this);
-	layout->addWidget(startCmd, 6, 1, 1, 4);
+	layout->addWidget(startCmd, 6, 2, 1, 4);
 
 	QWidget *startCmdInfo = createInfoBox("The start command can be used to start additional software components (e.g. Midi synthesizers) each time, MidiEditor is started. You can see the output of the started software / script in the field below.");
 	layout->addWidget(startCmdInfo, 7, 0, 1, 6);
