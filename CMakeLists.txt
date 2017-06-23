@@ -52,6 +52,9 @@ if(ARCH STREQUAL "x64" )
 	add_definitions(-D__ARCH64__)
 endif()
 
+# Avoid Unicode -> QString issues. 
+add_definitions(-DQT_NO_CAST_TO_ASCII)
+
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)
 find_package(Qt5Xml     REQUIRED)
