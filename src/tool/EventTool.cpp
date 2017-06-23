@@ -177,9 +177,11 @@ void EventTool::copyAction(){
 			OnEvent *onEv = dynamic_cast<OnEvent*>(ev);
 			if(onEv){
 				OffEvent *offEv = dynamic_cast<OffEvent*>(onEv->offEvent()->copy());
+                if (offEv) {
 				offEv->setOnEvent(onEv);
 				copiedEvents->append(offEv);
 			}
+		}
 		}
 		_mainWindow->copiedEventsChanged();
 	}
@@ -211,8 +213,10 @@ void EventTool::pasteAction(){
 		OnEvent *onEv = dynamic_cast<OnEvent*>(ev);
 		if(onEv){
 			OffEvent *offEv = dynamic_cast<OffEvent*>(onEv->offEvent()->copy());
+            if (offEv) {
 			offEv->setOnEvent(onEv);
 			copiedCopiedEvents.append(offEv);
+            }
 		}
 	}
 
