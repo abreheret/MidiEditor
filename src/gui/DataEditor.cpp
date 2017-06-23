@@ -55,44 +55,45 @@ QByteArray DataEditor::data(){
 void DataEditor::rebuild(){
 
 	QGridLayout *layout = dynamic_cast<QGridLayout*>(_central->layout());
+	if (layout) {
+		QList<QWidget*> widgets = _central->findChildren<QWidget *>();
+		foreach(QWidget * child, widgets) {
+			layout->removeWidget(child);
+			delete child;
+		}
 
-	QList<QWidget*> widgets = _central->findChildren<QWidget *>();
-	foreach(QWidget * child, widgets) {
-		layout->removeWidget(child);
-		delete child;
-	}
-
-	int row = 1;
-	QPushButton *plus = new QPushButton("+", _central);
-	layout->addWidget(plus, 0, 3, 1, 1);
-	plus->setMaximumWidth(50);
-	DataLineEditor *dle0 = new DataLineEditor(0, plus);
-	connect(dle0, SIGNAL(plusClicked(int)), this, SLOT(plusClicked(int)));
-
-	foreach(unsigned char c, _data){
-		QLabel *label = new QLabel("0x", _central);
-		layout->addWidget(label, row, 0, 1, 1);
-
-		QLineEdit *edit = new QLineEdit(_central);
-		edit->setInputMask("HH");
-		QString text;
-		text.sprintf("%02X", c);
-		edit->setText(text);
-		layout->addWidget(edit, row, 1, 1, 1);
-
-		QPushButton *minus = new QPushButton("-", _central);
-		minus->setMaximumWidth(50);
-		layout->addWidget(minus, row, 2, 1, 1);
-
+		int row = 1;
 		QPushButton *plus = new QPushButton("+", _central);
-		layout->addWidget(plus, row, 3, 1, 1);
+		layout->addWidget(plus, 0, 3, 1, 1);
 		plus->setMaximumWidth(50);
+		DataLineEditor *dle0 = new DataLineEditor(0, plus);
+		connect(dle0, SIGNAL(plusClicked(int)), this, SLOT(plusClicked(int)));
 
-		DataLineEditor *dle = new DataLineEditor(row, plus, minus, edit);
-		connect(dle, SIGNAL(minusClicked(int)), this, SLOT(minusClicked(int)));
-		connect(dle, SIGNAL(plusClicked(int)), this, SLOT(plusClicked(int)));
-		connect(dle, SIGNAL(dataChanged(int,unsigned char)), this, SLOT(dataChanged(int,unsigned char)));
-		row++;
+		foreach(unsigned char c, _data){
+			QLabel *label = new QLabel("0x", _central);
+			layout->addWidget(label, row, 0, 1, 1);
+
+			QLineEdit *edit = new QLineEdit(_central);
+			edit->setInputMask("HH");
+			QString text;
+			text.sprintf("%02X", c);
+			edit->setText(text);
+			layout->addWidget(edit, row, 1, 1, 1);
+
+			QPushButton *minus = new QPushButton("-", _central);
+			minus->setMaximumWidth(50);
+			layout->addWidget(minus, row, 2, 1, 1);
+
+			QPushButton *plus = new QPushButton("+", _central);
+			layout->addWidget(plus, row, 3, 1, 1);
+			plus->setMaximumWidth(50);
+
+			DataLineEditor *dle = new DataLineEditor(row, plus, minus, edit);
+			connect(dle, SIGNAL(minusClicked(int)), this, SLOT(minusClicked(int)));
+			connect(dle, SIGNAL(plusClicked(int)), this, SLOT(plusClicked(int)));
+			connect(dle, SIGNAL(dataChanged(int,unsigned char)), this, SLOT(dataChanged(int,unsigned char)));
+			row++;
+		}
 	}
 }
 
