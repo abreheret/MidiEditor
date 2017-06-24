@@ -298,12 +298,14 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 								TextEvent *textEvent = new TextEvent(channel, track);
 								textEvent->setType(tempByte);
 								int length = MidiFile::variableLengthvalue(content);
-								QByteArray array;
+								// use wchar_t because some files use Unicode.
+								wchar_t str [128] = L"";
 								for(int i = 0; i<length; i++){
 									(*content)>>tempByte;
-									array.append((char)tempByte);
+									wchar_t temp [2] = { btowc(tempByte) };
+									wcsncat(str, temp, 1);
 								}
-								textEvent->setText(QString(array));
+								textEvent->setText(QString::fromWCharArray(str));
 								*ok = true;
 								return textEvent;
 

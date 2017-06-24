@@ -46,9 +46,7 @@ FileLengthDialog::FileLengthDialog(MidiFile *f, QWidget *parent) :
 	layout->addWidget(acceptButton, 1, 2, 1, 1);
 	layout->setColumnStretch(1, 1);
 
-	connect(_box, SIGNAL(valueChanged(int)), acceptButton, SLOT(setFocus()));
-
-	acceptButton->setFocus();
+	_box->setFocus();
 	setWindowTitle("File duration");
 }
 

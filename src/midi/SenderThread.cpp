@@ -18,6 +18,7 @@
 
 #include "SenderThread.h"
 #include "../MidiEvent/MidiEvent.h"
+#include "../MidiEvent/NoteOnEvent.h"
 
 SenderThread::SenderThread() {
 	_eventQueue = new QQueue<MidiEvent*>;
@@ -36,5 +37,9 @@ void SenderThread::run(){
 }
 
 void SenderThread::enqueue(MidiEvent *event){
-	_eventQueue->push_back(event);
+	// Notes go last to prevent confliction with control change events.
+	if (dynamic_cast <NoteOnEvent*>(event)) 
+		_eventQueue->push_back(event);
+	else 
+		_eventQueue->push_front(event);
 }

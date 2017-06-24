@@ -165,7 +165,7 @@ class MainWindow : public QMainWindow {
 
 		void setSpeed(QAction*);
 
-		void checkEnableActionsForSeelction();
+		void checkEnableActionsForSelection();
 		void toolChanged();
 		void copiedEventsChanged();
 

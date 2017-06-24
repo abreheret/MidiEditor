@@ -92,6 +92,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 
 		static int variableLengthvalue(QDataStream *content);
 		static QByteArray writeVariableLengthValue(int value);
+		static int defaultTimePerQuarter;
 
 		void registerCopiedTrack(MidiTrack *source, MidiTrack *destination, MidiFile *fileFrom);
 		MidiTrack *getPasteTrack(MidiTrack *source, MidiFile *fileFrom);
