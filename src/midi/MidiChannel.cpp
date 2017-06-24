@@ -42,16 +42,16 @@ QColor *MidiChannel::colorByChannelNumber(int number){
 	QColor *color;
 
 	switch(number){
-        case 0: { color = new QColor(241, 70, 57, 255);break; }
-        case 1: { color =  new QColor(205, 221, 0, 255);break; }
-        case 2: { color = new QColor(70, 241, 50, 255);break; }
+		case 0: { color = new QColor(241, 70, 57, 255);break; }
+		case 1: { color =  new QColor(205, 221, 0, 255);break; }
+		case 2: { color = new QColor(70, 241, 50, 255);break; }
 		case 3: { color = new QColor(107, 241, 231, 255);break; }
-        case 4: { color =  new QColor(127, 67, 255, 255);break; }
+		case 4: { color =  new QColor(127, 67, 255, 255);break; }
 		case 5: { color = new QColor(241, 107, 200, 255);break; }
 		case 6: { color = new QColor(170, 212, 170, 255);break; }
 		case 7: { color =  new QColor(222, 202, 170, 255);break; }
 		case 8: { color = new QColor(241, 201, 20, 255);break; }
-        case 9: { color = new QColor(80, 80, 80, 255);break; }
+		case 9: { color = new QColor(80, 80, 80, 255);break; }
 		case 10: { color = new QColor(127, 0, 30, 255);break; }
 		case 11: { color = new QColor(171, 132, 80, 255);break; }
 		case 12: { color =  new QColor(102, 162, 37, 255);break; }

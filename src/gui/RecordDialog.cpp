@@ -236,7 +236,7 @@ void RecordDialog::cancel(){
 		 foreach(MidiEvent *event, _data){
 			 delete event;
 		 }
-	     hide();
+		 hide();
 	 }
 }
 
