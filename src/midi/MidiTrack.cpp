@@ -78,20 +78,20 @@ void MidiTrack::setNumber(int number){
 
 	switch((number-1)%16){
 		case 0: { _color = new QColor(241, 70, 57, 255);break; }
-		case 1: { _color =  new QColor(205, 221, 0, 255);break; }
-		case 2: { _color = new QColor(70, 241, 50, 255);break; }
+		case 1: { _color =  new QColor(205, 241, 0, 255);break; }
+		case 2: { _color = new QColor(50, 201, 20, 255);break; }
 		case 3: { _color = new QColor(107, 241, 231, 255);break; }
 		case 4: { _color =  new QColor(127, 67, 255, 255);break; }
-		case 5: { _color = new QColor(241, 107, 200, 255);break; }
+		case 5: { _color = new QColor(241, 127, 200, 255);break; }
 		case 6: { _color = new QColor(170, 212, 170, 255);break; }
 		case 7: { _color =  new QColor(222, 202, 170, 255);break; }
 		case 8: { _color = new QColor(241, 201, 20, 255);break; }
 		case 9: { _color = new QColor(80, 80, 80, 255);break; }
-		case 10: { _color = new QColor(127, 0, 30, 255);break; }
-		case 11: { _color = new QColor(171, 132, 80, 255);break; }
-		case 12: { _color =  new QColor(102, 162, 37, 255);break; }
-		case 13: { _color = new QColor(241, 164, 107, 255);break; }
-		case 14: { _color = new QColor(127, 50, 127, 255);break; }
+		case 10: { _color = new QColor(202, 50, 127, 255);break; }
+		case 11: { _color = new QColor(0, 132, 255, 255);break; }
+		case 12: { _color =  new QColor(102, 127, 37, 255);break; }
+		case 13: { _color = new QColor(241, 164, 80, 255);break; }
+		case 14: { _color = new QColor(107, 30, 107, 255);break; }
 		case 15: { _color = new QColor(50, 127, 127, 255);break; }
 		default: { _color = new QColor(50, 50, 255, 255); break; }
 	}
