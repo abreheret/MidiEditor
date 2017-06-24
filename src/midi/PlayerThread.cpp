@@ -52,21 +52,20 @@ void PlayerThread::setInterval(int i){
 
 void PlayerThread::run(){
 
-	if(timer){
-		delete timer;
+	if(!timer){
+		timer = new QTimer();
 	}
 	if(time){
 		delete time;
 		time = 0;
 	}
-	timer = new QTimer();
 
 	events = file->playerData();
 
-	position = file->msOfTick(file->cursorTick());
-
 	if(file->pauseTick() >= 0){
 		position = file->msOfTick(file->pauseTick());
+	} else {
+		position = file->msOfTick(file->cursorTick());
 	}
 
 	emit playerStarted();
@@ -93,7 +92,7 @@ void PlayerThread::run(){
 
 	setInterval(INTERVAL_TIME);
 
-	connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
+	connect(timer, SIGNAL(timeout()), this, SLOT(timeout()), Qt::DirectConnection);
 	timer->start(INTERVAL_TIME);
 
 	stopped = false;
@@ -213,7 +212,7 @@ void PlayerThread::timeout(){
 			timeoutSinceLastSignal = 0;
 		}
 	}
-	connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
+	connect(timer, SIGNAL(timeout()), this, SLOT(timeout()), Qt::DirectConnection);
 }
 
 int PlayerThread::timeMs(){
