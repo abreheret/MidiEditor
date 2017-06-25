@@ -36,6 +36,6 @@ class ToolButton  : public QAction {
 		void releaseButton();
 
 	private:
-        Tool *button_tool;
+		Tool *button_tool;
 };
 #endif

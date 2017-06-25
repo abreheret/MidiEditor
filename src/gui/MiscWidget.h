@@ -41,62 +41,62 @@ class SelectTool;
 
 class MiscWidget : public PaintWidget {
 
-    Q_OBJECT
+	Q_OBJECT
 
-    public:
-        MiscWidget(MatrixWidget *mw, QWidget *parent=0);
+	public:
+		MiscWidget(MatrixWidget *mw, QWidget *parent=0);
 
-        static QString modeToString(int mode);
-        void setMode(int mode);
-        void setEditMode(int mode);
+		static QString modeToString(int mode);
+		void setMode(int mode);
+		void setEditMode(int mode);
 
-    public slots:
-        void setChannel(int);
-        void setControl(int ctrl);
+	public slots:
+		void setChannel(int);
+		void setControl(int ctrl);
 
-    protected:
-        void paintEvent(QPaintEvent *event);
-        void keyPressEvent(QKeyEvent* e);
-        void keyReleaseEvent(QKeyEvent *event);
+	protected:
+		void paintEvent(QPaintEvent *event);
+		void keyPressEvent(QKeyEvent* e);
+		void keyReleaseEvent(QKeyEvent *event);
 
-        void mouseReleaseEvent(QMouseEvent *event);
-        void mousePressEvent(QMouseEvent *event);
-        void leaveEvent(QEvent *event);
-        void mouseMoveEvent(QMouseEvent *event);
+		void mouseReleaseEvent(QMouseEvent *event);
+		void mousePressEvent(QMouseEvent *event);
+		void leaveEvent(QEvent *event);
+		void mouseMoveEvent(QMouseEvent *event);
 
-    private:
-        MatrixWidget *matrixWidget;
+	private:
+		MatrixWidget *matrixWidget;
 
-        // Mode is SINGLE_MODE or LINE_MODE
-        int edit_mode;
-        int mode;
-        int channel;
-        int controller;
+		// Mode is SINGLE_MODE or LINE_MODE
+		int edit_mode;
+		int mode;
+		int channel;
+		int controller;
 
-        void resetState();
+		void resetState();
 
 		QList<QPair<int, int> > getTrack(QList<MidiEvent*> *accordingEvents = 0);
-        void computeMinMax();
-        QPair<int, int> processEvent(MidiEvent *e, bool *ok);
-        double interpolate(QList<QPair<int, int> > track, int x);
-        int value(double y);
-        bool filter(MidiEvent *e);
+		void computeMinMax();
+		QPair<int, int> processEvent(MidiEvent *e, bool *ok);
+		double interpolate(QList<QPair<int, int> > track, int x);
+		int value(double y);
+		bool filter(MidiEvent *e);
 
-        int _max, _default;
+		int _max, _default;
 
-        // single
-        int dragY;
-        bool dragging;
+		// single
+		int dragY;
+		bool dragging;
 		SelectTool *_dummyTool;
 		int trackIndex;
 
-        // free hand
-        QList<QPair<int, int> > freeHandCurve;
-        bool isDrawingFreehand;
+		// free hand
+		QList<QPair<int, int> > freeHandCurve;
+		bool isDrawingFreehand;
 
-        // line
-        int lineX, lineY;
-        bool isDrawingLine;
+		// line
+		int lineX, lineY;
+		bool isDrawingLine;
 };
 
 #endif

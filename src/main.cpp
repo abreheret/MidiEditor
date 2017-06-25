@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 {
 #endif
 
-    QApplication a(argc, argv);
+	QApplication a(argc, argv);
 	bool ok = QResource::registerResource(a.applicationDirPath() + "/ressources.rcc");
 	if (!ok) {
 		ok = QResource::registerResource("ressources.rcc");
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 #endif
 
 	MidiOutput::init();
-    MidiInput::init();
+	MidiInput::init();
 
 	MainWindow *w;
 	if (argc == 2)
@@ -85,5 +85,5 @@ int main(int argc, char *argv[])
 		w = new MainWindow();
 	w->resize(QSize(1280, 800));
 	w->show();
-    return a.exec();
+	return a.exec();
 }
