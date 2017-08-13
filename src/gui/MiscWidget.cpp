@@ -399,7 +399,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
 						int h = (height()*velocity)/128;
 						if(!dragging && mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
 							matrixWidget->midiFile()->protocol()->
-									startNewAction("Changed selection");
+									startNewAction("Selection changed", new QImage(":/run_environment/graphics/tool/select_single.png"), false);
 							ProtocolEntry* toCopy = _dummyTool->copy();
 							EventTool::selectEvent(event, true);
 							matrixWidget->update();
@@ -415,7 +415,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
 			// if nothing selected deselect all
 			if(Selection::instance()->selectedEvents().size()>0 && !clickHandlesSelected && !selectedNew){
 				matrixWidget->midiFile()->protocol()->
-						startNewAction("Cleared selection");
+						startNewAction("Cleared selection", 0, false);
 				ProtocolEntry* toCopy = _dummyTool->copy();
 				EventTool::clearSelection();
 				_dummyTool->protocol(toCopy, _dummyTool);
@@ -444,7 +444,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
 
 					if(accordingEvents.at(i)){
 						matrixWidget->midiFile()->protocol()->
-								startNewAction("Changed selection");
+								startNewAction("Selection changed", new QImage(":/run_environment/graphics/tool/select_single.png"), false);
 						ProtocolEntry* toCopy = _dummyTool->copy();
 						EventTool::clearSelection();
 						EventTool::selectEvent(accordingEvents.at(i), true, true);

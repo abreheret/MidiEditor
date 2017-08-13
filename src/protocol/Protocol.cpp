@@ -49,6 +49,7 @@ void Protocol::undo(bool emitChanged){
 
 		// Take last undoStep from the Stack
 		ProtocolStep *step = _undoSteps->last();
+		bool modified = step->modified();
 		_undoSteps->removeLast();
 
 		// release it and copy it to the redo Stack
@@ -59,7 +60,9 @@ void Protocol::undo(bool emitChanged){
 
 		// delete the old Step
 		delete step;
-
+		if (modified) {
+			emit fileModified(true);
+		}
 		if(emitChanged){
 			emit protocolChanged();
 			emit actionFinished();
@@ -73,17 +76,20 @@ void Protocol::redo(bool emitChanged){
 
 		// Take last redoSteo from the Stack
 		ProtocolStep *step = _redoSteps->last();
+		bool modified = step->modified();
 		_redoSteps->removeLast();
 
 		// release it and copy it to the undoStack
 		ProtocolStep *undoAction = step->releaseStep();
 		if(undoAction){
-			_undoSteps->append(undoAction);	
+			_undoSteps->append(undoAction); 
 		}
 
 		// delete the old Step
 		delete step;
-
+		if (modified){
+			emit fileModified(true);
+		}
 		if(emitChanged){
 			emit protocolChanged();
 			emit actionFinished();
@@ -91,7 +97,7 @@ void Protocol::redo(bool emitChanged){
 	}	
 }
 		
-void Protocol::startNewAction(QString description, QImage *img){
+void Protocol::startNewAction(QString description, QImage *img, bool modified){
 
 	// When there is a new Action started the redoStack has to be cleared
 	_redoSteps->clear();
@@ -100,22 +106,26 @@ void Protocol::startNewAction(QString description, QImage *img){
 	endAction();
 
 	// create a new Step
-	_currentStep = new ProtocolStep(description, img);
+	_currentStep = new ProtocolStep(description, img, modified);
 }
 
 void Protocol::endAction(){
 
+	bool modified = false;
 	// only create the Step when it exists and its size is bigger 0
 	if(_currentStep && _currentStep->items()>0){
-		_undoSteps->append(_currentStep);			
+		_undoSteps->append(_currentStep);
+		modified = _currentStep->modified();		
 	}
-
+	
 	// the action is ended so there is no currentStep
 	_currentStep = 0;	
 
-	// the file has been changed
-	_file->setSaved(false);
-
+	if (modified) {
+		// the file has been changed
+		emit fileModified(true);
+	}
+	
 	emit protocolChanged();
 	emit actionFinished();
 }
@@ -158,5 +168,5 @@ void Protocol::goTo(ProtocolStep *toGo){
 }
 
 void Protocol::addEmptyAction(QString name){
-	_undoSteps->append(new ProtocolStep(name));
+	_undoSteps->append(new ProtocolStep(name, 0, false));
 }

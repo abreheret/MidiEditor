@@ -490,7 +490,7 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	setAcceptDrops(true);
 	QTimer::singleShot(200, this, SLOT(loadInitFile()));
 	//if(UpdateManager::autoCheckForUpdates()){ 
-	//  QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates())); 
+	//	QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates())); 
 	//} 
 }
 
@@ -546,7 +546,7 @@ void MainWindow::setFile(MidiFile *file){
 	setWindowTitle(QApplication::applicationName()+" - " +file->path()+"[*]");
 	connect(file,SIGNAL(cursorPositionChanged()),channelWidget,SLOT(update()));
 	connect(file,SIGNAL(recalcWidgetSize()),mw_matrixWidget,SLOT(calcSizes()));
-	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(markEdited()));
+	connect(file->protocol(), SIGNAL(fileModified(bool)), this, SLOT(markEdited(bool)));
 	connect(file->protocol(), SIGNAL(actionFinished()), eventWidget(), SLOT(reload()));
 	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(checkEnableActionsForSelection()));
 	mw_matrixWidget->setFile(file);
@@ -874,7 +874,7 @@ void MainWindow::load(){
 	QString oldPath = startDirectory;
 	if(file){
 		oldPath = file->path();
-		if(!file->saved()){
+		if(file->modified()){
 			switch(QMessageBox::question(this, "Save file?", "Save file "+
 					file->path()+
 				" before closing?", "Save","Close without saving", "Cancel",0,2))
@@ -917,7 +917,7 @@ void MainWindow::loadFile(QString nfile) {
 	QString oldPath = startDirectory;
 	if (file){
 		oldPath = file->path();
-		if (!file->saved()){
+		if (file->modified()){
 			switch (QMessageBox::question(this, "Save file?", "Save file " +
 				file->path() +
 				" before closing?", "Save", "Close without saving", "Cancel", 0, 2))
@@ -989,7 +989,7 @@ EventWidget *MainWindow::eventWidget(){
 
 void MainWindow::muteAllChannels(){
 	if(!file) return;
-	file->protocol()->startNewAction("Mute all channels");
+	file->protocol()->startNewAction("Mute all channels", 0, false);
 	for(int i=0; i<19; i++){
 		file->channel(i)->setMute(true);
 	}
@@ -999,7 +999,7 @@ void MainWindow::muteAllChannels(){
 
 void MainWindow::unmuteAllChannels(){
 	if(!file) return;
-	file->protocol()->startNewAction("All channels audible");
+	file->protocol()->startNewAction("All channels audible", 0, false);
 	for(int i=0; i<19; i++){
 		file->channel(i)->setMute(false);
 	}
@@ -1009,7 +1009,7 @@ void MainWindow::unmuteAllChannels(){
 
 void MainWindow::allChannelsVisible(){
 	if(!file) return;
-	file->protocol()->startNewAction("All channels visible");
+	file->protocol()->startNewAction("All channels visible", 0, false);
 	for(int i=0; i<19; i++){
 		file->channel(i)->setVisible(true);
 	}
@@ -1019,7 +1019,7 @@ void MainWindow::allChannelsVisible(){
 
 void MainWindow::allChannelsInvisible(){
 	if(!file) return;
-	file->protocol()->startNewAction("Hide all channels");
+	file->protocol()->startNewAction("Hide all channels", 0, false);
 	for(int i=0; i<19; i++){
 		file->channel(i)->setVisible(false);
 	}
@@ -1029,7 +1029,7 @@ void MainWindow::allChannelsInvisible(){
 
 void MainWindow::closeEvent(QCloseEvent *event){
 
-	if(!file || file->saved()){
+	if(!file || !file->modified()){
 		event->accept();
 	} else {
 		switch(QMessageBox::question(this, "Save file?", "Save file "+
@@ -1123,7 +1123,7 @@ void MainWindow::setStartDir(QString dir){
 
 void MainWindow::newFile(){
 	if(file){
-		if(!file->saved()){
+		if(file->modified()){
 			switch(QMessageBox::question(this, "Save file?", "Save file "+
 					file->path()+
 				" before closing?", "Save","Close without saving", "Cancel",0,2))
@@ -1410,12 +1410,12 @@ void MainWindow::updateRecentPathsList(){
 
 void MainWindow::openRecent(QAction *action){
 
-	QString  path = action->data().toString();
+	QString path = action->data().toString();
 
 	if(file){
 		QString oldPath = file->path();
 
-		if(!file->saved()){
+		if(file->modified()){
 			switch(QMessageBox::question(this, "Save file?", "Save file "+
 					file->path()+
 				" before closing?", "Save","Close without saving", "Cancel",0,2))
@@ -1550,7 +1550,7 @@ void MainWindow::updateTrackMenu() {
 void MainWindow::muteChannel(QAction *action){
 	int channel = action->data().toInt();
 	if(file){
-		file->protocol()->startNewAction("Mute channel");
+		file->protocol()->startNewAction("Mute channel", 0, false);
 		file->channel(channel)->setMute(action->isChecked());
 		updateChannelMenu();
 		channelWidget->update();
@@ -1560,7 +1560,7 @@ void MainWindow::muteChannel(QAction *action){
 void MainWindow::soloChannel(QAction *action){
 	int channel = action->data().toInt();
 	if(file){
-		file->protocol()->startNewAction("Select solo channel");
+		file->protocol()->startNewAction("Select solo channel", 0, false);
 		for(int i = 0; i<16; i++){
 			file->channel(i)->setSolo(i==channel && action->isChecked());
 		}
@@ -1573,7 +1573,7 @@ void MainWindow::soloChannel(QAction *action){
 void MainWindow::viewChannel(QAction *action){
 	int channel = action->data().toInt();
 	if(file){
-		file->protocol()->startNewAction("Channel visibility changed");
+		file->protocol()->startNewAction("Channel visibility changed", 0, false);
 		file->channel(channel)->setVisible(action->isChecked());
 		updateChannelMenu();
 		channelWidget->update();
@@ -1669,7 +1669,7 @@ void MainWindow::addTrack(){
 
 void MainWindow::muteAllTracks(){
 	if(!file) return;
-	file->protocol()->startNewAction("Mute all tracks");
+	file->protocol()->startNewAction("Mute all tracks", 0, false);
 	foreach(MidiTrack *track, *(file->tracks())){
 		track->setMuted(true);
 	}
@@ -1679,7 +1679,7 @@ void MainWindow::muteAllTracks(){
 
 void MainWindow::unmuteAllTracks(){
 	if(!file) return;
-	file->protocol()->startNewAction("All tracks audible");
+	file->protocol()->startNewAction("All tracks audible", 0, false);
 	foreach(MidiTrack *track, *(file->tracks())){
 		track->setMuted(false);
 	}
@@ -1689,7 +1689,7 @@ void MainWindow::unmuteAllTracks(){
 
 void MainWindow::allTracksVisible(){
 	if(!file) return;
-	file->protocol()->startNewAction("Show all tracks");
+	file->protocol()->startNewAction("Show all tracks", 0, false);
 	foreach(MidiTrack *track, *(file->tracks())){
 		track->setHidden(false);
 	}
@@ -1699,7 +1699,7 @@ void MainWindow::allTracksVisible(){
 
 void MainWindow::allTracksInvisible(){
 	if(!file) return;
-	file->protocol()->startNewAction("Hide all tracks");
+	file->protocol()->startNewAction("Hide all tracks", 0, false);
 	foreach(MidiTrack *track, *(file->tracks())){
 		track->setHidden(true);
 	}
@@ -1710,7 +1710,7 @@ void MainWindow::allTracksInvisible(){
 void MainWindow::showTrackMenuClicked(QAction *action){
 	int track = action->data().toInt();
 	if(file){
-		file->protocol()->startNewAction("Show track");
+		file->protocol()->startNewAction("Show track", 0, false);
 		file->track(track)->setHidden(!(action->isChecked()));
 		updateTrackMenu();
 		_trackWidget->update();
@@ -1721,7 +1721,7 @@ void MainWindow::showTrackMenuClicked(QAction *action){
 void MainWindow::muteTrackMenuClicked(QAction *action){
 	int track = action->data().toInt();
 	if(file){
-		file->protocol()->startNewAction("Mute track");
+		file->protocol()->startNewAction("Mute track", 0, false);
 		file->track(track)->setMuted(action->isChecked());
 		updateTrackMenu();
 		_trackWidget->update();
@@ -1736,7 +1736,7 @@ void MainWindow::selectAllFromChannel(QAction *action){
 		return;
 	}
 	int channel = action->data().toInt();
-	file->protocol()->startNewAction("Select all events from channel "+QString::number(channel));
+	file->protocol()->startNewAction("Select all events from channel "+QString::number(channel), 0, false);
 	EventTool::clearSelection();
 	file->channel(channel)->setVisible(true);
 	foreach(MidiEvent *e, file->channel(channel)->eventMap()->values()){
@@ -1756,7 +1756,7 @@ void MainWindow::selectAllFromTrack(QAction *action){
 	}
 
 	int track = action->data().toInt();
-	file->protocol()->startNewAction("Select all events from track "+QString::number(track));
+	file->protocol()->startNewAction("Select all events from track "+QString::number(track), 0, false);
 	EventTool::clearSelection();
 	file->track(track)->setHidden(false);
 	for(int channel = 0; channel<16; channel++){
@@ -1776,7 +1776,7 @@ void MainWindow::selectAll(){
 		return;
 	}
 
-	file->protocol()->startNewAction("Select all");
+	file->protocol()->startNewAction("Select all", 0, false);
 
 	for(int i = 0; i<16; i++){
 		foreach(MidiEvent *event, file->channel(i)->eventMap()->values()){
@@ -1818,8 +1818,8 @@ void MainWindow::paste(){
 	EventTool::pasteAction();
 }
 
-void MainWindow::markEdited(){
-	setWindowModified(true);
+void MainWindow::markEdited(bool modified){
+	setWindowModified(modified);
 }
 
 void MainWindow::colorsByChannel(){

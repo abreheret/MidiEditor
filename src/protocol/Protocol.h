@@ -83,7 +83,7 @@ class Protocol : public QObject {
 		 *
 		 * Clears the redo stack.
 		 */
-		void startNewAction(QString description, QImage *img = 0);
+		void startNewAction(QString description, QImage *img = 0, bool modified = true);
 
 		/**
 		 * \brief closes the current ProtocolStep.
@@ -138,6 +138,14 @@ class Protocol : public QObject {
 		 */
 		void protocolChanged();
 		void actionFinished();
+		
+		/**
+		 * \brief This signal will be emitted if the step modified the file.
+		 *
+		 * For now, bool is always true, but it could be used in the future to mark
+		 * the file as not modified after an undo. 
+		 */
+		void fileModified(bool modified);
 
 	private:
 		/**

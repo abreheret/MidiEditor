@@ -71,7 +71,7 @@ DonateDialog::DonateDialog(QWidget *parent):QDialog(parent) {
 									 "<h3>Reasons to donate</h3>"
 									 "<p>"
 										 "Dear User,<br>"
-										 "I offer MidiEditor for free and I hope you enjoy it. Please note that I developed the editor during my spare time and that I've been working on it for more than four years by now! If MidiEditor is useful for you, please send me a little donation so that I can at least cover my huge coffee-bill ;)  <br>"
+										 "I offer MidiEditor for free and I hope you enjoy it. Please note that I developed the editor during my spare time and that I've been working on it for more than four years by now! If MidiEditor is useful for you, please send me a little donation so that I can at least cover my huge coffee-bill ;) <br>"
 									 "</p>"
 									 "<h3>How to donate</h3>"
 									 "<p>"

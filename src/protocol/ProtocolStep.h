@@ -46,7 +46,7 @@ class ProtocolStep {
 		/**
 		 * \brief creates a new ProtocolStep with the given description.
 		 */
-		ProtocolStep(QString description, QImage *img = 0);
+		ProtocolStep(QString description, QImage *img = 0, bool modified = true);
 
 		/**
 		 * \brief deletes the ProtocolStep.
@@ -75,6 +75,11 @@ class ProtocolStep {
 		 * \brief returns the steps Image.
 		 */
 		QImage *image();
+		
+		/**
+		 * \brief returns if the file should be marked as modified.
+		 */
+		bool modified();
 
 		/**
 		 * \brief releases the ProtocolStep.
@@ -91,6 +96,11 @@ class ProtocolStep {
 		 * \brief Holds the Steps Description.
 		 */
 		QString _stepDescription;
+		
+		/**
+		 * /brief Holds whether the file should be marked as "modified" by this change.
+		 */
+		bool _modified;
 
 		/**
 		 * \brief Holds the Steps Image.

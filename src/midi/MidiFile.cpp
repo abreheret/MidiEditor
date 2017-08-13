@@ -41,10 +41,11 @@
 int MidiFile::defaultTimePerQuarter = 192;
 
 MidiFile::MidiFile(){
-	_saved = true;
+	_modified = false;
 	midiTicks = 0;
 	_cursorTick = 0;
 	prot = new Protocol(this);
+	connect(prot, SIGNAL(fileModified(bool)), this, SLOT(setModified(bool)));
 	prot->addEmptyAction("New file");
 	_path = "";
 	_pauseTick = -1;
@@ -92,10 +93,11 @@ MidiFile::MidiFile(QString path, bool *ok, QStringList *log) {
 	}
 
 	_pauseTick = -1;
-	_saved = true;
+	_modified = false;
 	midiTicks = 0;
 	_cursorTick = 0;
 	prot = new Protocol(this);
+	connect(prot, SIGNAL(fileModified(bool)), this, SLOT(setModified(bool)));
 	prot->addEmptyAction("File opened");
 	_path = path;
 	_tracks = new QList<MidiTrack*>();
@@ -129,6 +131,7 @@ MidiFile::MidiFile(QString path, bool *ok, QStringList *log) {
 MidiFile::MidiFile(int ticks, Protocol *p){
 	midiTicks = ticks;
 	prot = p;
+	connect(prot, SIGNAL(fileModified(bool)), this, SLOT(setModified(bool)));
 }
 
 bool MidiFile::readMidiFile(QDataStream *content, QStringList *log){
@@ -610,7 +613,7 @@ QString MidiFile::instrumentName(int prog){
 		case 2 : {return "Bright Acoustic Piano";}
 		case 3 : {return "Electric Grand Piano";}
 		case 4 : {return "Honky-tonk Piano";}
-		case 5:  {return " Electric Piano 1";}
+		case 5 : {return "Electric Piano 1";}
 		case 6 : {return "Electric Piano 2";}
 		case 7 : {return "Harpsichord";}
 		case 8 : {return "Clavinet (Clavi)";}
@@ -1047,7 +1050,7 @@ bool MidiFile::save(QString path){
 	// close the file
 	f->close();
 
-	_saved = true;
+	_modified = false;
 
 	return true;
 }
@@ -1085,12 +1088,12 @@ void MidiFile::setPath(QString path){
 	_path = path;
 }
 
-bool MidiFile::saved(){
-	return _saved;
+bool MidiFile::modified(){
+	return _modified;
 }
 
-void MidiFile::setSaved(bool b){
-	_saved = b;
+void MidiFile::setModified(bool b){
+	_modified = b;
 }
 
 void MidiFile::setMaxLengthMs(int ms){

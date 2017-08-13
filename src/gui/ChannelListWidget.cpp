@@ -102,7 +102,7 @@ void ChannelListItem::toggleVisibility(bool visible){
 	if(visible){
 		text = "Show channel";
 	}
-	channelList->midiFile()->protocol()->startNewAction(text);
+	channelList->midiFile()->protocol()->startNewAction(text, 0, false);
 	channelList->midiFile()->channel(channel)->setVisible(visible);
 	channelList->midiFile()->protocol()->endAction();
 	emit channelStateChanged();
@@ -113,7 +113,7 @@ void ChannelListItem::toggleAudibility(bool audible){
 	if(audible){
 		text = "Channel audible";
 	}
-	channelList->midiFile()->protocol()->startNewAction(text);
+	channelList->midiFile()->protocol()->startNewAction(text, 0, false);
 	channelList->midiFile()->channel(channel)->setMute(!audible);
 	channelList->midiFile()->protocol()->endAction();
 	emit channelStateChanged();
@@ -124,7 +124,7 @@ void ChannelListItem::toggleSolo(bool solo){
 	if(!solo){
 		text = "Exited solo mode";
 	}
-	channelList->midiFile()->protocol()->startNewAction(text);
+	channelList->midiFile()->protocol()->startNewAction(text, 0, false);
 	channelList->midiFile()->channel(channel)->setSolo(solo);
 	channelList->midiFile()->protocol()->endAction();
 	emit channelStateChanged();

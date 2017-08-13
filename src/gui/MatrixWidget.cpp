@@ -216,7 +216,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 		}
 		if(pianoKeys>0){
 			pixpainter->fillRect(0, timeHeight,lineNameWidth-10,
-					pianoKeys*lineHeight(),	Qt::white);
+					pianoKeys*lineHeight(), Qt::white);
 		}
 
 		// draw lines, pianokeys and linenames

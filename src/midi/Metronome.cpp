@@ -17,7 +17,7 @@
 Metronome *Metronome::_instance = new Metronome();
 bool Metronome::_enable = false;
 
-Metronome::Metronome(QObject *parent) :	QObject(parent) {
+Metronome::Metronome(QObject *parent) : QObject(parent) {
 	_file = 0;
 	num = 4;
 	denom = 2;

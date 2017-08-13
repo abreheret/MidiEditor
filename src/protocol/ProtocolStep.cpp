@@ -22,8 +22,9 @@
 
 #include "ProtocolItem.h"
 
-ProtocolStep::ProtocolStep(QString description, QImage *img){
+ProtocolStep::ProtocolStep(QString description, QImage *img, bool modified){
 	_stepDescription = description;
+	_modified = modified;
 	_itemStack = new QStack<ProtocolItem*>;
 	_image = img;
 }
@@ -59,4 +60,8 @@ QString ProtocolStep::description(){
 
 QImage *ProtocolStep::image(){
 	return _image;
+}
+
+bool ProtocolStep::modified() {
+	return _modified;
 }

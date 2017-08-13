@@ -96,7 +96,7 @@ bool SelectTool::release(){
 		return false;
 
 	}
-	file()->protocol()->startNewAction("Selection changed", image());
+	file()->protocol()->startNewAction("Selection changed", image(), false);
 	ProtocolEntry* toCopy = copy();
 
 	if(!QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) && !QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)){
@@ -162,7 +162,7 @@ bool SelectTool::release(){
 }
 
 bool SelectTool::inRect(MidiEvent *event, int x_start, int y_start, int x_end, int y_end){
-	return 	pointInRect(event->x(), event->y(), x_start, y_start, x_end, y_end) ||
+	return  pointInRect(event->x(), event->y(), x_start, y_start, x_end, y_end) ||
 			pointInRect(event->x(), event->y()+event->height(), x_start, y_start, x_end, y_end) ||
 			pointInRect(event->x()+event->width(), event->y(), x_start, y_start, x_end, y_end) ||
 			pointInRect(event->x()+event->width(), event->y()+event->height(), x_start, y_start, x_end, y_end) ||

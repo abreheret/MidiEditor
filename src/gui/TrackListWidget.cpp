@@ -99,7 +99,7 @@ void TrackListItem::toggleVisibility(bool visible){
 	if(visible){
 		text = "Show track";
 	}
-	trackList->midiFile()->protocol()->startNewAction(text);
+	trackList->midiFile()->protocol()->startNewAction(text, 0, false);
 	track->setHidden(!visible);
 	trackList->midiFile()->protocol()->endAction();
 }
@@ -109,7 +109,7 @@ void TrackListItem::toggleAudibility(bool audible){
 	if(audible){
 		text = "Track audible";
 	}
-	trackList->midiFile()->protocol()->startNewAction(text);
+	trackList->midiFile()->protocol()->startNewAction(text, 0, false);
 	track->setMuted(!audible);
 	trackList->midiFile()->protocol()->endAction();
 }

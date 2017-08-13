@@ -84,7 +84,7 @@ void MidiTrack::setNumber(int number){
 		case 4: { _color =  new QColor(127, 67, 255, 255);break; }
 		case 5: { _color = new QColor(241, 127, 200, 255);break; }
 		case 6: { _color = new QColor(170, 212, 170, 255);break; }
-		case 7: { _color =  new QColor(222, 202, 170, 255);break; }
+		case 7: { _color = new QColor(222, 202, 170, 255);break; }
 		case 8: { _color = new QColor(241, 201, 20, 255);break; }
 		case 9: { _color = new QColor(80, 80, 80, 255);break; }
 		case 10: { _color = new QColor(202, 50, 127, 255);break; }

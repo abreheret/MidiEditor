@@ -54,7 +54,7 @@ void ClickButton::leaveEvent(QEvent *event){
 }
 
 void ClickButton::buttonClick(){
-	button_mouseClicked  = true;
+	button_mouseClicked = true;
 	repaint();
 }
 

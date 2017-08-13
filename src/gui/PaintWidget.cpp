@@ -151,7 +151,7 @@ int PaintWidget::draggedY(){
 	if(!inDrag){
 		return 0;
 	}
-	int i =  mouseY - mouseLastY;
+	int i = mouseY - mouseLastY;
 	mouseLastY = mouseY;
 	return i;
 }

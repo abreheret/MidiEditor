@@ -125,7 +125,7 @@ void EditorTool::setMainWindow(MainWindow *mw){
 	_mainWindow = mw;
 }
 
-bool EditorTool::pointInRect(int x, int y,  int x_start, int y_start, int x_end, int y_end){
+bool EditorTool::pointInRect(int x, int y, int x_start, int y_start, int x_end, int y_end){
 	return x>=x_start && x<x_end && y>=y_start && y<=y_end;
 }
 

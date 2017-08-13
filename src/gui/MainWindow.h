@@ -129,7 +129,7 @@ class MainWindow : public QMainWindow {
 
 		void transposeNSemitones();
 
-		void markEdited();
+		void markEdited(bool modified);
 
 		void colorsByChannel();
 		void colorsByTrack();

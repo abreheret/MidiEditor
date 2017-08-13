@@ -72,8 +72,8 @@ class MidiFile : public QObject, public ProtocolEntry {
 		void setCursorTick(int tick);
 		void setPauseTick(int tick);
 		QString path();
-		bool saved();
-		void setSaved(bool b);
+		bool modified();
+		
 		void setPath(QString path);
 		bool channelMuted(int ch);
 		int numTracks();
@@ -99,6 +99,9 @@ class MidiFile : public QObject, public ProtocolEntry {
 
 		QList<int> quantization(int fractionSize);
 
+	public slots:
+		void setModified(bool b);
+		
 	signals:
 		void cursorPositionChanged();
 		void recalcWidgetSize();
@@ -116,7 +119,7 @@ class MidiFile : public QObject, public ProtocolEntry {
 		int midiTicks, maxTimeMS, _cursorTick, _pauseTick, _midiFormat;
 		Protocol *prot;
 		QMultiMap<int, MidiEvent*> *playerMap;
-		bool _saved;
+		bool _modified;
 		QList<MidiTrack*> *_tracks;
 		QMap<MidiFile*, QMap<MidiTrack*, MidiTrack*> > pasteTracks;
 
