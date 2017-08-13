@@ -576,7 +576,32 @@ void MainWindow::playStop() {
 }
 
 void MainWindow::play(){
-
+	// warn if there is no output port
+	if (_settings->value("output_port", "").toString() == ""
+			&& MidiOutput::outputPort() == "" &&
+			!_settings->value("ignore_empty_port", false).toBool()) {
+		QMessageBox *emptyOutputWarning = new QMessageBox(this);
+		emptyOutputWarning->setModal(true);
+		emptyOutputWarning->setText("There is no MIDI output selected. Would you like to open the settings to set one?");
+		emptyOutputWarning->setInformativeText( "Without an output port, playback will not be audible. "
+												"To select an output port, select \"Yes\" and check an output device in the left column.\n\n"
+												"If the left column is empty, make sure you have installed an output port and it is active.");
+		emptyOutputWarning->setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Ignore);
+		emptyOutputWarning->setDefaultButton(QMessageBox::Yes);
+		int ret = emptyOutputWarning->exec();
+		switch(ret) {
+			case QMessageBox::No:
+				break;
+			case QMessageBox::Yes:
+				openConfig();
+				return;
+			case QMessageBox::Ignore:
+				_settings->setValue("ignore_empty_port", true);
+				break;
+			default:
+				break;
+		}
+	}
 	if(file && !MidiInput::recording() && !MidiPlayer::isPlaying()){
 		mw_matrixWidget->timeMsChanged(file->msOfTick(file->cursorTick()), true);
 
@@ -603,7 +628,32 @@ void MainWindow::play(){
 
 
 void MainWindow::record(){
-
+	// warn if there is no input port selected
+	if (_settings->value("input_port", "").toString() == "" &&
+			MidiOutput::inputPort() == "" &&
+			!_settings->value("ignore_empty_port", false).toBool()) {
+		QMessageBox *emptyOutputWarning = new QMessageBox(this);
+		emptyOutputWarning->setModal(true);
+		emptyOutputWarning->setText("There is no MIDI input selected. Would you like to open the settings to set one?");
+		emptyOutputWarning->setInformativeText("Without an input port, recording will not work. "
+													"To select an input port, select \"Yes\" and check an output port in the right column.\n\n"
+													"If the right column is empty, make sure you have installed an input device and it is active.");
+		emptyOutputWarning->setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Ignore);
+		emptyOutputWarning->setDefaultButton(QMessageBox::Yes);
+		int ret = emptyOutputWarning->exec();
+		switch(ret) {
+			case QMessageBox::No:
+				break;
+			case QMessageBox::Yes:
+				openConfig();
+				return;
+			case QMessageBox::Ignore:
+				_settings->setValue("ignore_empty_port", true);
+				break;
+			default:
+				break;
+		}
+	}
 	if(!file){
 		newFile();
 	}
