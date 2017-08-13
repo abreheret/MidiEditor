@@ -65,11 +65,11 @@ QByteArray TextEvent::save(){
 	array.append(_type);
 	array.append(MidiFile::writeVariableLengthValue(_text.length()));
 	
-	wchar_t text_wchar [128] = L"";
+	wchar_t text_wchar [_text.length()] = L"";
 	_text.toWCharArray(text_wchar);
 	
-	for(int i = 0; i < wcslen(text_wchar); i++){
-		char buffer [4];
+	for(int i = 0; i < _text.length(); i++){
+		char buffer [16];
 		wcrtomb(buffer, text_wchar[i], &mbs);
 		array.append(buffer);
 	}
