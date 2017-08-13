@@ -41,6 +41,8 @@
 #define PIXEL_PER_S 100
 #define PIXEL_PER_LINE 11
 #define PIXEL_PER_EVENT 15
+#define MAX_HORIZ_ZOOM 10
+#define MAX_VERT_ZOOM 3
 
 MatrixWidget::MatrixWidget(QWidget *parent) : PaintWidget(parent) {
 
@@ -1018,8 +1020,10 @@ void MatrixWidget::zoomStd(){
 }
 
 void MatrixWidget::zoomHorIn(){
-	scaleX+=0.1;
-	calcSizes();
+	if (scaleX<MAX_HORIZ_ZOOM) {
+		scaleX+=0.1;
+		calcSizes();
+	}
 }
 
 void MatrixWidget::zoomHorOut(){
@@ -1030,8 +1034,10 @@ void MatrixWidget::zoomHorOut(){
 }
 
 void MatrixWidget::zoomVerIn(){
-	scaleY+=0.1;
-	calcSizes();
+	if (scaleY<MAX_VERT_ZOOM) {
+		scaleY+=0.1;
+		calcSizes();
+	}
 }
 
 void MatrixWidget::zoomVerOut(){
