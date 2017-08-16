@@ -96,7 +96,14 @@
 
 #include <QtCore/qmath.h>
 
+// Static instance
+MainWindow * MainWindow::_mainWindow;
+
 MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
+	_mainWindow = this;
+	
+	inputIsReady = false;
+	outputIsReady = false;
 	
 	file = 0;
 	_settings = new QSettings(QString("MidiEditor"), QString("NONE"));
@@ -413,13 +420,6 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	channelsLayout->addWidget(channelWidget, 1, 0, 1, 1);
 	upperTabWidget->addTab(channels, "Channels");
 
-
-	// terminal
-	Terminal::initTerminal(_settings->value("start_cmd", "").toString(),
-			_settings->value("in_port", "").toString(),
-			_settings->value("out_port", "").toString());
-	//upperTabWidget->addTab(Terminal::terminal()->console(), "Terminal");
-
 	// Protocollist
 	protocolWidget = new ProtocolWidget(lowerTabWidget);
 	lowerTabWidget->addTab(protocolWidget, "Protocol");
@@ -499,6 +499,25 @@ void MainWindow::loadInitFile() {
 		loadFile(_initFile);
 	else
 		newFile();
+}
+
+MainWindow * MainWindow::getMainWindow() {
+	return _mainWindow;
+}
+
+void MainWindow::ioReady(bool isInput) {
+    if (isInput) {
+        inputIsReady = true;
+    } else {
+        outputIsReady = true;
+    }
+    if (inputIsReady && outputIsReady) {
+        // terminal
+        Terminal::initTerminal(_settings->value("start_cmd", "").toString(),
+                _settings->value("in_port", "").toString(),
+                _settings->value("out_port", "").toString());
+		//upperTabWidget->addTab(Terminal::terminal()->console(), "Terminal");
+    }
 }
 
 void MainWindow::dropEvent(QDropEvent *ev)

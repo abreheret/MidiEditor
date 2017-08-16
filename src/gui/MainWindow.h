@@ -53,6 +53,11 @@ class MainWindow : public QMainWindow {
 		EventWidget *eventWidget();
 		void setStartDir(QString dir);
 		void setInitFile(const char * file);
+		static MainWindow *_mainWindow;
+		static MainWindow getMainWindow();
+		// Alert that the input and output ports are ready. 
+		// This lets us load the UI without having to wait as long.
+		void ioReady(bool isInput);
 	protected:
 		void dropEvent(QDropEvent *ev);
 		void dragEnterEvent(QDragEnterEvent *ev);

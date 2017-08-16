@@ -75,9 +75,6 @@ int main(int argc, char *argv[])
 	a.setProperty("arch", "32");
 #endif
 
-	MidiOutput::init();
-	MidiInput::init();
-
 	MainWindow *w;
 	if (argc == 2)
 		w = new MainWindow(argv[1]);
@@ -85,5 +82,9 @@ int main(int argc, char *argv[])
 		w = new MainWindow();
 	w->resize(QSize(1280, 800));
 	w->show();
+
+	MidiOutput::init();
+	MidiInput::init();
+
 	return a.exec();
 }

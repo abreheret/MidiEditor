@@ -19,6 +19,7 @@
 #include "MidiOutput.h"
 
 #include "../MidiEvent/MidiEvent.h"
+#include "../gui/MainWindow.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -50,6 +51,9 @@ void MidiOutput::init(){
 		error.printMessage();
 	}
 	_sender->start(QThread::TimeCriticalPriority);
+	
+	// Alert MainWindow that output is ready.
+	MainWindow::getMainWindow()->ioReady(false);
 }
 
 void MidiOutput::sendCommand(QByteArray array){

@@ -23,6 +23,7 @@
 #include "../MidiEvent/OnEvent.h"
 #include "../MidiEvent/ControlChangeEvent.h"
 #include "../MidiEvent/KeyPressureEvent.h"
+#include "../gui/MainWindow.h"
 
 #include "MidiTrack.h"
 
@@ -55,6 +56,8 @@ void MidiInput::init(){
 	catch (RtMidiError &error) {
 		error.printMessage();
 	}
+	// alert MainWindow that the input is ready.
+	MainWindow::getMainWindow()->ioReady(true);
 }
 
 void MidiInput::receiveMessage(double deltatime, std::vector<unsigned char>
