@@ -26,6 +26,7 @@
 #include <QStackedWidget>
 #include <QFrame>
 
+#include "AdditionalMidiSettingsWidget.h"
 #include "SettingsWidget.h"
 #include "MidiSettingsWidget.h"
 #ifdef ENABLE_REMOTE
