@@ -1109,6 +1109,9 @@ void MainWindow::closeEvent(QCloseEvent *event){
 			}
 		}
 	}
+	
+	// stop any playback
+	stop();
 
 	if(MidiOutput::outputPort() != ""){
 		_settings->setValue("out_port", MidiOutput::outputPort());
