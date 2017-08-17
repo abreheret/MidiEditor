@@ -44,6 +44,8 @@
 #define MAX_HORIZ_ZOOM 10
 #define MAX_VERT_ZOOM 3
 
+bool MatrixWidget::antiAliasingEnabled = true;
+
 MatrixWidget::MatrixWidget(QWidget *parent) : PaintWidget(parent) {
 
 	screen_locked = false;
@@ -168,7 +170,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 		this->pianoKeys.clear();
 		pixmap = new QPixmap(width(), height());
 		QPainter *pixpainter = new QPainter(pixmap);
-		if(!QApplication::arguments().contains("--no-antialiasing")){
+		if(!QApplication::arguments().contains("--no-antialiasing") && antiAliasingEnabled){
 			pixpainter->setRenderHint(QPainter::Antialiasing);
 		}
 		// dark gray shade
@@ -393,7 +395,10 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 
 	painter->drawPixmap(0,0,*pixmap);
 
-	painter->setRenderHint(QPainter::Antialiasing);
+	if(!QApplication::arguments().contains("--no-antialiasing") && antiAliasingEnabled){
+		painter->setRenderHint(QPainter::Antialiasing);
+	}
+
 	// draw the piano / linenames
 	for(int i = startLineY; i<=endLineY; i++){
 		int startLine = yPosOfLine(i);

@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ADDITIONAMIDISETTINGSWIDGET_H
-#define ADDITIONAMIDISETTINGSWIDGET_H
+#ifndef ADDITIONALMIDISETTINGSWIDGET_H
+#define ADDITIONALMIDISETTINGSWIDGET_H
 #include "SettingsWidget.h"
 
 class QWidget;
@@ -47,4 +47,4 @@ class AdditionalMidiSettingsWidget : public SettingsWidget {
         QSpinBox *_tpqBox;
 };
 
-#endif // ADDITIONAMIDISETTINGSWIDGET_H
+#endif // ADDITIONALMIDISETTINGSWIDGET_H

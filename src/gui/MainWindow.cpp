@@ -118,11 +118,24 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 #endif
 	bool alternativeStop = _settings->value("alt_stop", false).toBool();
 	MidiOutput::isAlternativePlayer = alternativeStop;
+
+	bool antiAliasing = _settings->value("antialiasing", true).toBool();
+	MatrixWidget::antiAliasingEnabled = antiAliasing;
+
+	bool velocityDragging = _settings->value("velocity_dragging", false).toBool();
+	NewNoteTool::enableVelocityDragging = velocityDragging;
+
+	bool selectAndMove = _settings->value("select_and_move", true).toBool();
+	StandardTool::selectAndMoveEnabled = selectAndMove;
+
 	bool ticksOK;
 	int ticksPerQuarter = _settings->value("ticks_per_quarter", 192).toInt(&ticksOK);
 	MidiFile::defaultTimePerQuarter = ticksPerQuarter;
+
 	bool magnet = _settings->value("magnet", false).toBool();
 	EventTool::enableMagnet(magnet);
+
+	
 
 	MidiInput::setThruEnabled(_settings->value("thru", false).toBool());
 	Metronome::setEnabled(_settings->value("metronome", false).toBool());
@@ -1158,7 +1171,9 @@ void MainWindow::closeEvent(QCloseEvent *event){
 	_settings->setValue("ticks_per_quarter", MidiFile::defaultTimePerQuarter);
 	_settings->setValue("screen_locked", mw_matrixWidget->screenLocked());
 	_settings->setValue("magnet", EventTool::magnetEnabled());
-
+	_settings->setValue("antialiasing", MatrixWidget::antiAliasingEnabled);
+	_settings->setValue("velocity_dragging", NewNoteTool::enableVelocityDragging);
+	_settings->setValue("select_and_move", StandardTool::selectAndMoveEnabled);
 	_settings->setValue("div", mw_matrixWidget->div());
 	_settings->setValue("colors_from_channel", mw_matrixWidget->colorsByChannel());
 

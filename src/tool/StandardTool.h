@@ -36,6 +36,8 @@ class StandardTool :public EventTool {
 		bool press(bool leftClick);
 		bool move(int mouseX, int mouseY);
 		bool release();
+		
+		static bool selectAndMoveEnabled;
 
 		ProtocolEntry *copy();
 		void reloadState(ProtocolEntry *entry);

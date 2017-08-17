@@ -32,6 +32,8 @@
 #define SIZE_CHANGE_ACTION 1
 #define MOVE_ACTION 2
 
+bool StandardTool::selectAndMoveEnabled = true;
+
 StandardTool::StandardTool() : EventTool() {
 
 	setImage(":/run_environment/graphics/tool/select.png");
@@ -145,9 +147,11 @@ bool StandardTool::press(bool leftClick){
 						protocol(toCopy, this);
 						file()->protocol()->endAction();
 					}
-					Tool::setCurrentTool(sizeChangeTool);
-					sizeChangeTool->move(mouseX, mouseY);
-					sizeChangeTool->press(leftClick);
+					if (onSelectedEvent || selectAndMoveEnabled){
+						Tool::setCurrentTool(sizeChangeTool);
+						sizeChangeTool->move(mouseX, mouseY);
+						sizeChangeTool->press(leftClick);
+					}
 					return false;
 				}
 
@@ -159,17 +163,19 @@ bool StandardTool::press(bool leftClick){
 						protocol(toCopy, this);
 						file()->protocol()->endAction();
 					}
-/* TODO reenable
-					if(altGrPressed){
-						moveTool->setDirections(true, false);
-					} else if(spacePressed){
-						moveTool->setDirections(false, true);
-					} else {
-						moveTool->setDirections(true, true);
-					} */
-					Tool::setCurrentTool(moveTool);
-					moveTool->move(mouseX, mouseY);
-					moveTool->press(leftClick);
+					if (onSelectedEvent || selectAndMoveEnabled){
+						/* TODO reenable
+						if(altGrPressed){
+							moveTool->setDirections(true, false);
+						} else if(spacePressed){
+							moveTool->setDirections(false, true);
+						} else {
+							moveTool->setDirections(true, true);
+						} */
+						Tool::setCurrentTool(moveTool);
+						moveTool->move(mouseX, mouseY);
+						moveTool->press(leftClick);
+					}
 					return false;
 				}
 			}

@@ -38,11 +38,15 @@
 #include "../MidiEvent/NoteOnEvent.h"
 #include "StandardTool.h"
 
+#include <QToolTip>
+
 int NewNoteTool::_channel = 0;
 int NewNoteTool::_track = 0;
+bool NewNoteTool::enableVelocityDragging = false;
 
 NewNoteTool::NewNoteTool() : EventTool() {
 	inDrag = false;
+	velocity = 100;
 	line = 0;
 	xPos = 0;
 	_channel = 0;
@@ -76,6 +80,54 @@ void NewNoteTool::draw(QPainter *painter){
 			painter->setPen(Qt::gray);
 			painter->drawLine(xPos, 0, xPos, matrixWidget->height());
 			painter->drawLine(currentX, 0, currentX, matrixWidget->height());
+			if (enableVelocityDragging) {
+				// Show a fake ToolTip that allows the velocity to be changed vertically.
+				// Hooray for overcomplicated-ness.
+				
+				// Check the velocity
+				int vel = (-0.5 * (mouseY - y - matrixWidget->lineHeight() / 2)) + 100;
+				if (vel > 127)
+					vel = 127;
+				if (vel < 0)
+					vel = 0;
+				velocity = vel;
+
+				// Get the dimensions and the font.
+				QFont font = QFont(QToolTip::font());
+				QString velocityTxt = "Velocity: " + QString::number(vel);
+				QFontMetrics *metrics = new QFontMetrics(font);
+				int velocityTxtWidth = metrics->width(velocityTxt);
+				int velocityTxtHeight = metrics->height();
+				int velocityTxtX = mouseX;
+				int velocityTxtY = y - velocityTxtHeight - 8;
+
+				// Reposition the fake ToolTip near the edge of the MatrixWidget. 
+				// I'm sure that there is a better way to do this.
+				if (mouseX + velocityTxtWidth + 10 > matrixWidget->width())
+					velocityTxtX = matrixWidget->width() - velocityTxtWidth - 10;
+				else if (mouseX - matrixWidget->lineNameWidth < 10)
+					velocityTxtX = 10 + matrixWidget->lineNameWidth;
+				if (velocityTxtY - matrixWidget->startLineY < 10)
+					velocityTxtY += (matrixWidget->lineHeight() + velocityTxtHeight + 16);
+
+				// Create the QRect for the ToolTip dimensions (too lazy to read from a QStyle)
+				QRect tooltip = QRect(velocityTxtX - 4, velocityTxtY, velocityTxtWidth + 8, velocityTxtHeight + 8);
+
+				// Get the right colors
+				QPalette palette = matrixWidget->palette();
+				QColor brush = palette.color(QPalette::Inactive, QPalette::ToolTipText);
+				painter->setPen(brush);
+
+				// Make the ToolTip background using drawPrimitive
+				QStyle *style = matrixWidget->style();
+				QStyleOption options;
+				options.initFrom(matrixWidget);
+				options.rect = tooltip;
+				style->drawPrimitive(QStyle::PE_PanelTipLabel, &options, painter);
+
+				// Finally, draw the text. 
+				painter->drawText(options.rect, Qt::AlignCenter, velocityTxt);
+			}
 			painter->setPen(Qt::black);
 		} else {
 			int y = matrixWidget->yPosOfLine(line);
@@ -127,7 +179,7 @@ bool NewNoteTool::release(){
 			}
 
 			NoteOnEvent *on = file()->channel(_channel)->insertNote(127-line,
-					startTick, endTick, 100, track);
+					startTick, endTick, velocity, track);
 			selectEvent(on, true, true);
 			currentProtocol()->endAction();
 

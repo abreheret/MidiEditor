@@ -26,6 +26,7 @@
 #include <QStackedWidget>
 #include <QFrame>
 
+#include "GuiSettingsWidget.h"
 #include "AdditionalMidiSettingsWidget.h"
 #include "SettingsWidget.h"
 #include "MidiSettingsWidget.h"
@@ -90,6 +91,7 @@ SettingsDialog::SettingsDialog(QString title, QSettings *settings, RemoteServer 
 	layout->addWidget(buttonBar, 2, 0, 1, 1);
 
 	// add content
+	addSetting(new GuiSettingsWidget(settings, central));
 	addSetting(new MidiSettingsWidget(central));
 	addSetting(new AdditionalMidiSettingsWidget(settings, central));
 #ifdef ENABLE_REMOTE

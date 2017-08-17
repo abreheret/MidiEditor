@@ -40,10 +40,13 @@ class NewNoteTool : public EventTool {
 		static int editChannel();
 		static void setEditTrack(int i);
 		static void setEditChannel(int i);
+		
+		static bool enableVelocityDragging;
 	private:
 		bool inDrag;
 		int line;
 		int xPos;
+		int velocity;
 		static int _channel, _track;
 };
 

@@ -52,6 +52,7 @@ class MatrixWidget : public PaintWidget {
 
 		double lineHeight();
 		int lineAtY(int y);
+		int lineNameWidth, startLineY;
 		int msOfXPos(int x);
 		int timeMsOfWidth(int w);
 		bool eventInWidget(MidiEvent *event);
@@ -68,6 +69,8 @@ class MatrixWidget : public PaintWidget {
 		int msOfTick(int tick);
 		int xPosOfMs(int ms);
 		QList<QPair<int, int> > divs();
+
+		static bool antiAliasingEnabled;
 
 	public slots:
 		void scrollXChanged(int scrollPositionX);
@@ -109,8 +112,8 @@ class MatrixWidget : public PaintWidget {
 		void paintPianoKey(QPainter *painter, int number, int x, int y,
 				int width, int height);
 
-		int startTick, endTick, startTimeX, endTimeX, startLineY, endLineY,
-			lineNameWidth, timeHeight, msOfFirstEventInList;
+		int startTick, endTick, startTimeX, endTimeX, endLineY, timeHeight,
+				msOfFirstEventInList;
 		double scaleX, scaleY;
 		MidiFile *file;
 
