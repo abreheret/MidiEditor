@@ -30,21 +30,21 @@ class QSettings;
 
 class AdditionalMidiSettingsWidget : public SettingsWidget {
 
-    Q_OBJECT
+	Q_OBJECT
 
-    public:
-        AdditionalMidiSettingsWidget(QSettings *settings, QWidget *parent = 0);
-        bool accept();
+	public:
+		AdditionalMidiSettingsWidget(QSettings *settings, QWidget *parent = 0);
+		bool accept();
 
-    public slots:
-        void manualModeToggled(bool enable);
-        void setDefaultTimePerQuarter(int value);
+	public slots:
+		void manualModeToggled(bool enable);
+		void setDefaultTimePerQuarter(int value);
 
-    private:
-        QCheckBox *_alternativePlayerModeBox;
-        QSettings *_settings;
-        QLineEdit *startCmd;
-        QSpinBox *_tpqBox;
+	private:
+		QCheckBox *_alternativePlayerModeBox;
+		QSettings *_settings;
+		QLineEdit *startCmd;
+		QSpinBox *_tpqBox;
 };
 
 #endif // ADDITIONALMIDISETTINGSWIDGET_H
