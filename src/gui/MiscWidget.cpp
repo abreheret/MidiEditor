@@ -268,6 +268,7 @@ void MiscWidget::paintEvent(QPaintEvent *event){
 
 		painter->drawLine(lineX, lineY, mouseX, mouseY);
 	}
+	painter->end();
 }
 
 void MiscWidget::mouseMoveEvent(QMouseEvent *event){
