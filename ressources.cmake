@@ -65,6 +65,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ressources.qrc" "<!DOCTYPE RCC><RCC vers
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/trackwidget/visible.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/icon.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/midieditor.png</file>
+	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/MidiEditor.icns</file>
 </qresource>
 </RCC>
 ")

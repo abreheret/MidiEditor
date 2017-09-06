@@ -42,7 +42,6 @@ bool MidiOutput::isAlternativePlayer = false;
 int MidiOutput::_stdChannel = 0;
 
 void MidiOutput::init(){
-
 	// RtMidiOut constructor
 	try {
 		_midiOut = new RtMidiOut(RtMidi::UNSPECIFIED, QString("MidiEditor output").toStdString());
@@ -51,7 +50,7 @@ void MidiOutput::init(){
 		error.printMessage();
 	}
 	_sender->start(QThread::TimeCriticalPriority);
-	
+
 	// Alert MainWindow that output is ready.
 	MainWindow::getMainWindow()->ioReady(false);
 }
@@ -87,6 +86,7 @@ void MidiOutput::sendCommand(MidiEvent *e){
 
 QStringList MidiOutput::outputPorts(){
 
+	qWarning("outputPorts()");
 	QStringList ports;
 
 	// Check outputs.
@@ -97,9 +97,12 @@ QStringList MidiOutput::outputPorts(){
 		try {
 			ports.append(QString::fromStdString(_midiOut->getPortName(i)));
 		}
-		catch (RtMidiError &) {}
+		catch (RtMidiError &error) {
+			error.printMessage();
+		}
 	}
-
+	for (QString port : ports)
+		qWarning(port.toUtf8().constData());
 	return ports;
 }
 

@@ -92,6 +92,8 @@ class Terminal : public QObject {
 		QTextEdit *_textEdit;
 
 		QString _inPort, _outPort;
+
+        static int retries;
 };
 
 #endif

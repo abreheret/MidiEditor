@@ -54,7 +54,7 @@ class MainWindow : public QMainWindow {
 		void setStartDir(QString dir);
 		void setInitFile(const char * file);
 		static MainWindow *_mainWindow;
-		static MainWindow getMainWindow();
+        static MainWindow *getMainWindow();
 		// Alert that the input and output ports are ready. 
 		// This lets us load the UI without having to wait as long.
 		void ioReady(bool isInput);
@@ -218,6 +218,7 @@ class MainWindow : public QMainWindow {
 		int _quantizationGrid;
 		int quantize(int t, QList<int> ticks);
 		QList<QAction*> _activateWithSelections;
+        bool inputIsReady, outputIsReady;
 };
 
 #endif

@@ -101,10 +101,10 @@ MainWindow * MainWindow::_mainWindow;
 
 MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	_mainWindow = this;
-	
+
 	inputIsReady = false;
 	outputIsReady = false;
-	
+
 	file = 0;
 	_settings = new QSettings(QString("MidiEditor"), QString("NONE"));
 
@@ -135,7 +135,7 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	bool magnet = _settings->value("magnet", false).toBool();
 	EventTool::enableMagnet(magnet);
 
-	
+
 
 	MidiInput::setThruEnabled(_settings->value("thru", false).toBool());
 	Metronome::setEnabled(_settings->value("metronome", false).toBool());
@@ -502,9 +502,9 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	copiedEventsChanged();
 	setAcceptDrops(true);
 	QTimer::singleShot(200, this, SLOT(loadInitFile()));
-	//if(UpdateManager::autoCheckForUpdates()){ 
-	//	QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates())); 
-	//} 
+	//if(UpdateManager::autoCheckForUpdates()){
+	//	QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates()));
+	//}
 }
 
 void MainWindow::loadInitFile() {
@@ -519,18 +519,18 @@ MainWindow * MainWindow::getMainWindow() {
 }
 
 void MainWindow::ioReady(bool isInput) {
-    if (isInput) {
-        inputIsReady = true;
-    } else {
-        outputIsReady = true;
-    }
-    if (inputIsReady && outputIsReady) {
-        // terminal
-        Terminal::initTerminal(_settings->value("start_cmd", "").toString(),
-                _settings->value("in_port", "").toString(),
-                _settings->value("out_port", "").toString());
+	if (isInput) {
+		inputIsReady = true;
+	} else {
+		outputIsReady = true;
+	}
+	if (inputIsReady && outputIsReady) {
+		// terminal
+		Terminal::initTerminal(_settings->value("start_cmd", "").toString(),
+				_settings->value("in_port", "").toString(),
+				_settings->value("out_port", "").toString());
 		//upperTabWidget->addTab(Terminal::terminal()->console(), "Terminal");
-    }
+	}
 }
 
 void MainWindow::dropEvent(QDropEvent *ev)
@@ -615,9 +615,27 @@ void MainWindow::play(){
 		QMessageBox *emptyOutputWarning = new QMessageBox(this);
 		emptyOutputWarning->setModal(true);
 		emptyOutputWarning->setText("There is no MIDI output selected. Would you like to open the settings to set one?");
-		emptyOutputWarning->setInformativeText( "Without an output port, playback will not be audible. "
+		emptyOutputWarning->setInformativeText( "Without an output port, playback will not work. "
 												"To select an output port, select \"Yes\" and check an output device in the left column.\n\n"
 												"If the left column is empty, make sure you have installed an output port and it is active.");
+#ifdef Q_OS_OSX
+		emptyOutputWarning->setDetailedText("On macOS, MIDI output may not be available by default.\n\n"
+											"To enable playback to an instrument, check the \"Audio MIDI Setup\" app in /Applications/Utilities. "
+											"Then, configure your device in Window→Show MIDI Studio.\n\n"
+											"If you would like to enable playback through the headphones or speakers, check "
+											"https://github.com/wbsoft/frescobaldi/wiki/MIDI-playback-on-Mac-OS-X "
+											"for instructions.");
+#else
+#ifdef Q_OS_UNIX
+		emptyOutputWarning->setDetailedText("On Unix-based systems, ")
+#endif
+#ifdef Q_OS_WIN
+		emptyOutputWarning->setDetailedText("On Windows, the default \"Microsoft GS Wavetable Synth\" has some compatibility issues with some MIDI effects.\n\n"
+											"If you would like more accurate MIDI playback driver, a recommended synthesizer is \"Coolsoft VirtualMIDISynth\""
+											" at http://coolsoft.altervista.org/en/virtualmidisynth combined with a SF2 soundfont such as the ones found"
+											"on the website.");
+#endif
+#endif
 		emptyOutputWarning->setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Ignore);
 		emptyOutputWarning->setDefaultButton(QMessageBox::Yes);
 		int ret = emptyOutputWarning->exec();
@@ -662,7 +680,7 @@ void MainWindow::play(){
 void MainWindow::record(){
 	// warn if there is no input port selected
 	if (_settings->value("input_port", "").toString() == "" &&
-			MidiOutput::inputPort() == "" &&
+			MidiOutput::outputPort() == "" &&
 			!_settings->value("ignore_empty_port", false).toBool()) {
 		QMessageBox *emptyOutputWarning = new QMessageBox(this);
 		emptyOutputWarning->setModal(true);
@@ -1141,7 +1159,7 @@ void MainWindow::closeEvent(QCloseEvent *event){
 			}
 		}
 	}
-	
+
 	// stop any playback
 	stop();
 
@@ -1939,7 +1957,7 @@ void MainWindow::editChannel(int i, bool assign){
 	int prog = file->channel(i)->progAtTick(file->cursorTick());
 	MidiOutput::sendProgram(i, prog);
 
-	updateChannelMenu();	
+	updateChannelMenu();
 }
 
 void MainWindow::editTrack(int i, bool assign){

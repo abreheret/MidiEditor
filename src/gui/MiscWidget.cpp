@@ -151,15 +151,20 @@ void MiscWidget::paintEvent(QPaintEvent *event){
 				}
 
 				int velocity = 0;
+				double velocityMultiplier = 1.0;
 				NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
 
 				if(noteOn && noteOn->midiTime()>=matrixWidget->minVisibleMidiTime() && noteOn->midiTime()<=matrixWidget->maxVisibleMidiTime()){
 					velocity=noteOn->velocity();
+					if (aboveEvent){
+						velocityMultiplier = aboveEvent->velocity() / velocity;
+					}
+
 
 					if(velocity>0){
 						int h = (height()*velocity)/128;
 						if(edit_mode==SINGLE_MODE && dragging){
-							h+=(dragY-mouseY);
+							h=velocityMultiplier * (h + (dragY-mouseY));
 						}
 						painter->setBrush(Qt::darkBlue);
 						painter->setPen(Qt::lightGray);
@@ -296,6 +301,7 @@ void MiscWidget::mouseMoveEvent(QMouseEvent *event){
 							int h = (height()*velocity)/128;
 							if(!dragging && mouseInRect(event->x()-LEFT_BORDER_MATRIX_WIDGET, height()-h-5, WIDTH, 10)){
 								above = true;
+								aboveEvent = noteOn;
 								break;
 							}
 						}
@@ -381,7 +387,7 @@ void MiscWidget::mousePressEvent(QMouseEvent *event){
 			bool selectedNew = false;
 			if(!clickHandlesSelected){
 				QList<MidiEvent*> *list = matrixWidget->velocityEvents();
-				foreach(MidiEvent* event, *list){
+				foreach(MidiEvent *event, *list){
 
 					if(!event->file()->channel(event->channel())->visible()){
 						continue;
@@ -496,11 +502,19 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 					matrixWidget->midiFile()->protocol()->
 							startNewAction("Edited velocity");
 
+					double aboveEventVelocity = -1;
+					if (aboveEvent)
+						aboveEventVelocity = aboveEvent->velocity();
+
 					int dV = 127*dX/height();
 					foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 						NoteOnEvent *noteOn = dynamic_cast<NoteOnEvent*>(event);
 						if (noteOn) {
+
 							int v = dV+noteOn->velocity();
+							if (aboveEventVelocity > 0)
+								v *= (aboveEventVelocity / noteOn->velocity());
+
 							if(v > 127){
 								v = 127;
 							}
@@ -598,14 +612,14 @@ void MiscWidget::mouseReleaseEvent(QMouseEvent *event){
 						}
 
 					} else {
-						
+
 						MidiTrack *track = matrixWidget->midiFile()->track(NewNoteTool::editTrack());
 						if(!track){
 							return;
 						}
 
 						int tick = matrixWidget->minVisibleMidiTime();
-						
+
 						if (v < 0)
 							v = 0;
 						if (tick < 0)

@@ -8,12 +8,22 @@ MidiEditor
 Download : Windows [last release](https://github.com/abreheret/MidiEditor/releases/)
 
 ### Building Dependencies
-* [Qt5.7](https://www.qt.io/download-open-source/)
-* [CMake](https://cmake.org/download/) >= 2.8.11 (Under Windows using Visual Studio 2013)
+* [Qt5.9](https://www.qt.io/download-open-source/)
+* [CMake](https://cmake.org/download/) >= 2.8.11 
+
+* Windows: 
+     * Either the msvc2015 (preferred), msvc2013, msvc2017, or mingw53 Qt toolchains
+     * For deployment: [nsis](http://nsis.sourceforge.net/Download)
 * Linux : 
      * [sfml](http://www.sfml-dev.org/download-fr.php) `sudo apt-get install libsfml-dev`
-     * asound `sudo apt-get install libasound2-dev`
-* Windows deployment : [nsis](http://nsis.sourceforge.net/Download)
+     * asound (`sudo apt-get install libasound2-dev`)
+     * (optional) Jack2 (`sudo apt-get install jack2`)
+     * The gcc Qt toolchain
+* macOS: 
+     * Xcode 8+ (only command line utilities are required)
+     * CMake (`brew install make`)
+     * (optional) [JackOSX](http://www.jackosx.com)
+     
  
 ### Introduction
 

@@ -52,11 +52,13 @@ void Terminal::writeString(QString message){
 	_textEdit->setText(_textEdit->toPlainText()+message+"\n");
 	_textEdit->verticalScrollBar()->setValue(
 			_textEdit->verticalScrollBar()->maximum());
+    qWarning(message.toUtf8());
 }
 
 void Terminal::execute(QString startString, QString inPort,
 	QString outPort)
 {
+    qWarning("Terminal::execute");
 	_inPort = inPort;
 	_outPort = outPort;
 
@@ -79,9 +81,9 @@ void Terminal::execute(QString startString, QString inPort,
 	}
 }
 
+int Terminal::retries = 0;
 void Terminal::processStarted(){
-	writeString("Started process");
-
+    if (retries > 10) return;
 	QStringList inputVariants;
 	QString inPort = _inPort;
 	inputVariants.append(inPort);
@@ -124,7 +126,7 @@ void Terminal::processStarted(){
 		}
 	}
 
-	if(MidiOutput::outputPort()== "" && _outPort != ""){
+    if(MidiOutput::outputPort()== "" && _outPort == ""){
 		writeString("Trying to set Output Port to "+_outPort);
 
 		foreach(QString portVariant, outputVariants){
@@ -145,6 +147,7 @@ void Terminal::processStarted(){
 	// if not both are set, try again in 1 second
 	if((MidiOutput::outputPort()== "" && _outPort != "") ||
 			(MidiInput::inputPort() == "" && _inPort != "")){
+        retries++;
 		QTimer *timer = new QTimer();
 		connect(timer, SIGNAL(timeout()), this, SLOT(processStarted()));
 		timer->setSingleShot(true);

@@ -24,6 +24,7 @@
 class MatrixWidget;
 class MidiEvent;
 class SelectTool;
+class NoteOnEvent;
 
 #include <QPair>
 #include <QList>
@@ -87,6 +88,7 @@ class MiscWidget : public PaintWidget {
 		// single
 		int dragY;
 		bool dragging;
+		NoteOnEvent *aboveEvent;
 		SelectTool *_dummyTool;
 		int trackIndex;
 

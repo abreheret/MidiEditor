@@ -3,9 +3,6 @@
 
 #include <QObject>
 
-#ifndef __WINDOWS_MM__
-	#include <SFML/Audio.hpp>
-#endif
 
 class MidiFile;
 
@@ -35,10 +32,6 @@ class Metronome : public QObject {
 		void click();
 		static bool _enable;
 
-		#ifndef __WINDOWS_MM__
-			sf::SoundBuffer buffer;
-			sf::Sound sound;
-		#endif
 };
 
 #endif

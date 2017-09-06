@@ -58,10 +58,19 @@ int main(int argc, char *argv[])
 #endif
 
 	QApplication a(argc, argv);
+#ifdef Q_OS_MAC
+	
+	bool ok = QResource::registerResource(a.applicationDirPath() + "/../Resources/ressources.rcc");
+	
+	if (!ok) {
+		ok = QResource::registerResource("ressources.rcc");
+	}
+#else
 	bool ok = QResource::registerResource(a.applicationDirPath() + "/ressources.rcc");
 	if (!ok) {
 		ok = QResource::registerResource("ressources.rcc");
 	}
+#endif
 
 	UpdateManager::instance()->init();
 	a.setApplicationVersion(UpdateManager::instance()->versionString());
@@ -69,7 +78,7 @@ int main(int argc, char *argv[])
 	a.setQuitOnLastWindowClosed(true);
 	a.setProperty("date_published", UpdateManager::instance()->date());
 
-#ifdef __ARCH64__
+#ifdef Q_PROCESSOR_X86_64
 	a.setProperty("arch", "64");
 #else
 	a.setProperty("arch", "32");

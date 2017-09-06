@@ -65,7 +65,7 @@ QByteArray TextEvent::save(){
 	array.append(_type);
 	array.append(MidiFile::writeVariableLengthValue(_text.length()));
 	
-	wchar_t text_wchar [_text.length()] = L"";
+    wchar_t *text_wchar  = new wchar_t[_text.length()];
 	_text.toWCharArray(text_wchar);
 	
 	for(int i = 0; i < _text.length(); i++){
@@ -73,7 +73,7 @@ QByteArray TextEvent::save(){
 		wcrtomb(buffer, text_wchar[i], &mbs);
 		array.append(buffer);
 	}
-
+    delete[] text_wchar;
 	return array;
 }
 

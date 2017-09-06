@@ -5,15 +5,20 @@
 #include <QtCore/qmath.h>
 #include <QFile>
 #include <QFileInfo>
+#include <QSound>
 
-#ifndef __WINDOWS_MM__
+/*#ifndef __WINDOWS_MM__
+
 	#include <SFML/Audio.hpp>
+
 #else
 #include <windows.h>
 #include <mmsystem.h>
 #include <iostream>
 #endif
 
+#include <CoreAudio/CoreAudio.h>
+*/
 Metronome *Metronome::_instance = new Metronome();
 bool Metronome::_enable = false;
 
@@ -79,14 +84,15 @@ void Metronome::click(){
 		return;
 	}
 
-	#ifndef __WINDOWS_MM__
+    /*#ifndef __WINDOWS_MM__
 		if((buffer.getSampleCount() == 0) && buffer.loadFromFile("metronome/metronome-01.wav")){
 			sound.setBuffer(buffer);
 		}
 		sound.play();
 	#else
 		PlaySound(L"metronome/metronome-01.wav", NULL, SND_FILENAME | SND_ASYNC);
-	#endif
+    #endif*/
+    QSound::play("metronome/metronome-01.wav");
 }
 
 bool Metronome::enabled(){

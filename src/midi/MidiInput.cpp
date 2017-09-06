@@ -45,7 +45,7 @@ bool MidiInput::_recording = false;
 bool MidiInput::_thru = false;
 
 void MidiInput::init(){
-
+    qWarning("MidiInput::init()");
 	// RtMidiIn constructor
 	try {
 		_midiIn = new RtMidiIn(RtMidi::UNSPECIFIED, QString("MidiEditor input").toStdString());
@@ -57,7 +57,7 @@ void MidiInput::init(){
 		error.printMessage();
 	}
 	// alert MainWindow that the input is ready.
-	MainWindow::getMainWindow()->ioReady(true);
+    MainWindow::getMainWindow()->ioReady(true);
 }
 
 void MidiInput::receiveMessage(double deltatime, std::vector<unsigned char>
