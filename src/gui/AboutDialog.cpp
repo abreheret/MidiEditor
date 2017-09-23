@@ -17,7 +17,7 @@
  */
 
 #include "AboutDialog.h"
-#include "../../scripts_to_build/bin/version.h"
+#include "version.h"
 
 #include <QIcon>
 #include <QLabel>

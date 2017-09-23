@@ -215,19 +215,19 @@ if(WIN32)
 			set_target_properties(MidiEditor PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 		endif()
 	endif()
-	set(QT5_DLLs_DEP_RELEASE "${QT5_DIR}/../../bin/Qt5Widgets.dll"
-		                     "${QT5_DIR}/../../bin/Qt5Network.dll"
-							 "${QT5_DIR}/../../bin/Qt5Xml.dll"
-							 "${QT5_DIR}/../../bin/Qt5Gui.dll"
-							 "${QT5_DIR}/../../bin/Qt5Core.dll"
-							 "${QT5_DIR}/../../bin/Qt5Multimedia.dll")
-						set(QT5_DLLs_DEP_DEBUG   "${QT5_DIR}/../../bin/Qt5Widgetsd.dll"
-							 "${QT5_DIR}/../../bin/Qt5Networkd.dll"
-							 "${QT5_DIR}/../../bin/Qt5Xmld.dll"
-							 "${QT5_DIR}/../../bin/Qt5Guid.dll"
-							 "${QT5_DIR}/../../bin/Qt5Cored.dll"
-							 "${QT5_DIR}/../../bin/Qt5Multimediad.dll")
-						file(COPY ${QT5_DLLs_DEP_RELEASE} ${QT5_DLLs_DEP_DEBUG} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+	set(QT5_DLLs_DEP_RELEASE "${QT5_DIR_GUESS}/../../bin/Qt5Widgets.dll"
+		                     "${QT5_DIR_GUESS}/../../bin/Qt5Network.dll"
+							 "${QT5_DIR_GUESS}/../../bin/Qt5Xml.dll"
+							 "${QT5_DIR_GUESS}/../../bin/Qt5Gui.dll"
+							 "${QT5_DIR_GUESS}/../../bin/Qt5Core.dll"
+							 "${QT5_DIR_GUESS}/../../bin/Qt5Multimedia.dll")
+						set(QT5_DLLs_DEP_DEBUG   "${QT5_DIR_GUESS}/../../bin/Qt5Widgetsd.dll"
+							 "${QT5_DIR_GUESS}/../../bin/Qt5Networkd.dll"
+							 "${QT5_DIR_GUESS}/../../bin/Qt5Xmld.dll"
+							 "${QT5_DIR_GUESS}/../../bin/Qt5Guid.dll"
+							 "${QT5_DIR_GUESS}/../../bin/Qt5Cored.dll"
+							 "${QT5_DIR_GUESS}/../../bin/Qt5Multimediad.dll")
+	file(COPY ${QT5_DLLs_DEP_RELEASE} ${QT5_DLLs_DEP_DEBUG} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 elseif(APPLE)
 	message(STATUS "Setting up macOS frameworks...")
@@ -251,12 +251,12 @@ else()
 endif()
 
 if (MSVC)
-	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "/GR-")
+	#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "/GR-")
 else()
 	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fno-rtti")
 endif()
 
-#add_custom_command(TARGET MidiEditor PRE_BUILD COMMAND cmake -P ${CMAKE_BINARY_DIR}/version.cmake)
+add_custom_command(TARGET MidiEditor PRE_BUILD COMMAND cmake -P ${CMAKE_BINARY_DIR}/version.cmake)
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/metronome)

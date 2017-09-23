@@ -43,9 +43,9 @@
 #include <QScrollArea>
 #include <QMimeData>
 
-//#ifdef Q_OS_MAC
+#ifdef Q_OS_MAC
 #include <QtMacExtras>
-//#endif
+#endif
 
 #include "DonateDialog.h"
 #include "AboutDialog.h"
