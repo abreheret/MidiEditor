@@ -34,11 +34,11 @@ class AdditionalMidiSettingsWidget : public SettingsWidget {
 
 	public:
 		AdditionalMidiSettingsWidget(QSettings *settings, QWidget *parent = 0);
-		bool accept();
 
 	public slots:
 		void manualModeToggled(bool enable);
 		void setDefaultTimePerQuarter(int value);
+		bool accept() Q_DECL_OVERRIDE;
 
 	private:
 		QCheckBox *_alternativePlayerModeBox;

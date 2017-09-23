@@ -75,11 +75,16 @@ class ProtocolStep {
 		 * \brief returns the steps Image.
 		 */
 		QImage *image();
-		
+
 		/**
 		 * \brief returns if the file should be marked as modified.
 		 */
 		bool modified();
+
+		/**
+		 * @brief Returns the unique id for this ProtocolStep.
+		 */
+		QString id();
 
 		/**
 		 * \brief releases the ProtocolStep.
@@ -96,11 +101,16 @@ class ProtocolStep {
 		 * \brief Holds the Steps Description.
 		 */
 		QString _stepDescription;
-		
+
 		/**
 		 * /brief Holds whether the file should be marked as "modified" by this change.
 		 */
 		bool _modified;
+
+		/**
+		  * \brief A unique ID for the ProtocolStep. This is for the cache.
+		  */
+		QString _uuid;
 
 		/**
 		 * \brief Holds the Steps Image.
@@ -111,7 +121,6 @@ class ProtocolStep {
 		 * \brief The itemStack saves all ProtocolItems of the Step.
 		 */
 		QStack<ProtocolItem*> *_itemStack;
-
 
 };
 

@@ -30,6 +30,8 @@ void ClickButton::paintEvent(QPaintEvent *event){
 
 	Q_UNUSED(event);
 
+	if (paintingActive()) return;
+
 	QPainter painter(this);
 	painter.setRenderHint(QPainter::Antialiasing);
 	if(button_mouseInButton){
@@ -38,17 +40,18 @@ void ClickButton::paintEvent(QPaintEvent *event){
 			painter.fillRect(0,0,width(), height(), Qt::darkGray);
 		}
 	}
-
 	painter.drawImage(QRectF(3,3,35,35),*(image));
 }
 
 void ClickButton::enterEvent(QEvent *event){
 	Q_UNUSED(event);
+
 	button_mouseInButton = true;
 }
 
 void ClickButton::leaveEvent(QEvent *event){
 	Q_UNUSED(event);
+
 	button_mouseInButton = false;
 	button_mouseClicked = false;
 }

@@ -27,9 +27,12 @@ class OnEvent;
 
 class OffEvent : public MidiEvent{
 
+	Q_OBJECT
+
 	public:
 		OffEvent(int ch, int line, MidiTrack *track);
-		OffEvent(OffEvent &other);
+		OffEvent(const OffEvent &other);
+		MidiEvent::EventType type() const Q_DECL_OVERRIDE;
 
 		void setOnEvent(OnEvent *event);
 		OnEvent *onEvent();
@@ -38,17 +41,17 @@ class OffEvent : public MidiEvent{
 		static void clearOnEvents();
 		static void removeOnEvent(OnEvent *event);
 		static QList<OnEvent*> corruptedOnEvents();
-		void draw(QPainter *p, QColor c);
-		int line();
-		QByteArray save();
-		QString toMessage();
+		void draw(QPainter *p, QColor c) Q_DECL_OVERRIDE;
+		int line() Q_DECL_OVERRIDE;
+		QByteArray save() Q_DECL_OVERRIDE;
+		QString toMessage() Q_DECL_OVERRIDE;
 
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
+		ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
-		void setMidiTime(int t, bool toProtocol=true);
+		void setMidiTime(int t, bool toProtocol=true) Q_DECL_OVERRIDE;
 
-		virtual bool isOnEvent();
+		virtual bool isOnEvent() Q_DECL_OVERRIDE;
 	protected:
 		OnEvent *_onEvent;
 

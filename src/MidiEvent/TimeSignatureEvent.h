@@ -23,10 +23,14 @@
 
 class TimeSignatureEvent : public MidiEvent {
 
+	Q_OBJECT
+
 	public:
 		TimeSignatureEvent(int channel, int num, int denom, int midiClocks,
 				int num32In4, MidiTrack *track);
-		TimeSignatureEvent(TimeSignatureEvent &other);
+		TimeSignatureEvent(const TimeSignatureEvent &other);
+		MidiEvent::EventType type() const Q_DECL_OVERRIDE;
+
 		int num();
 		int denom();
 		int midiClocks();
@@ -34,15 +38,15 @@ class TimeSignatureEvent : public MidiEvent {
 		int measures(int tick, int *ticksLeft = 0);
 		int ticksPerMeasure();
 
-		virtual ProtocolEntry *copy();
-		virtual void reloadState(ProtocolEntry *entry);
-		int line();
-		QByteArray save();
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
+		int line() Q_DECL_OVERRIDE;
+		QByteArray save() Q_DECL_OVERRIDE;
 
 		void setDenominator(int d);
 		void setNumerator(int n);
 
-		QString typeString();
+		QString typeString() Q_DECL_OVERRIDE;
 
 	private:
 		int numerator, denominator, midiClocksPerMetronome, num32In4th;

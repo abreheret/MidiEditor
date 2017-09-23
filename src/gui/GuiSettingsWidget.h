@@ -8,8 +8,7 @@ class QWidget;
 class QCheckBox;
 class QSettings;
 
-class GuiSettingsWidget : public SettingsWidget
-{
+class GuiSettingsWidget : public SettingsWidget {
 	Q_OBJECT
 
 public:

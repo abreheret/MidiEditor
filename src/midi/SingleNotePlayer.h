@@ -29,13 +29,16 @@ class SingleNotePlayer : public QObject {
 	Q_OBJECT
 
 	public:
-		SingleNotePlayer();
+		static SingleNotePlayer *instance();
 		void play(NoteOnEvent *event);
+		bool isPlaying();
 
 	public slots:
-		void timeout();
+		void stop();
 
 	private:
+		SingleNotePlayer();
+		static SingleNotePlayer *createInstance();
 		QTimer *timer;
 		QByteArray offMessage;
 		bool playing;

@@ -23,9 +23,13 @@ KeySignatureEvent::KeySignatureEvent(int channel, int tonality, bool minor, Midi
 	_minor = minor;
 }
 
-KeySignatureEvent::KeySignatureEvent(KeySignatureEvent &other) : MidiEvent(other){
+KeySignatureEvent::KeySignatureEvent(const KeySignatureEvent &other) : MidiEvent(other){
 	_tonality = other._tonality;
 	_minor = other._minor;
+}
+
+MidiEvent::EventType KeySignatureEvent::type() const {
+	return KeySignatureEventType;
 }
 
 int KeySignatureEvent::line(){
@@ -38,14 +42,14 @@ QString KeySignatureEvent::toMessage(){
 
 QByteArray KeySignatureEvent::save(){
 	QByteArray array = QByteArray();
-	array.append(char(0xFF));
-	array.append(0x59 | channel());
-	array.append(0x02);
-	array.append(tonality());
+	array.append(qint8(0xFF));
+	array.append(0x59 | qint8(channel()));
+	array.append(qint8(0x02));
+	array.append(qint8(tonality()));
 	if(_minor){
-		array.append(0x01);
+		array.append(qint8(0x01));
 	} else {
-		array.append(char(0x00));
+		array.append(qint8(0x00));
 	}
 	return array;
 }
@@ -55,7 +59,7 @@ ProtocolEntry *KeySignatureEvent::copy(){
 }
 
 void KeySignatureEvent::reloadState(ProtocolEntry *entry){
-	KeySignatureEvent *other = dynamic_cast<KeySignatureEvent*>(entry);
+	KeySignatureEvent *other = qobject_cast<KeySignatureEvent*>(entry);
 	if(!other){
 		return;
 	}

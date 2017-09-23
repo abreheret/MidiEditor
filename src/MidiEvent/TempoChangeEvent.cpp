@@ -23,17 +23,21 @@ TempoChangeEvent::TempoChangeEvent(int channel, int value, MidiTrack *track) : M
 	_beats = 60000000/value;
 }
 
-TempoChangeEvent::TempoChangeEvent(TempoChangeEvent &other) : MidiEvent(other){
+TempoChangeEvent::TempoChangeEvent(const TempoChangeEvent &other) : MidiEvent(other){
 	_beats = other._beats;
+}
+
+MidiEvent::EventType TempoChangeEvent::type() const {
+	return TempoChangeEventType;
 }
 
 int TempoChangeEvent::beatsPerQuarter(){
 	return _beats;
 }
 
-double TempoChangeEvent::msPerTick(){
-	double quarters_per_second = (double)_beats/60;
-	double ticks_per_second = (double)(file()->ticksPerQuarter()) *
+qreal TempoChangeEvent::msPerTick(){
+	qreal quarters_per_second = qreal(_beats)/60;
+	qreal ticks_per_second = qreal(file()->ticksPerQuarter()) *
 			quarters_per_second;
 	return 1000/(ticks_per_second);
 }
@@ -43,7 +47,7 @@ ProtocolEntry *TempoChangeEvent::copy(){
 }
 
 void TempoChangeEvent::reloadState(ProtocolEntry *entry){
-	TempoChangeEvent *other = dynamic_cast<TempoChangeEvent*>(entry);
+	TempoChangeEvent *other = qobject_cast<TempoChangeEvent*>(entry);
 	if(!other){
 		return;
 	}
@@ -58,12 +62,12 @@ int TempoChangeEvent::line(){
 QByteArray TempoChangeEvent::save(){
 	QByteArray array = QByteArray();
 
-	array.append(char(0xFF));
-	array.append(char(0x51));
-	array.append(char(0x03));
+	array.append(qint8(0xFF));
+	array.append(qint8(0x51));
+	array.append(qint8(0x03));
 	int value = 60000000/_beats;
 	for(int i = 2; i >=0; i--){
-		array.append((value & (0xFF << 8*i)) >>8*i);
+		array.append((qint8(value) & (0xFF << 8*i)) >>8*i);
 	}
 
 	return array;

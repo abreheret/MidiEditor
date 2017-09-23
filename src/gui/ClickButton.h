@@ -36,9 +36,9 @@ class ClickButton  : public QPushButton {
 		void buttonClick();
 
 	protected:
-		void paintEvent(QPaintEvent *event);
-		void enterEvent(QEvent *event);
-		void leaveEvent(QEvent *event);
+		void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+		void enterEvent(QEvent *event) Q_DECL_OVERRIDE;
+		void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
 
 	private:
 		bool button_mouseInButton, button_mouseClicked;

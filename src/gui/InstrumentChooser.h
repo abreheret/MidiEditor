@@ -28,11 +28,13 @@ class QCheckBox;
 
 class InstrumentChooser : public QDialog {
 
+	Q_OBJECT
+
 	public:
 		InstrumentChooser(MidiFile *f, int channel, QWidget *parent=0);
 
 	public slots:
-		void accept();
+		void accept() Q_DECL_OVERRIDE;
 
 	private:
 		MidiFile *_file;

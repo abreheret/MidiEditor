@@ -34,12 +34,16 @@ EraserTool::EraserTool(EraserTool &other) : EventTool(other){
 	return;
 }
 
+Tool::ToolType EraserTool::type() const {
+	return Tool::Eraser;
+}
+
 ProtocolEntry *EraserTool::copy(){
 	return new EraserTool(*this);
 }
 
 void EraserTool::reloadState(ProtocolEntry *entry){
-	EraserTool *other = dynamic_cast<EraserTool*>(entry);
+	EraserTool *other = qobject_cast<EraserTool*>(entry);
 	if(!other){
 		return;
 	}
@@ -48,7 +52,7 @@ void EraserTool::reloadState(ProtocolEntry *entry){
 
 void EraserTool::draw(QPainter *painter){
 	foreach(MidiEvent *ev, *(matrixWidget->activeEvents())){
-		if(pointInRect(mouseX, mouseY, ev->x(), ev->y(), ev->x()+ev->width(),
+		if(pointInRect( mouseX, mouseY, ev->x(), ev->y(), ev->x()+ev->width(),
 				ev->y()+ev->height()))
 		{
 			painter->fillRect(ev->x(), ev->y(), ev->width(), ev->height(), Qt::black);
@@ -56,7 +60,7 @@ void EraserTool::draw(QPainter *painter){
 	}
 }
 
-bool EraserTool::move(int mouseX, int mouseY){
+bool EraserTool::move(qreal mouseX, qreal mouseY){
 	EventTool::move(mouseX, mouseY);
 	return true;
 }

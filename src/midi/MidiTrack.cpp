@@ -32,7 +32,7 @@ MidiTrack::MidiTrack(MidiFile *file) : ProtocolEntry() {
 	_assignedChannel = -1;
 }
 
-MidiTrack::MidiTrack(MidiTrack &other) : QObject(), ProtocolEntry(other) {
+MidiTrack::MidiTrack(const MidiTrack &other) : ProtocolEntry(other) {
 	_number = other._number;
 	_nameEvent = other._nameEvent;
 	_file = other._file;
@@ -60,8 +60,8 @@ void MidiTrack::setName(QString name){
 
 	if(!_nameEvent){
 		_nameEvent = new TextEvent(16, this);
-		_nameEvent->setType(TextEvent::TRACKNAME);
-		_file->channel(16)->insertEvent(_nameEvent, 0);
+		_nameEvent->setTextType(TextEvent::TrackNameTextEventType);
+		_file->insertEventInChannel(16, _nameEvent, 0);
 	}
 
 	_nameEvent->setText(name);
@@ -100,13 +100,13 @@ void MidiTrack::setNumber(int number){
 }
 
 void MidiTrack::setNameEvent(TextEvent *nameEvent){
-	if((_nameEvent) && (_nameEvent->type() == TextEvent::TRACKNAME)){
-		_nameEvent->setType(TextEvent::TEXT);
+	if((_nameEvent) && (_nameEvent->textType() == TextEvent::TrackNameTextEventType)){
+		_nameEvent->setTextType(TextEvent::TextTextEventType);
 	}
 	ProtocolEntry *toCopy = copy();
 	_nameEvent = nameEvent;
 	if(_nameEvent){
-		_nameEvent->setType(TextEvent::TRACKNAME);
+		_nameEvent->setTextType(TextEvent::TrackNameTextEventType);
 	}
 	protocol(toCopy, this);
 	emit trackChanged();
@@ -121,7 +121,7 @@ ProtocolEntry *MidiTrack::copy(){
 }
 
 void MidiTrack::reloadState(ProtocolEntry *entry){
-	MidiTrack *other = dynamic_cast<MidiTrack*>(entry);
+	MidiTrack *other = qobject_cast<MidiTrack*>(entry);
 	if(!other){
 		return;
 	}

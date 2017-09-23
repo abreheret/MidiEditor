@@ -24,7 +24,6 @@
 #include "../gui/GraphicObject.h"
 #include "../protocol/ProtocolEntry.h"
 #include <QWidget>
-#include "../gui/EventWidget.h"
 
 class MidiFile;
 class QSpinBox;
@@ -33,11 +32,32 @@ class QWidget;
 class EventWidget;
 class MidiTrack;
 
-class MidiEvent : public ProtocolEntry, public GraphicObject{
+class MidiEvent : public ProtocolEntry, public GraphicObject {
+
+	Q_OBJECT
 
 	public:
+		enum EventType {
+			MidiEventType,
+			ChannelPressureEventType,
+			ControlChangeEventType,
+			KeyPressureEventType,
+			KeySignatureEventType,
+			NoteOnEventType,
+			OffEventType,
+			OnEventType,
+			PitchBendEventType,
+			ProgramChangeEventType,
+			SystemExclusiveEventType,
+			TempoChangeEventType,
+			TextEventType,
+			TimeSignatureEventType,
+			UnknownEventType
+		};
+
 		MidiEvent(int channel, MidiTrack *track);
-		MidiEvent(MidiEvent &other);
+		MidiEvent(const MidiEvent &other);
+		virtual MidiEvent::EventType type() const;
 
 		static MidiEvent *loadMidiEvent(QDataStream *content,
 				bool *ok, bool *endEvent, MidiTrack *track, quint8 startByte = 0,
@@ -66,16 +86,16 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 		virtual void setMidiTime(int t, bool toProtocol = true);
 		int midiTime();
 		void setFile(MidiFile *f);
-		MidiFile *file();
+		MidiFile *file() Q_DECL_OVERRIDE;
 		bool shownInEventWidget();
 
 		virtual int line();
 		virtual QString toMessage();
 		virtual QByteArray save();
-		virtual void draw(QPainter *p, QColor c);
+		virtual void draw(QPainter *p, QColor c) Q_DECL_OVERRIDE;
 
-		virtual ProtocolEntry *copy();
-		virtual void reloadState(ProtocolEntry *entry);
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
 		virtual QString typeString();
 

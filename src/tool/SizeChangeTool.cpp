@@ -41,12 +41,16 @@ SizeChangeTool::SizeChangeTool(SizeChangeTool &other) : EventTool(other){
 	return;
 }
 
+Tool::ToolType SizeChangeTool::type() const {
+	return Tool::SizeChange;
+}
+
 ProtocolEntry *SizeChangeTool::copy(){
 	return new SizeChangeTool(*this);
 }
 
 void SizeChangeTool::reloadState(ProtocolEntry *entry){
-	SizeChangeTool *other = dynamic_cast<SizeChangeTool*>(entry);
+	SizeChangeTool *other = qobject_cast<SizeChangeTool*>(entry);
 	if(!other){
 		return;
 	}
@@ -63,7 +67,7 @@ void SizeChangeTool::draw(QPainter *painter){
 		return;
 	} else {
 		painter->setPen(Qt::gray);
-		painter->drawLine(currentX, 0, currentX, matrixWidget->height());
+		painter->drawLine(qLineF(currentX, 0, currentX, matrixWidget->height()));
 		painter->setPen(Qt::black);
 	}
 	int endEventShift = 0;
@@ -76,15 +80,15 @@ void SizeChangeTool::draw(QPainter *painter){
 	foreach(MidiEvent* event, Selection::instance()->selectedEvents()){
 		bool show = event->shown();
 		if(!show){
-			OnEvent *ev = dynamic_cast<OnEvent*>(event);
+			OnEvent *ev = qobject_cast<OnEvent*>(event);
 			if(ev){
 				show = ev->offEvent() && ev->offEvent()->shown();
 			}
 		}
 		if(show){
-			painter->fillRect(event->x()+startEventShift, event->y(),
+			painter->fillRect(qRectF(event->x()+startEventShift, event->y(),
 					event->width()-startEventShift+endEventShift,
-					event->height(), Qt::black);
+					event->height()), Qt::black);
 			if(pointInRect(mouseX, mouseY, event->x()+event->width()-2+
 					endEventShift, event->y(), event->x()+event->width()+2+
 					endEventShift, event->y()+event->height()))
@@ -145,8 +149,8 @@ bool SizeChangeTool::release(){
 	if(Selection::instance()->selectedEvents().count()>0) {
 		currentProtocol()->startNewAction("Change event duration", image());
 		foreach(MidiEvent* event,  Selection::instance()->selectedEvents()){
-			OnEvent *on = dynamic_cast<OnEvent*>(event);
-			OffEvent *off = dynamic_cast<OffEvent*>(event);
+			OnEvent *on = qobject_cast<OnEvent*>(event);
+			OffEvent *off = qobject_cast<OffEvent*>(event);
 			if(on){
 				int onTick = file()->tick(file()->msOfTick(on->midiTime())-
 						matrixWidget->timeMsOfWidth(-startEventShift));
@@ -178,7 +182,7 @@ bool SizeChangeTool::release(){
 	return true;
 }
 
-bool SizeChangeTool::move(int mouseX, int mouseY){
+bool SizeChangeTool::move(qreal mouseX, qreal mouseY){
 	EventTool::move(mouseX, mouseY);
 	foreach(MidiEvent* event, Selection::instance()->selectedEvents()){
 		if(pointInRect(mouseX, mouseY, event->x()-2, event->y(), event->x()+2,

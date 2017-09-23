@@ -54,14 +54,14 @@ class Protocol : public QObject {
 		 * \brief creates a new Protocol for the MidiFile f.
 		 */
 		Protocol(MidiFile *f);
-		
+
 		/**
 		 * \brief undo the first ProtocolStep on the undo stack.
 		 *
 		 * If emitChanged is true, the Protocol will emit the Signal
 		 * protocolChanged()
 		 */
-		void undo(bool emitChanged=true);
+		void undo(bool emitChanged = true);
 
 		/**
 		 * \brief redo the last ProtocolStep on the redo stack.
@@ -69,8 +69,8 @@ class Protocol : public QObject {
 		 * If emitChanged is true, the Protocol will emit the Signal
 		 * protocolChanged()
 		 */
-		void redo(bool emitChanged=true);
-		
+		void redo(bool emitChanged = true);
+
 		/**
 		 * \brief start a new Action.
 		 *
@@ -89,7 +89,7 @@ class Protocol : public QObject {
 		 * \brief closes the current ProtocolStep.
 		 */
 		void endAction();
-		
+
 		/**
 		 * \brief returns the number of ProtocolSteps on the undo stack.
 		 */
@@ -99,7 +99,7 @@ class Protocol : public QObject {
 		 * \brief returns the number of ProtocolSteps on the redo stack.
 		 */
 		int stepsForward();
-		
+
 		/**
 		 * \brief Stores the ProtocolItem item in the current ProtocolStep.
 		 *
@@ -116,6 +116,11 @@ class Protocol : public QObject {
 		 * \brief returns the ProtocolStep of the redo Stack at Position i.
 		 */
 		ProtocolStep *redoStep(int i);
+
+		/**
+		 * @brief Returns the unique ID for the current step. For the cache.
+		 */
+		QString currentStepId();
 
 		/**
 		 * \brief Goes to the given ProtocolStep.
@@ -138,12 +143,12 @@ class Protocol : public QObject {
 		 */
 		void protocolChanged();
 		void actionFinished();
-		
+
 		/**
 		 * \brief This signal will be emitted if the step modified the file.
 		 *
 		 * For now, bool is always true, but it could be used in the future to mark
-		 * the file as not modified after an undo. 
+		 * the file as not modified after an undo.
 		 */
 		void fileModified(bool modified);
 
@@ -158,7 +163,7 @@ class Protocol : public QObject {
 		/**
 		 * \brief The two Stacks containing undo/redo Steps.
 		 */
-		QList<ProtocolStep*> *_undoSteps, *_redoSteps;
+		QStack<ProtocolStep*> *_undoSteps, *_redoSteps;
 
 		/**
 		 * \brief the MidiFile this Protocol is working with.

@@ -30,27 +30,30 @@ class MidiEvent;
 
 class SelectTool: public EventTool {
 
+	Q_OBJECT
+
 	public:
 		SelectTool(int type);
 		SelectTool(SelectTool &other);
+		Tool::ToolType type() const Q_DECL_OVERRIDE;
 
-		void draw(QPainter *painter);
+		void draw(QPainter *painter) Q_DECL_OVERRIDE;
 
-		bool press(bool leftClick);
-		bool release();
-		bool releaseOnly();
+		bool press(bool leftClick) Q_DECL_OVERRIDE;
+		bool release() Q_DECL_OVERRIDE;
+		bool releaseOnly() Q_DECL_OVERRIDE;
 
-		bool move(int mouseX, int mouseY);
+		bool move(qreal mouseX, qreal mouseY) Q_DECL_OVERRIDE;
 
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
-		bool inRect(MidiEvent *event, int x_start, int y_start, int x_end, int y_end);
+		ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
+		bool inRect(MidiEvent *event, qreal x_start, qreal y_start, qreal x_end, qreal y_end);
 
-		bool showsSelection();
+		bool showsSelection() Q_DECL_OVERRIDE;
 
 	protected:
 		int stool_type;
-		int x_rect, y_rect;
+		qreal x_rect, y_rect;
 };
 
 #endif

@@ -36,7 +36,7 @@ class PlayerThread : public QThread {
 		PlayerThread();
 		void setFile(MidiFile *f);
 		void stop();
-		void run();
+		void run() Q_DECL_OVERRIDE;
 		void setInterval(int i);
 		int timeMs();
 

@@ -13,7 +13,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ressources.qrc" "<!DOCTYPE RCC><RCC vers
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/back.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/back_to_begin.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/change_size.png</file>
-    <file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/config.png</file>
+	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/config.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/connection.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/copy.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/equalize.png</file>
@@ -33,7 +33,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ressources.qrc" "<!DOCTYPE RCC><RCC vers
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/noicon.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/paste.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/pause.png</file>
-    <file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/play.png</file>
+	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/play.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/quantize.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/record.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/redo.png</file>
@@ -43,7 +43,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ressources.qrc" "<!DOCTYPE RCC><RCC vers
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/screen_locked.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/screen_unlocked.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/select.png</file>
-    <file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/select_box.png</file>
+	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/select_box.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/select_left.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/select_right.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/select_single.png</file>
@@ -51,7 +51,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ressources.qrc" "<!DOCTYPE RCC><RCC vers
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/stop_record.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/undo.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/zoom_hor_in.png</file>
-	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/zoom_hor_out.png</file>	
+	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/zoom_hor_out.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/zoom_ver_in.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/graphics/tool/zoom_ver_out.png</file>
 	<file>${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav</file>

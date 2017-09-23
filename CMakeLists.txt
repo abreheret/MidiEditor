@@ -35,7 +35,7 @@ if (WIN32)
 		add_definitions(-DNO_CONSOLE_MODE)
 	endif()
 
-		# MinGW isn't currently supported on 64-bit.
+	    # MinGW isn't currently supported on 64-bit.
 	if( NOT MINGW AND CMAKE_CL_64 OR CMAKE_SIZEOF_VOID_P EQUAL 8 )
 		set(QT5_DIR_GUESS "C:/Qt/5.9.1/${COMPILER_CODE}_64/lib/cmake" CACHE STRING "Additional search paths for QT5")
 		SET(ARCH "x64")
@@ -47,16 +47,16 @@ if (WIN32)
 	endif( CMAKE_CL_64 OR CMAKE_SIZEOF_VOID_P EQUAL 8 )
 	add_definitions(/W3)
 	add_definitions(-D__WINDOWS_MM__ -D_UNICODE)
-	if (MSVC) 
+	if (MSVC)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 	endif()
 
 	MESSAGE(STATUS "ARCH = ${ARCH}")
 
 elseif (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" AND APPLE) # Apple Clang
-	
+
 message(STATUS "Your compiler, AppleClang ${CMAKE_CXX_COMPILER_VERSION}, is supported.")
-	add_definitions(-std=c++11)
+    add_definitions(-std=c++11)
 
 	set(CMAKE_MACOSX_RPATH 1)
 
@@ -108,9 +108,9 @@ find_package(Qt5 COMPONENTS Core Widgets Multimedia Xml Network REQUIRED PATHS $
 # Check Qt version
 if (Qt5Core_FOUND)
 	if (Qt5Core_VERSION VERSION_LESS 5.9)
-				message(FATAL_ERROR "Your Qt version (${Qt5Core_VERSION}) is out of date. \
+		        message(FATAL_ERROR "Your Qt version (${Qt5Core_VERSION}) is out of date. \
 Please update to Qt >= 5.9.")
-	else()
+    else()
 		message(STATUS "Found Qt version ${Qt5Core_VERSION}.")
 	endif()
 else()
@@ -124,6 +124,9 @@ find_package(Qt5Widgets    REQUIRED HINTS ${QT5_DIR_HINT})
 find_package(Qt5Network    REQUIRED HINTS ${QT5_DIR_HINT})
 find_package(Qt5Xml        REQUIRED HINTS ${QT5_DIR_HINT})
 find_package(Qt5Multimedia REQUIRED HINTS ${QT5_DIR_HINT})
+if (APPLE)
+	find_package(Qt5MacExtras  REQUIRED HINTS ${QT5_DIR_HINT})
+endif()
 
 message(STATUS, "Collecting files…")
 file( GLOB main      src/*.cpp            )
@@ -170,8 +173,8 @@ if (APPLE)
 	set(MACOSX_BUNDLE_ICON_FILE "MidiEditor.icns")
 
 	add_executable(MidiEditor
-			MACOSX_BUNDLE
-	          ${main}      ${mainh}
+		    MACOSX_BUNDLE
+			  ${main}      ${mainh}
 		   ${RTMidi}    ${RTMidih}
 		   ${Protocol}  ${Protocolh}
 		   ${Midi}      ${Midih}
@@ -185,9 +188,10 @@ if (APPLE)
 
 	set_target_properties(MidiEditor PROPERTIES RESOURCE ${CMAKE_BINARY_DIR}/ressources.rcc)
 	set_source_files_properties(run_environment/MidiEditor.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+	set(MidiEditorDep Qt5::Widgets Qt5::Network Qt5::Xml Qt5::Multimedia Qt5::MacExtras)
 else()
 	add_executable(MidiEditor
-	       ${main}      ${mainh}
+		   ${main}      ${mainh}
 		   ${RTMidi}    ${RTMidih}
 		   ${Protocol}  ${Protocolh}
 		   ${Midi}      ${Midih}
@@ -195,10 +199,11 @@ else()
 		   ${MidiEvent} ${MidiEventh}
 		   ${Remote}    ${Remoteh}
 		   ${Tool}      ${Toolh} midieditor.rc)
+	set(MidiEditorDep Qt5::Widgets Qt5::Network Qt5::Xml Qt5::Multimedia)
+
 endif()
 
 
-set(MidiEditorDep Qt5::Widgets Qt5::Network Qt5::Xml Qt5::Multimedia)
 
 message(STATUS "Linking libraries...")
 if(WIN32)
@@ -210,19 +215,19 @@ if(WIN32)
 			set_target_properties(MidiEditor PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 		endif()
 	endif()
-    set(QT5_DLLs_DEP_RELEASE "${QT5_DIR}/../../bin/Qt5Widgets.dll"
-                             "${QT5_DIR}/../../bin/Qt5Network.dll"
-                             "${QT5_DIR}/../../bin/Qt5Xml.dll"
-                             "${QT5_DIR}/../../bin/Qt5Gui.dll"
-                             "${QT5_DIR}/../../bin/Qt5Core.dll"
-                             "${QT5_DIR}/../../bin/Qt5Multimedia.dll")
-    set(QT5_DLLs_DEP_DEBUG   "${QT5_DIR}/../../bin/Qt5Widgetsd.dll"
-                             "${QT5_DIR}/../../bin/Qt5Networkd.dll"
-                             "${QT5_DIR}/../../bin/Qt5Xmld.dll"
-                             "${QT5_DIR}/../../bin/Qt5Guid.dll"
-                             "${QT5_DIR}/../../bin/Qt5Cored.dll"
-                             "${QT5_DIR}/../../bin/Qt5Multimediad.dll")
-    file(COPY ${QT5_DLLs_DEP_RELEASE} ${QT5_DLLs_DEP_DEBUG} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+	set(QT5_DLLs_DEP_RELEASE "${QT5_DIR}/../../bin/Qt5Widgets.dll"
+		                     "${QT5_DIR}/../../bin/Qt5Network.dll"
+							 "${QT5_DIR}/../../bin/Qt5Xml.dll"
+							 "${QT5_DIR}/../../bin/Qt5Gui.dll"
+							 "${QT5_DIR}/../../bin/Qt5Core.dll"
+							 "${QT5_DIR}/../../bin/Qt5Multimedia.dll")
+						set(QT5_DLLs_DEP_DEBUG   "${QT5_DIR}/../../bin/Qt5Widgetsd.dll"
+							 "${QT5_DIR}/../../bin/Qt5Networkd.dll"
+							 "${QT5_DIR}/../../bin/Qt5Xmld.dll"
+							 "${QT5_DIR}/../../bin/Qt5Guid.dll"
+							 "${QT5_DIR}/../../bin/Qt5Cored.dll"
+							 "${QT5_DIR}/../../bin/Qt5Multimediad.dll")
+						file(COPY ${QT5_DLLs_DEP_RELEASE} ${QT5_DLLs_DEP_DEBUG} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 elseif(APPLE)
 	message(STATUS "Setting up macOS frameworks...")
@@ -244,6 +249,13 @@ elseif(APPLE)
 else()
 	target_link_libraries(MidiEditor asound sfml-system sfml-audio pthread ${MidiEditorDep})
 endif()
+
+if (MSVC)
+	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "/GR-")
+else()
+	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fno-rtti")
+endif()
+
 #add_custom_command(TARGET MidiEditor PRE_BUILD COMMAND cmake -P ${CMAKE_BINARY_DIR}/version.cmake)
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -264,7 +276,7 @@ if(INSTALL_WITH_CPACK)
 		set(CPACK_GENERATOR "DEB")
 		SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Amaury Bréhéret")
 		if (USE_JACK)
-			set (CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5widgets5:amd64 (>=5.9.1), libqt5sound5:amd64 (>=5.9.1), libqt5network5:amd64 (>=5.9.1), libqt5xml:amd64 (>=5.9.1), libsfml-system,libsfml-audio,libasound,libpthread,jack2")	
+			set (CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5widgets5:amd64 (>=5.9.1), libqt5sound5:amd64 (>=5.9.1), libqt5network5:amd64 (>=5.9.1), libqt5xml:amd64 (>=5.9.1), libsfml-system,libsfml-audio,libasound,libpthread,jack2")
 		else()
 			set (CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5widgets5:amd64 (>=5.9.1), libqt5sound5:amd64 (>=5.9.1), libqt5network5:amd64 (>=5.9.1), libqt5xml:amd64 (>=5.9.1), libsfml-system,libsfml-audio,libasound,libpthread")
 		endif()

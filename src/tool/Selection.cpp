@@ -1,4 +1,5 @@
 #include "Selection.h"
+
 #include "../gui/EventWidget.h"
 
 Selection *Selection::_selectionInstance = new Selection(0);
@@ -22,7 +23,7 @@ ProtocolEntry *Selection::copy(){
 }
 
 void Selection::reloadState(ProtocolEntry *entry){
-	Selection *other = dynamic_cast<Selection*>(entry);
+	Selection *other = qobject_cast<Selection*>(entry);
 	if(!other){
 		return;
 	}
@@ -59,6 +60,7 @@ void Selection::setSelection(QList<MidiEvent*> selections){
 		_eventWidget->setEvents(_selectedEvents);
 		//_eventWidget->reload();
 	}
+	emit selectionChanged();
 }
 
 void Selection::clearSelection(){

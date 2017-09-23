@@ -88,14 +88,14 @@ void MidiSettingsWidget::reloadInputPorts(){
 	// clear the list
 	_inList->clear();
 
-	foreach(QString name, MidiInput::inputPorts()){
+	foreach(QString name, MidiInput::instance()->inputPorts()){
 
 		QListWidgetItem *item = new QListWidgetItem(name, _inList,
 				QListWidgetItem::UserType);
 		item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled |
 				Qt::ItemIsUserCheckable);
 
-		if(name == MidiInput::inputPort()){
+		if(name == MidiInput::instance()->inputPort()){
 			item->setCheckState(Qt::Checked);
 		} else {
 			item->setCheckState(Qt::Unchecked);
@@ -114,14 +114,14 @@ void MidiSettingsWidget::reloadOutputPorts(){
 	// clear the list
 	_outList->clear();
 
-	foreach(QString name, MidiOutput::outputPorts()){
+	foreach(QString name, MidiOutput::instance()->outputPorts()){
 
 		QListWidgetItem *item = new QListWidgetItem(name, _outList,
 				QListWidgetItem::UserType);
 		item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled |
 				Qt::ItemIsUserCheckable);
 
-		if(name == MidiOutput::outputPort()){
+		if(name == MidiOutput::instance()->outputPort()){
 			item->setCheckState(Qt::Checked);
 		} else {
 			item->setCheckState(Qt::Unchecked);
@@ -136,7 +136,7 @@ void MidiSettingsWidget::inputChanged(QListWidgetItem *item){
 
 	if(item->checkState() == Qt::Checked){
 
-		MidiInput::setInputPort(item->text());
+		MidiInput::instance()->setInputPort(item->text());
 
 		reloadInputPorts();
 	}
@@ -146,7 +146,7 @@ void MidiSettingsWidget::outputChanged(QListWidgetItem *item){
 
 	if(item->checkState() == Qt::Checked){
 
-		MidiOutput::setOutputPort(item->text());
+		MidiOutput::instance()->setOutputPort(item->text());
 
 		reloadOutputPorts();
 	}

@@ -56,7 +56,7 @@ AdditionalMidiSettingsWidget::AdditionalMidiSettingsWidget(QSettings *settings, 
 	layout->addWidget(separator(), row++, 0, 1, 6);
 
 	_alternativePlayerModeBox = new QCheckBox("Manually stop notes", this);
-	_alternativePlayerModeBox->setChecked(MidiOutput::isAlternativePlayer);
+	_alternativePlayerModeBox->setChecked(MidiOutput::isAlternativePlayer());
 	connect(_alternativePlayerModeBox, SIGNAL(toggled(bool)), this, SLOT(manualModeToggled(bool)));
 	layout->addWidget(_alternativePlayerModeBox, row++, 0, 1, 6);
 
@@ -75,12 +75,10 @@ AdditionalMidiSettingsWidget::AdditionalMidiSettingsWidget(QSettings *settings, 
 	layout->addWidget(Terminal::terminal()->console(), row, 0, 1, 6);
 	startCmd->setText(_settings->value("start_cmd", "").toString());
 	layout->setRowStretch(3, 1);
-
-	row+=3;
 }
 
 void AdditionalMidiSettingsWidget::manualModeToggled(bool enable){
-	MidiOutput::isAlternativePlayer = enable;
+	MidiOutput::setAlternativePlayer(enable);
 }
 
 void AdditionalMidiSettingsWidget::setDefaultTimePerQuarter(int value) {

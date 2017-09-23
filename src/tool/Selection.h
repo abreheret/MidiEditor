@@ -9,6 +9,8 @@ class EventWidget;
 
 class Selection : public ProtocolEntry {
 
+	Q_OBJECT
+
 	public:
 
 		Selection(MidiFile *file);
@@ -27,6 +29,8 @@ class Selection : public ProtocolEntry {
 		void clearSelection();
 
 		static EventWidget *_eventWidget;
+	signals:
+		void selectionChanged();
 	private:
 		QList<MidiEvent*> _selectedEvents;
 		static Selection *_selectionInstance;

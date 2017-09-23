@@ -32,7 +32,7 @@ ProtocolItem *ProtocolItem::release(){
 	_newObject->reloadState(_oldObject);
 
 	//files can be protocolled too but they must not be deleted
-	if(!dynamic_cast<MidiTrack*>(entry)){
+	if(!qobject_cast<MidiTrack*>(entry)){
 		if(_oldObject->file()!=_oldObject){
 			delete _oldObject;
 		}

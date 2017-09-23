@@ -23,25 +23,28 @@
 
 class ControlChangeEvent : public MidiEvent {
 
+	Q_OBJECT
+
 	public:
 		ControlChangeEvent(int channel, int contr, int val, MidiTrack *track);
-		ControlChangeEvent(ControlChangeEvent &other);
+		ControlChangeEvent(const ControlChangeEvent &other);
+		MidiEvent::EventType type() const Q_DECL_OVERRIDE;
 
-		virtual int line();
+		virtual int line() Q_DECL_OVERRIDE;
 		int control();
 		int value();
 		void setValue(int v);
 		void setControl(int c);
 
-		QString toMessage();
-		QByteArray save();
+		QString toMessage() Q_DECL_OVERRIDE;
+		QByteArray save() Q_DECL_OVERRIDE;
 
-		virtual ProtocolEntry *copy();
-		virtual void reloadState(ProtocolEntry *entry);
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
-		QString typeString();
+		QString typeString() Q_DECL_OVERRIDE;
 
-		virtual bool isOnEvent();
+		virtual bool isOnEvent() Q_DECL_OVERRIDE;
 	private:
 		int _control, _value;
 

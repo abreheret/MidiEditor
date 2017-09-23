@@ -26,6 +26,7 @@
 #include <QObject>
 #include <QList>
 
+
 class MidiEvent;
 class TimeSignatureEvent;
 class TempoChangeEvent;
@@ -33,7 +34,7 @@ class Protocol;
 class MidiChannel;
 class MidiTrack;
 
-class MidiFile : public QObject, public ProtocolEntry {
+class MidiFile : public ProtocolEntry {
 
 	Q_OBJECT
 
@@ -73,17 +74,17 @@ class MidiFile : public QObject, public ProtocolEntry {
 		void setPauseTick(int tick);
 		QString path();
 		bool modified();
-		
+
 		void setPath(QString path);
 		bool channelMuted(int ch);
 		int numTracks();
-		QList<MidiTrack*> *tracks();
+		QList<MidiTrack *> *tracks();
 		void addTrack();
 		void setMaxLengthMs(int ms);
 
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
-		MidiFile *file();
+		ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
+		MidiFile *file() Q_DECL_OVERRIDE;
 		bool removeTrack(MidiTrack *track);
 		MidiTrack *track(int number);
 
@@ -99,9 +100,11 @@ class MidiFile : public QObject, public ProtocolEntry {
 
 		QList<int> quantization(int fractionSize);
 
+		void insertEventInChannel(int mChannel, MidiEvent *event, int tick);
+
 	public slots:
 		void setModified(bool b);
-		
+
 	signals:
 		void cursorPositionChanged();
 		void recalcWidgetSize();

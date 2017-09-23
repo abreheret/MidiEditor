@@ -21,10 +21,10 @@
 
 #include <QTableWidget>
 #include <QStyledItemDelegate>
-
-class MidiEvent;
-class EventWidget;
+#include "../MidiEvent/MidiEvent.h"
 class MidiFile;
+//class MidiEvent;
+class EventWidget;
 
 class EventWidgetDelegate : public QStyledItemDelegate {
 
@@ -32,10 +32,10 @@ class EventWidgetDelegate : public QStyledItemDelegate {
 
 	public:
 		EventWidgetDelegate(EventWidget *w, QWidget *parent = 0) : QStyledItemDelegate(parent) {eventWidget = w; }
-		QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
-		QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-		void setEditorData(QWidget *editor, const QModelIndex &index) const;
-		void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+		QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+		QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+		void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE;
+		void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const Q_DECL_OVERRIDE;
 
 	private:
 		EventWidget *eventWidget;
@@ -55,22 +55,6 @@ class EventWidget : public QTableWidget {
 
 		void setFile(MidiFile *file);
 		MidiFile *file();
-
-		enum EventType {
-			MidiEventType,
-			ChannelPressureEventType,
-			ControlChangeEventType,
-			KeyPressureEventType,
-			KeySignatureEventType,
-			NoteEventType,
-			PitchBendEventType,
-			ProgramChangeEventType,
-			SystemExclusiveEventType,
-			TempoChangeEventType,
-			TextEventType,
-			TimeSignatureEventType,
-			UnknownEventType
-		};
 
 		enum EditorField {
 			MidiEventTick,
@@ -93,7 +77,9 @@ class EventWidget : public QTableWidget {
 		};
 		QVariant fieldContent(EditorField field);
 
-		EventType type() {return _currentType; }
+		MidiEvent::EventType type() {
+			return _currentType;
+		}
 
 		QStringList keyStrings();
 		int keyIndex(int tonality, bool minor);
@@ -113,8 +99,8 @@ class EventWidget : public QTableWidget {
 	private:
 		QList<MidiEvent*> _events;
 
-		EventType _currentType;
-		EventType computeType();
+		MidiEvent::EventType _currentType;
+		MidiEvent::EventType computeType();
 		QString eventType();
 
 		QList<QPair<QString, EditorField> > getFields();

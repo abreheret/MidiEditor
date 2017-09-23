@@ -50,6 +50,10 @@ EventTool::EventTool(EventTool &other) : EditorTool(other){
 
 }
 
+Tool::ToolType EventTool::type() const {
+	return Tool::Event;
+}
+
 void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 
 	if(!event->file()->channel(event->channel())->visible()){
@@ -62,16 +66,16 @@ void EventTool::selectEvent(MidiEvent *event, bool single, bool ignoreStr){
 
 	QList<MidiEvent*> selected = Selection::instance()->selectedEvents();
 
-	OffEvent *offevent = dynamic_cast<OffEvent*>(event);
+	OffEvent *offevent = qobject_cast<OffEvent*>(event);
 	if(offevent){
 		return;
 	}
 
 	if(single && !QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) && (!QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) || ignoreStr)){
 		selected.clear();
-		NoteOnEvent *on = dynamic_cast<NoteOnEvent*>(event);
+		NoteOnEvent *on = qobject_cast<NoteOnEvent*>(event);
 		if(on){
-			MidiPlayer::play(on);
+			MidiPlayer::instance()->play(on);
 		}
 	}
 	if(!selected.contains(event) && (!QApplication::keyboardModifiers().testFlag(Qt::ControlModifier) || ignoreStr)){
@@ -106,7 +110,7 @@ void EventTool::paintSelectedEvents(QPainter *painter){
 		bool show = event->shown();
 
 		if(!show){
-			OnEvent *ev = dynamic_cast<OnEvent*>(event);
+			OnEvent *ev = qobject_cast<OnEvent*>(event);
 			if(ev){
 				show = ev->offEvent() && ev->offEvent()->shown();
 			}
@@ -122,14 +126,14 @@ void EventTool::paintSelectedEvents(QPainter *painter){
 		if(show){
 			painter->setBrush(Qt::darkBlue);
 			painter->setPen(Qt::lightGray);
-			painter->drawRoundedRect(event->x(), event->y(), event->width(),
-					event->height(), 1, 1);
+			painter->drawRoundedRect(qRectF(event->x(), event->y(), event->width(),
+					event->height()), 1, 1);
 		}
 	}
 }
 
 void EventTool::changeTick(MidiEvent* event, int shiftX) {
-	// TODO: falls event gezeigt ist, über matrixWidget tick erfragen (effizienter)
+	// TODO: if event is shown, use matrixWidget tick (more efficient)
 	//int newMs = matrixWidget->msOfXPos(event->x()-shiftX);
 
 	int newMs = file()->msOfTick(event->midiTime())-matrixWidget->timeMsOfWidth(shiftX);
@@ -141,12 +145,11 @@ void EventTool::changeTick(MidiEvent* event, int shiftX) {
 
 	// with magnet: set to div value if pixel refers to this tick
 	if(magnetEnabled()){
-
-		int newX = matrixWidget->xPosOfMs(newMs);
-		typedef QPair<int, int> TMPPair;
+		qreal newX = matrixWidget->xPosOfMs(newMs);
+		typedef QPair<qreal, int> TMPPair;
 		foreach(TMPPair p, matrixWidget->divs()){
-			int xt = p.first;
-			if(newX == xt){
+			qreal xt = p.first;
+			if(qFuzzyCompare(newX, xt)){
 				tick = p.second;
 				break;
 			}
@@ -164,19 +167,19 @@ void EventTool::copyAction(){
 		foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
 
 			// add the current Event
-			MidiEvent *ev = dynamic_cast<MidiEvent*>(event->copy());
+			MidiEvent *ev = qobject_cast<MidiEvent*>(event->copy());
 			if(ev){
 				// do not append off event here
-				OffEvent *off = dynamic_cast<OffEvent*>(ev);
+				OffEvent *off = qobject_cast<OffEvent*>(ev);
 				if(!off){
 					copiedEvents->append(ev);
 				}
 			}
 
 			// if its onEvent, add a copy of the OffEvent
-			OnEvent *onEv = dynamic_cast<OnEvent*>(ev);
+			OnEvent *onEv = qobject_cast<OnEvent*>(ev);
 			if(onEv){
-				OffEvent *offEv = dynamic_cast<OffEvent*>(onEv->offEvent()->copy());
+				OffEvent *offEv = qobject_cast<OffEvent*>(onEv->offEvent()->copy());
 				if (offEv) {
 				offEv->setOnEvent(onEv);
 				copiedEvents->append(offEv);
@@ -200,19 +203,19 @@ void EventTool::pasteAction(){
 	foreach(MidiEvent *event, *copiedEvents){
 
 		// add the current Event
-		MidiEvent *ev = dynamic_cast<MidiEvent*>(event->copy());
+		MidiEvent *ev = qobject_cast<MidiEvent*>(event->copy());
 		if(ev){
 			// do not append off event here
-			OffEvent *off = dynamic_cast<OffEvent*>(ev);
+			OffEvent *off = qobject_cast<OffEvent*>(ev);
 			if(!off){
 				copiedCopiedEvents.append(ev);
 			}
 		}
 
 		// if its onEvent, add a copy of the OffEvent
-		OnEvent *onEv = dynamic_cast<OnEvent*>(ev);
+		OnEvent *onEv = qobject_cast<OnEvent*>(ev);
 		if(onEv){
-			OffEvent *offEv = dynamic_cast<OffEvent*>(onEv->offEvent()->copy());
+			OffEvent *offEv = qobject_cast<OffEvent*>(onEv->offEvent()->copy());
 			if (offEv) {
 			offEv->setOnEvent(onEv);
 			copiedCopiedEvents.append(offEv);
@@ -278,8 +281,8 @@ void EventTool::pasteAction(){
 			event->setFile(currentFile());
 			event->setChannel(channel, false);
 			event->setTrack(track, false);
-			currentFile()->channel(channel)->insertEvent(event,
-					(int)(tickscale*event->midiTime())+diff);
+			currentFile()->insertEventInChannel(channel, event,
+					int(tickscale*event->midiTime())+diff);
 			selectEvent(event, false, true);
 		}
 
@@ -307,27 +310,27 @@ int EventTool::pasteChannel(){
 	return _pasteChannel;
 }
 
-int EventTool::rasteredX(int x, int *tick){
+int EventTool::rasteredX(qreal x, int *tick){
 	if(!_magnet){
 		if(tick){
 			*tick = -1;
 		}
-		return x;
+		return qRound(x);
 	}
-	typedef QPair<int, int> TMPPair;
+	typedef QPair<qreal, int> TMPPair;
 	foreach(TMPPair p, matrixWidget->divs()){
-		int xt = p.first;
-		if(qAbs(xt-x)<=5){
+		qreal xt = p.first;
+		if(qAbs(xt-x)<=5.0){
 			if(tick){
 				*tick = p.second;
 			}
-			return xt;
+			return qRound(xt);
 		}
 	}
 	if(tick){
 		*tick = -1;
 	}
-	return x;
+	return qRound(x);
 }
 
 void EventTool::enableMagnet(bool enable){

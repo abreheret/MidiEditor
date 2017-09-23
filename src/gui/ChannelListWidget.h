@@ -25,6 +25,7 @@
 #include <QList>
 #include <QColor>
 #include <QResizeEvent>
+#include <QPushButton>
 
 class QAction;
 class MidiFile;
@@ -34,12 +35,14 @@ class ChannelListWidget;
 
 class ColoredWidget : public QWidget {
 
+	Q_OBJECT
+
 	public:
 		ColoredWidget(QColor color, QWidget *parent = 0);
 		void setColor(QColor c) {_color = c; update(); }
 
 	protected:
-		void paintEvent(QPaintEvent *event);
+		void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
 
 	private:
 		QColor _color;

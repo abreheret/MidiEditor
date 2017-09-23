@@ -22,13 +22,17 @@
 #include "../midi/MidiTrack.h"
 
 TextEvent::TextEvent(int channel, MidiTrack *track) : MidiEvent(channel, track) {
-	_type = TEXT;
+	_type = TextTextEventType;
 	_text = "";
 }
 
-TextEvent::TextEvent(TextEvent &other) : MidiEvent(other) {
+TextEvent::TextEvent(const TextEvent &other) : MidiEvent(other) {
 	_type = other._type;
 	_text = other._text;
+}
+
+MidiEvent::EventType TextEvent::type() const {
+	return TextEventType;
 }
 
 QString TextEvent::text(){
@@ -36,19 +40,17 @@ QString TextEvent::text(){
 }
 
 void TextEvent::setText(QString text){
-	ProtocolEntry *toCopy = copy();
 	_text = text;
-	protocol(toCopy, this);
+	protocol(copy(), this);
 }
 
-int TextEvent::type(){
+TextEvent::TextType TextEvent::textType(){
 	return _type;
 }
 
-void TextEvent::setType(int type){
-	ProtocolEntry *toCopy = copy();
+void TextEvent::setTextType(TextEvent::TextType type){
 	_type = type;
-	protocol(toCopy, this);
+	protocol(copy(), this);
 }
 
 int TextEvent::line(){
@@ -61,19 +63,19 @@ QByteArray TextEvent::save(){
 
 	QByteArray array = QByteArray();
 
-	array.append(char(0xFF));
-	array.append(_type);
+	array.append(qint8(0xFF));
+	array.append(qint8(_type));
 	array.append(MidiFile::writeVariableLengthValue(_text.length()));
-	
-    wchar_t *text_wchar  = new wchar_t[_text.length()];
+
+	wchar_t *text_wchar  = new wchar_t[_text.length()];
 	_text.toWCharArray(text_wchar);
-	
+
 	for(int i = 0; i < _text.length(); i++){
 		char buffer [16];
 		wcrtomb(buffer, text_wchar[i], &mbs);
 		array.append(buffer);
 	}
-    delete[] text_wchar;
+	delete[] text_wchar;
 	return array;
 }
 
@@ -86,7 +88,7 @@ ProtocolEntry *TextEvent::copy(){
 }
 
 void TextEvent::reloadState(ProtocolEntry *entry){
-	TextEvent *other = dynamic_cast<TextEvent*>(entry);
+	TextEvent *other = qobject_cast<TextEvent*>(entry);
 	if(!other){
 		return;
 	}
@@ -97,13 +99,13 @@ void TextEvent::reloadState(ProtocolEntry *entry){
 
 QString TextEvent::textTypeString(int type){
 	switch(type){
-		case TEXT: return "General text";
-		case COPYRIGHT: return "Copyright";
-		case TRACKNAME: return "Trackname";
-		case INSTRUMENT_NAME: return "Instrument name";
-		case LYRIK: return "Lyric";
-		case MARKER: return "Marker";
-		case COMMENT: return "Comment";
+		case TextTextEventType: return "General text";
+		case CopyrightTextEventType: return "Copyright";
+		case TrackNameTextEventType: return "Trackname";
+		case InstrumentTextEventType: return "Instrument name";
+		case LyricTextEventType: return "Lyric";
+		case MarkerTextEventType: return "Marker";
+		case CommentTextEventType: return "Comment";
 	}
 	return QString();
 }

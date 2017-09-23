@@ -34,6 +34,10 @@ EditorTool::EditorTool(EditorTool &other):Tool(other){
 	mouseIn = other.mouseIn;
 }
 
+Tool::ToolType EditorTool::type() const {
+	return Tool::Editor;
+}
+
 void EditorTool::draw(QPainter *painter){
 	Q_UNUSED(painter);
 	return;
@@ -58,9 +62,14 @@ bool EditorTool::release(){
 	return false;
 }
 
-bool EditorTool::move(int mouseX, int mouseY){
-	this->mouseX = mouseX;
-	this->mouseY = mouseY;
+bool EditorTool::move(qreal mouseX, qreal mouseY){
+	if (MatrixWidget::antiAliasingEnabled) {
+		this->mouseX = mouseX;
+		this->mouseY = mouseY;
+	} else {
+		this->mouseX = mouseX;
+		this->mouseY = mouseY;
+	}
 	return false;
 }
 
@@ -109,7 +118,7 @@ void EditorTool::reloadState(ProtocolEntry *entry){
 
 	Tool::reloadState(entry);
 
-	EditorTool *other = dynamic_cast<EditorTool*>(entry);
+	EditorTool *other = qobject_cast<EditorTool*>(entry);
 	if(!other){
 		return;
 	}
@@ -125,7 +134,7 @@ void EditorTool::setMainWindow(MainWindow *mw){
 	_mainWindow = mw;
 }
 
-bool EditorTool::pointInRect(int x, int y, int x_start, int y_start, int x_end, int y_end){
+bool EditorTool::pointInRect(qreal x, qreal y, qreal x_start, qreal y_start, qreal x_end, qreal y_end){
 	return x>=x_start && x<x_end && y>=y_start && y<=y_end;
 }
 

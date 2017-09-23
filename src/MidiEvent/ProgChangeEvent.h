@@ -23,9 +23,11 @@
 
 class ProgChangeEvent : public MidiEvent {
 
+	Q_OBJECT
 	public:
 		ProgChangeEvent(int channel, int prog, MidiTrack *track);
-		ProgChangeEvent(ProgChangeEvent &other);
+		ProgChangeEvent(const ProgChangeEvent &other);
+		MidiEvent::EventType type() const;
 
 		virtual int line();
 

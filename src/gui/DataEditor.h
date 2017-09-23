@@ -19,7 +19,7 @@ class DataLineEditor : public QObject {
 		void changed(QString text);
 
 	signals:
-		void dataChanged(int line, unsigned char data);
+		void dataChanged(int line, quint8 data);
 		void plusClicked(int line);
 		void minusClicked(int line);
 
@@ -39,7 +39,7 @@ class DataEditor : public QScrollArea
 		void rebuild();
 
 	public slots:
-		void dataChanged(int line, unsigned char data);
+		void dataChanged(int line, quint8 data);
 		void plusClicked(int line);
 		void minusClicked(int line);
 

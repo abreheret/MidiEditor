@@ -22,8 +22,12 @@ SysExEvent::SysExEvent(int channel, QByteArray data, MidiTrack *track) : MidiEve
 	_data = data;
 }
 
-SysExEvent::SysExEvent(SysExEvent &other) : MidiEvent(other) {
+SysExEvent::SysExEvent(const SysExEvent &other) : MidiEvent(other) {
 	_data = other._data;
+}
+
+MidiEvent::EventType SysExEvent::type() const {
+	return SystemExclusiveEventType;
 }
 
 QByteArray SysExEvent::data(){
@@ -36,9 +40,9 @@ int SysExEvent::line(){
 
 QByteArray SysExEvent::save(){
 	QByteArray s;
-	s.append(char(0xF0));
+	s.append(qint8(0xF0));
 	s.append(_data);
-	s.append(char(0xF7));
+	s.append(qint8(0xF7));
 	return s;
 }
 
@@ -51,7 +55,7 @@ ProtocolEntry *SysExEvent::copy(){
 }
 
 void SysExEvent::reloadState(ProtocolEntry *entry){
-	SysExEvent *other = dynamic_cast<SysExEvent*>(entry);
+	SysExEvent *other = qobject_cast<SysExEvent*>(entry);
 	if(!other){
 		return;
 	}

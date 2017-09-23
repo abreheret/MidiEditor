@@ -28,15 +28,15 @@ class TextEvent;
 class MidiFile;
 class QColor;
 
-class MidiTrack : public QObject, public ProtocolEntry{
+class MidiTrack : public ProtocolEntry {
 
 	Q_OBJECT
 
 	public:
 
 		MidiTrack(MidiFile *file);
-		MidiTrack(MidiTrack &other);
-		virtual ~MidiTrack();
+		MidiTrack(const MidiTrack &other);
+		virtual ~MidiTrack() Q_DECL_OVERRIDE;
 
 		QString name();
 		void setName(QString name);
@@ -47,7 +47,7 @@ class MidiTrack : public QObject, public ProtocolEntry{
 		void setNameEvent(TextEvent *nameEvent);
 		TextEvent *nameEvent();
 
-		MidiFile *file();
+		MidiFile *file() Q_DECL_OVERRIDE;
 
 		void assignChannel(int ch);
 		int assignedChannel();
@@ -58,8 +58,8 @@ class MidiTrack : public QObject, public ProtocolEntry{
 		void setMuted(bool muted);
 		bool muted();
 
-		virtual ProtocolEntry *copy();
-		virtual void reloadState(ProtocolEntry *entry);
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
 		QColor *color();
 

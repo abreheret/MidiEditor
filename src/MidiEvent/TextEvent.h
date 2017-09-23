@@ -24,39 +24,42 @@
 
 class TextEvent : public MidiEvent {
 
+	Q_OBJECT
+
 	public:
 
+		enum TextType {
+			TextTextEventType = 0x01,
+			CopyrightTextEventType,
+			TrackNameTextEventType,
+			InstrumentTextEventType,
+			LyricTextEventType,
+			MarkerTextEventType,
+			CommentTextEventType
+		};
+
 		TextEvent(int channel, MidiTrack *track);
-		TextEvent(TextEvent &other);
+		TextEvent(const TextEvent &other);
+		MidiEvent::EventType type() const Q_DECL_OVERRIDE;
 
 		QString text();
 		void setText(QString text);
 
-		int type();
-		void setType(int type);
+		TextEvent::TextType textType();
+		void setTextType(TextEvent::TextType type);
 
-		int line();
+		int line() Q_DECL_OVERRIDE;
 
-		QByteArray save();
+		QByteArray save() Q_DECL_OVERRIDE;
 
-		virtual ProtocolEntry *copy();
-		virtual void reloadState(ProtocolEntry *entry);
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
-		enum {
-			TEXT = 0x01,
-			COPYRIGHT,
-			TRACKNAME,
-			INSTRUMENT_NAME,
-			LYRIK,
-			MARKER,
-			COMMENT
-		};
-
-		QString typeString();
+		QString typeString() Q_DECL_OVERRIDE;
 		static QString textTypeString(int type);
 
 	private:
-		int _type;
+		TextEvent::TextType _type;
 		QString _text;
 };
 

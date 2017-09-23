@@ -38,42 +38,39 @@ Terminal::Terminal() {
 }
 
 void Terminal::initTerminal(QString startString, QString inPort,
-		QString outPort)
-{
+							QString outPort) {
 	_terminal = new Terminal();
 	_terminal->execute(startString, inPort, outPort);
 }
 
-Terminal *Terminal::terminal(){
+Terminal *Terminal::terminal() {
 	return _terminal;
 }
 
-void Terminal::writeString(QString message){
-	_textEdit->setText(_textEdit->toPlainText()+message+"\n");
+void Terminal::writeString(QString message) {
+	_textEdit->setText(_textEdit->toPlainText() + message + "\n");
 	_textEdit->verticalScrollBar()->setValue(
-			_textEdit->verticalScrollBar()->maximum());
-    qWarning(message.toUtf8());
+		_textEdit->verticalScrollBar()->maximum());
+	qWarning("%s", message.toUtf8().constData());
 }
 
 void Terminal::execute(QString startString, QString inPort,
-	QString outPort)
-{
-    qWarning("Terminal::execute");
+					   QString outPort) {
 	_inPort = inPort;
 	_outPort = outPort;
 
-	if(startString!=""){
-		if(_process){
+	if (startString != "") {
+		if (_process) {
 			_process->kill();
 		}
 		_process = new QProcess();
 
 		connect(_process, SIGNAL(readyReadStandardOutput()),
-			this, SLOT(printToTerminal()));
+				this, SLOT(printToTerminal()));
 		connect(_process, SIGNAL(readyReadStandardError()),
-			this, SLOT(printErrorToTerminal()));
+				this, SLOT(printErrorToTerminal()));
 		connect(_process, SIGNAL(started()),
-			this, SLOT(processStarted()));
+				this, SLOT(processStarted()));
 
 		_process->start(startString);
 	} else {
@@ -82,16 +79,19 @@ void Terminal::execute(QString startString, QString inPort,
 }
 
 int Terminal::retries = 0;
-void Terminal::processStarted(){
-    if (retries > 10) return;
+void Terminal::processStarted() {
+	// We don't want to loop this forever if we keep failing.
+	if (retries > 10) {
+		return;
+	}
 	QStringList inputVariants;
 	QString inPort = _inPort;
 	inputVariants.append(inPort);
-	if(inPort.contains(':')){
+	if (inPort.contains(':')) {
 		inPort =  inPort.section(':', 0, 0);
 	}
 	inputVariants.append(inPort);
-	if(inPort.contains('(')){
+	if (inPort.contains('(')) {
 		inPort = inPort.section('(', 0, 0);
 	}
 	inputVariants.append(inPort);
@@ -99,55 +99,55 @@ void Terminal::processStarted(){
 	QStringList outputVariants;
 	QString outPort = _outPort;
 	outputVariants.append(outPort);
-	if(outPort.contains(':')){
+	if (outPort.contains(':')) {
 		outPort =  outPort.section(':', 0, 0);
 	}
 	outputVariants.append(outPort);
-	if(outPort.contains('(')){
+	if (outPort.contains('(')) {
 		outPort = outPort.section('(', 0, 0);
 	}
 	outputVariants.append(outPort);
 
-	if(MidiInput::inputPort() == "" && _inPort != ""){
-		writeString("Trying to set Input Port to "+_inPort);
+	if (MidiInput::instance()->inputPort() == "" && _inPort != "") {
+		writeString("Trying to set Input Port to " + _inPort);
 
-		foreach(QString portVariant, inputVariants){
-			foreach(QString port, MidiInput::inputPorts()){
-				if(port.startsWith(portVariant)){
-					writeString("Found port "+port);
-					MidiInput::setInputPort(port);
+		foreach (QString portVariant, inputVariants) {
+			foreach (QString port, MidiInput::instance()->inputPorts()) {
+				if (port.startsWith(portVariant)) {
+					writeString("Found port " + port);
+					MidiInput::instance()->setInputPort(port);
 					_inPort = "";
 					break;
 				}
 			}
-			if(_inPort == ""){
+			if (_inPort == "") {
 				break;
 			}
 		}
 	}
 
-    if(MidiOutput::outputPort()== "" && _outPort == ""){
-		writeString("Trying to set Output Port to "+_outPort);
+	if (MidiOutput::instance()->outputPort() == "" && _outPort == "") {
+		writeString("Trying to set Output Port to " + _outPort);
 
-		foreach(QString portVariant, outputVariants){
-			foreach(QString port, MidiOutput::outputPorts()){
-				if(port.startsWith(portVariant)){
-					writeString("Found port "+port);
-					MidiOutput::setOutputPort(port);
+		foreach (QString portVariant, outputVariants) {
+			foreach (QString port, MidiOutput::instance()->outputPorts()) {
+				if (port.startsWith(portVariant)) {
+					writeString("Found port " + port);
+					MidiOutput::instance()->setOutputPort(port);
 					_outPort = "";
 					break;
 				}
 			}
-			if(_outPort == ""){
+			if (_outPort == "") {
 				break;
 			}
 		}
 	}
 
 	// if not both are set, try again in 1 second
-	if((MidiOutput::outputPort()== "" && _outPort != "") ||
-			(MidiInput::inputPort() == "" && _inPort != "")){
-        retries++;
+	if ((MidiOutput::instance()->outputPort() == "" && _outPort != "") ||
+			(MidiInput::instance()->inputPort() == "" && _inPort != "")) {
+		retries++;
 		QTimer *timer = new QTimer();
 		connect(timer, SIGNAL(timeout()), this, SLOT(processStarted()));
 		timer->setSingleShot(true);
@@ -155,14 +155,14 @@ void Terminal::processStarted(){
 	}
 }
 
-void Terminal::printToTerminal(){
+void Terminal::printToTerminal() {
 	writeString(QString::fromLocal8Bit(_process->readAllStandardOutput()));
 }
 
-void Terminal::printErrorToTerminal(){
+void Terminal::printErrorToTerminal() {
 	writeString(QString::fromLocal8Bit(_process->readAllStandardError()));
 }
 
-QTextEdit *Terminal::console(){
+QTextEdit *Terminal::console() {
 	return _textEdit;
 }

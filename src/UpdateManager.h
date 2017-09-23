@@ -35,7 +35,6 @@ class UpdateManager : public QObject {
 	Q_OBJECT
 
 	public:
-		UpdateManager();
 		void init();
 		static UpdateManager *instance();
 		static bool autoCheckForUpdates();
@@ -51,7 +50,8 @@ class UpdateManager : public QObject {
 		void updateDetected(Update *update);
 
 	private:
-		static UpdateManager *_instance;
+		UpdateManager();
+		static UpdateManager *createInstance();
 		QStringList _mirrors;
 		static bool _autoMode;
 		bool _inited;

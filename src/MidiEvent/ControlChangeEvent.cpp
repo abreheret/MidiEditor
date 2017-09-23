@@ -27,11 +27,15 @@ ControlChangeEvent::ControlChangeEvent(int channel, int control, int value, Midi
 	_value = value;
 }
 
-ControlChangeEvent::ControlChangeEvent(ControlChangeEvent &other) :
+ControlChangeEvent::ControlChangeEvent(const ControlChangeEvent &other) :
 		MidiEvent(other)
 {
 	_value = other._value;
 	_control = other._control;
+}
+
+MidiEvent::EventType ControlChangeEvent::type() const {
+	return ControlChangeEventType;
 }
 
 int ControlChangeEvent::line(){
@@ -45,9 +49,9 @@ QString ControlChangeEvent::toMessage(){
 
 QByteArray ControlChangeEvent::save(){
 	QByteArray array = QByteArray();
-	array.append(0xB0 | channel());
-	array.append(_control);
-	array.append(_value);
+	array.append(0xB0 | qint8(channel()));
+	array.append(qint8(_control));
+	array.append(qint8(_value));
 	return array;
 }
 
@@ -56,7 +60,7 @@ ProtocolEntry *ControlChangeEvent::copy(){
 }
 
 void ControlChangeEvent::reloadState(ProtocolEntry *entry){
-	ControlChangeEvent *other = dynamic_cast<ControlChangeEvent*>(entry);
+	ControlChangeEvent *other = qobject_cast<ControlChangeEvent*>(entry);
 	if(!other){
 		return;
 	}

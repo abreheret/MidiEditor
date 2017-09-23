@@ -36,16 +36,18 @@
 
 #include "MidiOutput.h"
 
-RtMidiIn *MidiInput::_midiIn = 0;
-QString MidiInput::_inPort = "";
-QMultiMap<int, std::vector<unsigned char> > *MidiInput::_messages =
-		new QMultiMap<int, std::vector<unsigned char> >;
-int MidiInput::_currentTime = 0;
-bool MidiInput::_recording = false;
-bool MidiInput::_thru = false;
+#include "../Singleton.h"
+
+MidiInput::MidiInput() : QObject() {
+	_midiIn = 0;
+	_inPort = "";
+	_messages = new QMultiMap<int, std::vector<quint8> >;
+	_currentTime = 0;
+	_recording = false;
+	_thru = false;
+}
 
 void MidiInput::init(){
-    qWarning("MidiInput::init()");
 	// RtMidiIn constructor
 	try {
 		_midiIn = new RtMidiIn(RtMidi::UNSPECIFIED, QString("MidiEditor input").toStdString());
@@ -57,55 +59,55 @@ void MidiInput::init(){
 		error.printMessage();
 	}
 	// alert MainWindow that the input is ready.
-    MainWindow::getMainWindow()->ioReady(true);
+	MainWindow::getMainWindow()->ioReady(true);
 }
 
-void MidiInput::receiveMessage(double deltatime, std::vector<unsigned char>
+void MidiInput::receiveMessage(qreal deltatime, std::vector<quint8>
 		*message, void *userData)
 {
 	if(message->size()>1){
-		_messages->insert(_currentTime, *message);
+		MidiInput::instance()->_messages->insert(MidiInput::instance()->_currentTime, *message);
 	}
 
-	if(_thru){
+	if(MidiInput::instance()->_thru){
 		QByteArray a;
-		for(int i = 0; i<message->size(); i++){
+		for(ulong i = 0; i<message->size(); i++){
 			// check channel
 			if(i == 0){
 				switch(message->at(i) & 0xF0){
 					case 0x80: {
-						a.append(0x80 | MidiOutput::standardChannel());
+						a.append(0x80 | qint8(MidiOutput::instance()->standardChannel()));
 						continue;
 					}
 					case 0x90: {
-						a.append(0x90 | MidiOutput::standardChannel());
+						a.append(0x90 | qint8(MidiOutput::instance()->standardChannel()));
 						continue;
 					}
 					case 0xD0: {
-						a.append(0xD0 | MidiOutput::standardChannel());
+						a.append(0xD0 | qint8(MidiOutput::instance()->standardChannel()));
 						continue;
 					}
 					case 0xC0: {
-						a.append(0xC0 | MidiOutput::standardChannel());
+						a.append(0xC0 | qint8(MidiOutput::instance()->standardChannel()));
 						continue;
 					}
 					case 0xB0: {
-						a.append(0xB0 | MidiOutput::standardChannel());
+						a.append(0xB0 | qint8(MidiOutput::instance()->standardChannel()));
 						continue;
 					}
 					case 0xA0: {
-						a.append(0xA0 | MidiOutput::standardChannel());
+						a.append(0xA0 | qint8(MidiOutput::instance()->standardChannel()));
 						continue;
 					}
 					case 0xE0: {
-						a.append(0xE0 | MidiOutput::standardChannel());
+						a.append(0xE0 | qint8(MidiOutput::instance()->standardChannel()));
 						continue;
 					}
 				}
 			}
-			a.append(message->at(i));
+			a.append(qint8(message->at(i)));
 		}
-		MidiOutput::sendCommand(a);
+		MidiOutput::instance()->sendCommand(a);
 	}
 }
 
@@ -114,9 +116,9 @@ QStringList MidiInput::inputPorts(){
 	QStringList ports;
 
 	// Check outputs.
-	unsigned int nPorts = _midiIn->getPortCount();
+	uint nPorts = _midiIn->getPortCount();
 
-	for(unsigned int i = 0; i < nPorts; i++){
+	for(uint i = 0; i < nPorts; i++){
 
 		try {
 			ports.append(QString::fromStdString(_midiIn->getPortName(i)));
@@ -130,9 +132,9 @@ QStringList MidiInput::inputPorts(){
 bool MidiInput::setInputPort(QString name){
 
 	// try to find the port
-	unsigned int nPorts = _midiIn->getPortCount();
+	uint nPorts = _midiIn->getPortCount();
 
-	for(unsigned int i = 0; i < nPorts; i++){
+	for(uint i = 0; i < nPorts; i++){
 
 		try {
 
@@ -171,7 +173,7 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(MidiTrack *track){
 	QMultiMap<int, MidiEvent*> eventList;
 	QByteArray array;
 
-	QMultiMap<int, std::vector<unsigned char> >::iterator it =
+	QMultiMap<int, std::vector<quint8> >::iterator it =
 			_messages->begin();
 
 	bool ok = true;
@@ -185,14 +187,14 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(MidiTrack *track){
 
 		array.clear();
 
-		for(unsigned int i = 0; i<it.value().size(); i++){
-			array.append(it.value().at(i));
+		for(quint8 i = 0; i<it.value().size(); i++){
+			array.append(qint8(it.value().at(i)));
 		}
 
 		QDataStream tempStream(array);
 
 		MidiEvent *event = MidiEvent::loadMidiEvent(&tempStream,&ok,&endEvent, track);
-		OffEvent *off = dynamic_cast<OffEvent*>(event);
+		OffEvent *off = qobject_cast<OffEvent*>(event);
 		if(off && !off->onEvent()){
 			emptyOffEvents.insert(it.key(), off);
 			it++;
@@ -203,7 +205,7 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(MidiTrack *track){
 		}
 		// if on event, check whether the off event has been loaded before.
 		// this occurs when RTMidi fails to send the correct order
-		OnEvent *on = dynamic_cast<OnEvent*>(event);
+		OnEvent *on = qobject_cast<OnEvent*>(event);
 		if(on && emptyOffEvents.contains(it.key())){
 			QMultiMap<int, OffEvent*>::iterator emptyIt =
 					emptyOffEvents.lowerBound(it.key());
@@ -223,7 +225,7 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(MidiTrack *track){
 	}
 	QMultiMap<int, MidiEvent*>::iterator it2 = eventList.begin();
 	while(it2!=eventList.end()){
-		OnEvent *on = dynamic_cast<OnEvent*>(it2.value());
+		OnEvent *on = qobject_cast<OnEvent*>(it2.value());
 		if(on && !on->offEvent()){
 			eventList.remove(it2.key(), it2.value());
 		}
@@ -270,7 +272,7 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(MidiTrack *track){
 					if(line == MidiEvent::CONTROLLER_LINE){
 						QMap<int, MidiEvent*> byController;
 						foreach(MidiEvent* event, sortedByLine.values(line)){
-							ControlChangeEvent *conv = dynamic_cast<ControlChangeEvent*>(event);
+							ControlChangeEvent *conv = qobject_cast<ControlChangeEvent*>(event);
 							if(!conv){
 								continue;
 							}
@@ -304,7 +306,7 @@ QMultiMap<int, MidiEvent*> MidiInput::endInput(MidiTrack *track){
 					} else if(line == MidiEvent::KEY_PRESSURE_LINE) {
 						QMap<int, MidiEvent*> byNote;
 						foreach(MidiEvent* event, sortedByLine.values(line)){
-							KeyPressureEvent *conv = dynamic_cast<KeyPressureEvent*>(event);
+							KeyPressureEvent *conv = qobject_cast<KeyPressureEvent*>(event);
 							if(!conv){
 								continue;
 							}
@@ -360,4 +362,11 @@ void MidiInput::setThruEnabled(bool b){
 
 bool MidiInput::thru(){
 	return _thru;
+}
+
+MidiInput *MidiInput::createInstance() {
+	return new MidiInput();
+}
+MidiInput *MidiInput::instance() {
+	return Singleton<MidiInput>::instance(MidiInput::createInstance);
 }

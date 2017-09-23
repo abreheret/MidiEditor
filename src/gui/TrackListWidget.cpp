@@ -58,9 +58,9 @@ TrackListItem::TrackListItem(MidiTrack *track, TrackListWidget *parent) : QWidge
 
 	QToolBar *toolBar = new QToolBar(this);
 	toolBar->setIconSize(QSize(12, 12));
-	QPalette palette = toolBar->palette();
-	palette.setColor(QPalette::Background, Qt::white);
-	toolBar->setPalette(palette);
+	// Stylesheet needed to hide macOS gradient.
+	toolBar->setStyleSheet("QToolBar{ background-color: rgb(255, 255, 255); border: none; }");
+
 	// visibility
 	visibleAction = new QAction(QIcon(":/run_environment/graphics/trackwidget/visible.png"), "Track visible", toolBar);
 	visibleAction->setCheckable(true);
@@ -172,7 +172,7 @@ void TrackListWidget::update(){
 
 	bool rebuild = false;
 	QList<MidiTrack*> oldTracks = trackorder;
-	QList<MidiTrack*> realTracks = *file->tracks();
+	QList<MidiTrack*> realTracks = *(file->tracks());
 
 	if(oldTracks.size() != realTracks.size()){
 		rebuild = true;

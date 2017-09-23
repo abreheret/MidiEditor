@@ -33,7 +33,7 @@ class RemoteSettingsWidget : public SettingsWidget {
 
 		RemoteSettingsWidget(RemoteServer *server, QWidget *parent = 0);
 
-		bool accept();
+		bool accept() Q_DECL_OVERRIDE;
 
 	private:
 		RemoteServer *_server;

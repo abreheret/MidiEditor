@@ -25,9 +25,13 @@ UnknownEvent::UnknownEvent(int channel, int type, QByteArray data, MidiTrack *tr
 	_type = type;
 }
 
-UnknownEvent::UnknownEvent(UnknownEvent &other) : MidiEvent(other) {
+UnknownEvent::UnknownEvent(const UnknownEvent &other) : MidiEvent(other) {
 	_data = other._data;
 	_type = other._type;
+}
+
+MidiEvent::EventType UnknownEvent::type() const {
+	return UnknownEventType;
 }
 
 QByteArray UnknownEvent::data(){
@@ -40,15 +44,15 @@ int UnknownEvent::line(){
 
 QByteArray UnknownEvent::save(){
 	QByteArray s;
-	s.append(char(0xFF));
-	s.append(_type);
+	s.append(qint8(0xFF));
+	s.append(qint8(_type));
 	s.append(MidiFile::writeVariableLengthValue(_data.length()));
 	s.append(_data);
 	return s;
 }
 
 void UnknownEvent::reloadState(ProtocolEntry *entry){
-	UnknownEvent *other = dynamic_cast<UnknownEvent*>(entry);
+	UnknownEvent *other = qobject_cast<UnknownEvent*>(entry);
 	if(!other){
 		return;
 	}
@@ -61,18 +65,16 @@ ProtocolEntry *UnknownEvent::copy(){
 	return new UnknownEvent(*this);
 }
 
-int UnknownEvent::type(){
+int UnknownEvent::unknownType(){
 	return _type;
 }
 
-void UnknownEvent::setType(int type){
-	ProtocolEntry *toCopy = copy();
+void UnknownEvent::setUnknownType(int type){
 	_type = type;
-	protocol(toCopy, this);
+	protocol(copy(), this);
 }
 
 void UnknownEvent::setData(QByteArray d){
-	ProtocolEntry *toCopy = copy();
 	_data = d;
-	protocol(toCopy, this);
+	protocol(copy(), this);
 }

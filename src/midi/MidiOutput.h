@@ -31,25 +31,36 @@ class SenderThread;
 
 class MidiOutput : public QObject {
 
+	Q_OBJECT
+
 	public:
-		static void init();
-		static void sendCommand(QByteArray array);
-		static void sendCommand(MidiEvent *e);
-		static QStringList outputPorts();
-		static bool setOutputPort(QString name);
-		static QString outputPort();
-		static void sendEnqueuedCommand(QByteArray array);
-		static bool isAlternativePlayer;
-		static QMap<int, QList<int> > playedNotes;
-		static void setStandardChannel(int channel);
-		static int standardChannel();
-		static void sendProgram(int channel, int prog);
+		static MidiOutput *instance();
+
+		void sendCommand(QByteArray array);
+		void sendCommand(MidiEvent *e);
+		QStringList outputPorts();
+		bool setOutputPort(QString name);
+		QString outputPort();
+		void sendEnqueuedCommand(QByteArray array);
+		static bool isAlternativePlayer();
+		static void setAlternativePlayer(bool enable);
+		QMap<int, QList<int> > playedNotes;
+		void setStandardChannel(int channel);
+		int standardChannel();
+		void sendProgram(int channel, int prog);
+		static SenderThread *sender();
+
+	public slots:
+		void init();
 
 	private:
-		static QString _outPort;
-		static RtMidiOut *_midiOut;
+		MidiOutput();
+		static MidiOutput *createInstance();
+		QString _outPort;
+		RtMidiOut *_midiOut;
 		static SenderThread *_sender;
-		static int _stdChannel;
+		int _stdChannel;
+		bool _alternativePlayer;
 };
 
 #endif

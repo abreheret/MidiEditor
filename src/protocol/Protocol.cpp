@@ -19,6 +19,7 @@
 #include "Protocol.h"
 
 #include <QImage>
+#include <QHash>
 
 #include "ProtocolItem.h"
 #include "ProtocolStep.h"
@@ -30,8 +31,8 @@ Protocol::Protocol(MidiFile *f){
 
 	_file = f;
 
-	_undoSteps = new QList<ProtocolStep*>;
-	_redoSteps = new QList<ProtocolStep*>;
+	_undoSteps = new QStack<ProtocolStep*>;
+	_redoSteps = new QStack<ProtocolStep*>;
 }
 
 void Protocol::enterUndoStep(ProtocolItem *item){
@@ -45,17 +46,16 @@ void Protocol::enterUndoStep(ProtocolItem *item){
 
 void Protocol::undo(bool emitChanged){
 
-	if(!_undoSteps->empty()){
+	if(!_undoSteps->isEmpty()){
 
 		// Take last undoStep from the Stack
-		ProtocolStep *step = _undoSteps->last();
+		ProtocolStep *step = _undoSteps->pop();
 		bool modified = step->modified();
-		_undoSteps->removeLast();
 
 		// release it and copy it to the redo Stack
 		ProtocolStep *redoAction = step->releaseStep();
 		if(redoAction){
-			_redoSteps->append(redoAction);
+			_redoSteps->push(redoAction);
 		}
 
 		// delete the old Step
@@ -72,17 +72,17 @@ void Protocol::undo(bool emitChanged){
 
 void Protocol::redo(bool emitChanged){
 
-	if(!_redoSteps->empty()){
+	if(!_redoSteps->isEmpty()){
 
 		// Take last redoSteo from the Stack
-		ProtocolStep *step = _redoSteps->last();
+		ProtocolStep *step = _redoSteps->pop();
 		bool modified = step->modified();
-		_redoSteps->removeLast();
+
 
 		// release it and copy it to the undoStack
 		ProtocolStep *undoAction = step->releaseStep();
 		if(undoAction){
-			_undoSteps->append(undoAction); 
+			_undoSteps->push(undoAction);
 		}
 
 		// delete the old Step
@@ -94,9 +94,9 @@ void Protocol::redo(bool emitChanged){
 			emit protocolChanged();
 			emit actionFinished();
 		}
-	}	
+	}
 }
-		
+
 void Protocol::startNewAction(QString description, QImage *img, bool modified){
 
 	// When there is a new Action started the redoStack has to be cleared
@@ -114,22 +114,22 @@ void Protocol::endAction(){
 	bool modified = false;
 	// only create the Step when it exists and its size is bigger 0
 	if(_currentStep && _currentStep->items()>0){
-		_undoSteps->append(_currentStep);
-		modified = _currentStep->modified();		
+		_undoSteps->push(_currentStep);
+		modified = _currentStep->modified();
 	}
-	
+
 	// the action is ended so there is no currentStep
-	_currentStep = 0;	
+	_currentStep = 0;
 
 	if (modified) {
 		// the file has been changed
 		emit fileModified(true);
 	}
-	
+
 	emit protocolChanged();
 	emit actionFinished();
 }
-		
+
 int Protocol::stepsBack(){
 	return _undoSteps->count();
 }
@@ -151,7 +151,7 @@ void Protocol::goTo(ProtocolStep *toGo){
 	if(_undoSteps->contains(toGo)){
 
 		// do undo() until toGo is the last Step on the undoStack
-		while(_undoSteps->last()!=toGo && _undoSteps->size()>1){
+		while(_undoSteps->top()!=toGo && _undoSteps->size()>1){
 			undo(false);
 		}
 
@@ -168,5 +168,15 @@ void Protocol::goTo(ProtocolStep *toGo){
 }
 
 void Protocol::addEmptyAction(QString name){
-	_undoSteps->append(new ProtocolStep(name, 0, false));
+	_undoSteps->push(new ProtocolStep(name, 0, false));
+}
+
+QString Protocol::currentStepId() {
+	if (_currentStep) {
+		return _currentStep->id();
+	} else if (!_undoSteps->isEmpty()) {
+		return _undoSteps->top()->id();
+	} else {
+		return "";
+	}
 }

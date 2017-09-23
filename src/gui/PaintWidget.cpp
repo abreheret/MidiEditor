@@ -16,7 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "MatrixWidget.h"
 #include "PaintWidget.h"
+
+#include <QScrollArea>
 
 PaintWidget::PaintWidget(QWidget *parent) : QWidget(parent) {
 	this->setMouseTracking(true);
@@ -26,6 +29,7 @@ PaintWidget::PaintWidget(QWidget *parent) : QWidget(parent) {
 	this->repaintOnMouseMove = false;
 	this->repaintOnMousePress = false;
 	this->repaintOnMouseRelease = false;
+	this->repaintOnScroll = true;
 	this->inDrag = false;
 	this->mousePinned = false;
 	this->mouseX = 0;
@@ -42,14 +46,14 @@ void PaintWidget::mouseMoveEvent(QMouseEvent *event){
 	if(mousePinned){
 		// do not change mousePosition but lastMousePosition to get the
 		// correct move distance
-		QCursor::setPos(mapToGlobal(QPoint(mouseX, mouseY)));
-		mouseLastX = 2*mouseX-event->x();
-		mouseLastY = 2*mouseY-event->y();
+		QCursor::setPos(mapToGlobal(QPointF(mouseX, mouseY).toPoint()));
+		mouseLastX = 2*mouseX-qPointF(event->localPos()).x();
+		mouseLastY = 2*mouseY-qPointF(event->localPos()).y();
 	} else {
 		this->mouseLastX = this->mouseX;
 		this->mouseLastY = this->mouseY;
-		this->mouseX = event->x();
-		this->mouseY = event->y();
+		this->mouseX = qPointF(event->localPos()).x();
+		this->mouseY = qPointF(event->localPos()).y();
 	}
 	if(mousePressed){
 		inDrag = true;
@@ -65,6 +69,7 @@ void PaintWidget::mouseMoveEvent(QMouseEvent *event){
 }
 
 void PaintWidget::enterEvent(QEvent *event){
+	Q_UNUSED(event)
 
 	this->mouseOver = true;
 
@@ -75,17 +80,24 @@ void PaintWidget::enterEvent(QEvent *event){
 	update();
 }
 
+void PaintWidget::wheelEvent(QWheelEvent *event) {
+	if (repaintOnScroll)
+		update();
+}
+
 void PaintWidget::leaveEvent(QEvent *event){
+	Q_UNUSED(event)
+
 	this->mouseOver = false;
 
 	if(!enabled){
 		return;
 	}
-
 	update();
 }
 
 void PaintWidget::mousePressEvent(QMouseEvent *event){
+	Q_UNUSED(event)
 
 	this->mousePressed = true;
 	this->mouseReleased = false;
@@ -100,6 +112,7 @@ void PaintWidget::mousePressEvent(QMouseEvent *event){
 }
 
 void PaintWidget::mouseReleaseEvent(QMouseEvent *event){
+	Q_UNUSED(event)
 
 	this->inDrag = false;
 	this->mouseReleased = true;
@@ -114,7 +127,7 @@ void PaintWidget::mouseReleaseEvent(QMouseEvent *event){
 	}
 }
 
-bool PaintWidget::mouseInRect(int x, int y, int width, int height){
+bool PaintWidget::mouseInRect(qreal x, qreal y, qreal width, qreal height){
 	return mouseBetween(x, y, x+width, y+height);
 }
 
@@ -122,8 +135,24 @@ bool PaintWidget::mouseInRect(QRectF rect){
 	return mouseInRect(rect.x(), rect.y(), rect.width(), rect.height());
 }
 
-bool PaintWidget::mouseBetween(int x1, int y1, int x2, int y2){
-	int temp;
+bool PaintWidget::mouseInWidget(PaintWidget *widget) {
+	if (qobject_cast<QScrollArea*>(widget->parentWidget()->parentWidget())) {
+		QRect rect = widget->parentWidget()->rect();
+		return widget->mouseInRect(QRect(widget->mapFromParent(rect.topLeft()),widget->mapFromParent(rect.bottomRight())));
+	}
+	return false;
+}
+QRect PaintWidget::relativeRect() {
+	QScrollArea *scrollArea = qobject_cast<QScrollArea*>(parentWidget()->parentWidget());
+	if (scrollArea) {
+		return QRect(mapFrom(parentWidget(), parentWidget()->frameGeometry().topLeft()),
+			   mapFrom(parentWidget(), parentWidget()->frameGeometry().bottomRight()));
+	}
+	return rect();
+}
+
+bool PaintWidget::mouseBetween(qreal x1, qreal y1, qreal x2, qreal y2){
+	qreal temp;
 	if(x1>x2){
 		temp = x1;
 		x1 = x2;
@@ -138,20 +167,20 @@ bool PaintWidget::mouseBetween(int x1, int y1, int x2, int y2){
 }
 
 
-int PaintWidget::draggedX(){
+qreal PaintWidget::draggedX(){
 	if(!inDrag){
 		return 0;
 	}
-	int i = mouseX - mouseLastX;
+	qreal i = mouseX - mouseLastX;
 	mouseLastX = mouseX;
 	return i;
 }
 
-int PaintWidget::draggedY(){
+qreal PaintWidget::draggedY(){
 	if(!inDrag){
 		return 0;
 	}
-	int i = mouseY - mouseLastY;
+	qreal i = mouseY - mouseLastY;
 	mouseLastY = mouseY;
 	return i;
 }
@@ -168,8 +197,33 @@ void PaintWidget::setRepaintOnMouseRelease(bool b){
 	repaintOnMouseRelease = b;
 }
 
+void PaintWidget::setRepaintOnScroll(bool b) {
+	repaintOnScroll = b;
+}
+
 void PaintWidget::setEnabled(bool b){
 	enabled = b;
 	setMouseTracking(enabled);
 	update();
+}
+QRectF PaintWidget::qRectF(QRectF other) {
+	return GraphicObject::qRectF(other);
+}
+QRectF PaintWidget::qRectF(qreal x, qreal y, qreal w, qreal h) {
+	return GraphicObject::qRectF(x, y, w, h);
+}
+QLineF PaintWidget::qLineF(QLineF other) {
+	return GraphicObject::qLineF(other);
+}
+QLineF PaintWidget::qLineF(qreal x1, qreal y1, qreal x2, qreal y2) {
+	return GraphicObject::qLineF(x1, y1, x2, y2);
+}
+QPointF PaintWidget::qPointF(QPointF other) {
+	return GraphicObject::qPointF(other);
+}
+QPointF PaintWidget::qPointF(qreal x, qreal y) {
+	return GraphicObject::qPointF(x, y);
+}
+QPolygonF PaintWidget::qPolygonF(QPolygonF other) {
+	return GraphicObject::qPolygonF(other);
 }

@@ -20,6 +20,8 @@
 #define MATRIXWIDGET_H_
 
 #include "PaintWidget.h"
+#include "TimelineWidget.h"
+#include "PianoWidget.h"
 
 #include <QWidget>
 #include <QPaintEvent>
@@ -31,6 +33,7 @@
 #include <QPixmap>
 #include <QApplication>
 #include <QPalette>
+#include <QPixmapCache>
 
 class MidiFile;
 class TempoChangeEvent;
@@ -38,6 +41,8 @@ class TimeSignatureEvent;
 class MidiEvent;
 class GraphicObject;
 class NoteOnEvent;
+class TimelineWidget;
+class PianoWidget;
 
 class MatrixWidget : public PaintWidget {
 
@@ -50,13 +55,15 @@ class MatrixWidget : public PaintWidget {
 		QList<MidiEvent*> *activeEvents();
 		QList<MidiEvent*> *velocityEvents();
 
-		double lineHeight();
-		int lineAtY(int y);
-		int lineNameWidth, startLineY;
-		int msOfXPos(int x);
+		qreal lineHeight();
+		int lineAtY(qreal y);
+		int lineNameWidth;
+		qreal startLineY;
+		qreal scaleX, scaleY, endLineY;
+		int msOfXPos(qreal x);
 		int timeMsOfWidth(int w);
 		bool eventInWidget(MidiEvent *event);
-		int yPosOfLine(int line);
+		qreal yPosOfLine(int line);
 		void setScreenLocked(bool b);
 		bool screenLocked();
 		int minVisibleMidiTime();
@@ -66,55 +73,57 @@ class MatrixWidget : public PaintWidget {
 		void setColorsByTracks();
 		bool colorsByChannel();
 
+		QList<QPair<qreal, int> > currentDivs;
+
 		int msOfTick(int tick);
-		int xPosOfMs(int ms);
-		QList<QPair<int, int> > divs();
+		qreal xPosOfMs(qreal ms);
+		QList<QPair<qreal, int> > divs();
 
 		static bool antiAliasingEnabled;
+		QMap<int, QRectF> pianoKeys;
+		QSize sizeHint() const  Q_DECL_OVERRIDE;
 
+		void setPianoWidget(PianoWidget *widget);
+		void setTimelineWidget(TimelineWidget *widget);
 	public slots:
-		void scrollXChanged(int scrollPositionX);
-		void scrollYChanged(int scrollPositionY);
 		void zoomHorIn();
 		void zoomHorOut();
 		void zoomVerIn();
 		void zoomVerOut();
 		void zoomStd();
 		void timeMsChanged(int ms, bool ignoreLocked=false);
-		void registerRelayout();
 		void calcSizes();
 		void takeKeyPressEvent(QKeyEvent *event);
 		void takeKeyReleaseEvent(QKeyEvent *event);
 		void setDiv(int div);
 		int div();
-
 	signals:
-		void sizeChanged(int maxScrollTime, int maxScrollLine, int valueX,
-				int valueY);
+		void sizeChanged(int maxScrollTime, double maxScrollLine, int valueX,
+				double valueY);
 		void objectListChanged();
-		void scrollChanged(int startMs,int maxMs,int startLine,int maxLine);
+		void scrollChanged(int x, int y);
 
 	protected:
-		void paintEvent(QPaintEvent *event);
-		void mouseMoveEvent(QMouseEvent *event);
-		void resizeEvent(QResizeEvent *event);
-		void enterEvent(QEvent *event);
-		void leaveEvent(QEvent *event);
-		void mousePressEvent(QMouseEvent *event);
-		void mouseDoubleClickEvent(QMouseEvent *event);
-		void mouseReleaseEvent(QMouseEvent *event);
-		void keyPressEvent(QKeyEvent* e);
-		void keyReleaseEvent(QKeyEvent *event);
-		void wheelEvent(QWheelEvent *event);
+		void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+		void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+		void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+		void enterEvent(QEvent *event) Q_DECL_OVERRIDE;
+		void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
+		void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+		void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+		void keyPressEvent(QKeyEvent* e) Q_DECL_OVERRIDE;
+		void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
 	private:
 		void paintChannel(QPainter *painter, int channel);
-		void paintPianoKey(QPainter *painter, int number, int x, int y,
-				int width, int height);
+		void paintPianoKey(QPainter *painter, int number, qreal x, qreal y,
+				qreal width, qreal height);
 
-		int startTick, endTick, startTimeX, endTimeX, endLineY, timeHeight,
-				msOfFirstEventInList;
-		double scaleX, scaleY;
+		int startTick, endTick, startTimeX, endTimeX, timeHeight,
+				msOfFirstEventInList, visibleStartTick, visibleEndTick;
+
+		enum VerticalScrollDir {NONE, UP, DOWN};
+		VerticalScrollDir scrollDir = NONE;
 		MidiFile *file;
 
 		QRectF ToolArea, PianoArea, TimeLineArea;
@@ -131,7 +140,6 @@ class MatrixWidget : public PaintWidget {
 
 		// All Events to show in the velocityWidget are saved in velocityObjects
 		QList<MidiEvent*> *objects, *velocityObjects;
-		QList<QPair<int, int> > currentDivs;
 
 		// To play the pianokeys, there is one NoteOnEvent
 		NoteOnEvent *pianoEvent;
@@ -139,7 +147,8 @@ class MatrixWidget : public PaintWidget {
 		bool _colorsByChannels;
 		int _div;
 
-		QMap<int, QRect> pianoKeys;
+		TimelineWidget *timelineWidget;
+		PianoWidget *pianoWidget;
 };
 
 #endif

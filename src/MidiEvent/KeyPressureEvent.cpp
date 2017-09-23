@@ -25,11 +25,15 @@ KeyPressureEvent::KeyPressureEvent(int channel, int value, int note, MidiTrack *
 	_note = note;
 }
 
-KeyPressureEvent::KeyPressureEvent(KeyPressureEvent &other) :
+KeyPressureEvent::KeyPressureEvent(const KeyPressureEvent &other) :
 		MidiEvent(other)
 {
 	_value = other._value;
 	_note = other._note;
+}
+
+MidiEvent::EventType KeyPressureEvent::type() const {
+	return KeyPressureEventType;
 }
 
 int KeyPressureEvent::line(){
@@ -42,9 +46,9 @@ QString KeyPressureEvent::toMessage(){
 
 QByteArray KeyPressureEvent::save(){
 	QByteArray array = QByteArray();
-	array.append(0xA0 | channel());
-	array.append(_note);
-	array.append(_value);
+	array.append(0xA0 | qint8(channel()));
+	array.append(qint8(_note));
+	array.append(qint8(_value));
 	return array;
 }
 
@@ -52,8 +56,8 @@ ProtocolEntry *KeyPressureEvent::copy(){
 	return new KeyPressureEvent(*this);
 }
 
-void KeyPressureEvent::reloadState(ProtocolEntry *entry){
-	KeyPressureEvent *other = dynamic_cast<KeyPressureEvent*>(entry);
+void KeyPressureEvent::reloadState(ProtocolEntry *entry) {
+	KeyPressureEvent *other = qobject_cast<KeyPressureEvent*>(entry);
 	if(!other){
 		return;
 	}

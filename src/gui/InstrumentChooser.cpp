@@ -81,7 +81,7 @@ void InstrumentChooser::accept(){
 	// get events
 	QList<ProgChangeEvent*> events;
 	foreach(MidiEvent *event, _file->channel(_channel)->eventMap()->values()) {
-		ProgChangeEvent *prg = dynamic_cast<ProgChangeEvent*>(event);
+		ProgChangeEvent *prg = qobject_cast<ProgChangeEvent*>(event);
 		if(prg){
 			events.append(prg);
 			track = prg->track();
@@ -99,7 +99,7 @@ void InstrumentChooser::accept(){
 		event->setProgram(program);
 	} else {
 		event = new ProgChangeEvent(_channel, program, track);
-		_file->channel(_channel)->insertEvent(event, 0);
+		_file->insertEventInChannel(_channel, event, 0);
 	}
 
 	if(removeOthers){

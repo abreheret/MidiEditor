@@ -29,9 +29,13 @@ OnEvent::OnEvent(int ch, MidiTrack *track) : MidiEvent(ch, track){
 	return;
 }
 
-OnEvent::OnEvent(OnEvent &other) : MidiEvent(other){
+OnEvent::OnEvent(const OnEvent &other) : MidiEvent(other){
 	_offEvent = other._offEvent;
 	return;
+}
+
+MidiEvent::EventType OnEvent::type() const {
+	return OnEventType;
 }
 
 void OnEvent::setOffEvent(OffEvent *event){
@@ -47,7 +51,7 @@ ProtocolEntry *OnEvent::copy(){
 }
 
 void OnEvent::reloadState(ProtocolEntry *entry){
-	OnEvent *other = dynamic_cast<OnEvent*>(entry);
+	OnEvent *other = qobject_cast<OnEvent*>(entry);
 	if(!other){
 		return;
 	}

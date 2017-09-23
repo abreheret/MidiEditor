@@ -29,13 +29,17 @@ TimeSignatureEvent::TimeSignatureEvent(int channel, int num, int denom,
 	num32In4th = num32In4;
 }
 
-TimeSignatureEvent::TimeSignatureEvent(TimeSignatureEvent &other):
+TimeSignatureEvent::TimeSignatureEvent(const TimeSignatureEvent &other):
 		MidiEvent(other)
 {
 	numerator = other.numerator;
 	denominator = other.denominator;
 	midiClocksPerMetronome = other.midiClocksPerMetronome;
 	num32In4th = other.num32In4th;
+}
+
+MidiEvent::EventType TimeSignatureEvent::type() const {
+	return TimeSignatureEventType;
 }
 int TimeSignatureEvent::num(){
 	return numerator;
@@ -70,7 +74,7 @@ ProtocolEntry *TimeSignatureEvent::copy(){
 }
 
 void TimeSignatureEvent::reloadState(ProtocolEntry *entry){
-	TimeSignatureEvent *other = dynamic_cast<TimeSignatureEvent*>(entry);
+	TimeSignatureEvent *other = qobject_cast<TimeSignatureEvent*>(entry);
 	if(!other){
 		return;
 	}
@@ -85,26 +89,24 @@ int TimeSignatureEvent::line(){
 }
 
 void TimeSignatureEvent::setNumerator(int n){
-	ProtocolEntry *toCopy = copy();
 	numerator = n;
-	protocol(toCopy, this);
+	protocol(copy(), this);
 }
 
 void TimeSignatureEvent::setDenominator(int d){
-	ProtocolEntry *toCopy = copy();
 	denominator = d;
-	protocol(toCopy, this);
+	protocol(copy(), this);
 }
 
 QByteArray TimeSignatureEvent::save(){
 	QByteArray array = QByteArray();
-	array.append(char(0xFF));
-	array.append(char(0x58));
-	array.append(char(0x04));
-	array.append(numerator);
-	array.append(denominator);
-	array.append(midiClocksPerMetronome);
-	array.append(num32In4th);
+	array.append(qint8(0xFF));
+	array.append(qint8(0x58));
+	array.append(qint8(0x04));
+	array.append(qint8(numerator));
+	array.append(qint8(denominator));
+	array.append(qint8(midiClocksPerMetronome));
+	array.append(qint8(num32In4th));
 	return array;
 }
 

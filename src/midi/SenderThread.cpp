@@ -17,39 +17,84 @@
  */
 
 #include "SenderThread.h"
+
 #include "../MidiEvent/MidiEvent.h"
 #include "../MidiEvent/NoteOnEvent.h"
 #include "../MidiEvent/OffEvent.h"
+#include "MidiPlayer.h"
 
+#include <QTimer>
+
+// Credit to http://thesmithfam.org/blog/2010/02/07/talking-to-qt-threads/
 SenderThread::SenderThread() {
-	_eventQueue = new QQueue<MidiEvent*>;
-	_noteQueue = new QQueue<MidiEvent*>;
+	moveToThread(this);
+	_eventQueue = new QQueue<QByteArray>();
+	_noteQueue = new QQueue<QByteArray>();
 }
 
-void SenderThread::run(){
+/*void SenderThread::run(){
 
-	while(true) {
+	forever {
 		// First, send the misc events, such as control change and program change events.
 		while(!_eventQueue->isEmpty()){
 			// send command
-			MidiOutput::sendEnqueuedCommand(_eventQueue->head()->save());
-			_eventQueue->pop_front();
+			MidiOutput::instance()->sendEnqueuedCommand(_eventQueue->dequeue());
 		}
 		// Now send the note events.
 		while(!_noteQueue->isEmpty()){
 			// send command
-			MidiOutput::sendEnqueuedCommand(_noteQueue->head()->save());
-			_noteQueue->pop_front();
+			MidiOutput::instance()->sendEnqueuedCommand(_noteQueue->dequeue());
 		}
 		msleep(1);
 	}
+}*/
+void SenderThread::run() {
+	timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(sendCommands()));
+	timer->start(1);
+	//QTimer::singleShot(1, this, SLOT(sendCommands()));
+	exec();
 }
-
+void SenderThread::sendCommands() {
+	if (!timer) {
+		timer = new QTimer(this);
+		connect(timer, SIGNAL(timeout()), this, SLOT(sendCommands()));
+		timer->start(1);
+	}
+	timer->blockSignals(true);
+	while(!_eventQueue->isEmpty()){
+		// send command
+		MidiOutput::instance()->sendEnqueuedCommand(_eventQueue->dequeue());
+	}
+	// Now send the note events.
+	while(!_noteQueue->isEmpty()){
+		// send command
+		MidiOutput::instance()->sendEnqueuedCommand(_noteQueue->dequeue());
+	}
+	timer->blockSignals(false);
+}
+void SenderThread::stop() {
+	if(currentThread() != this) {
+		QMetaObject::invokeMethod(this, "stop",
+						Qt::QueuedConnection);
+	} else {
+		_noteQueue->clear();
+		_eventQueue->clear();
+		if (timer) {
+			timer->stop();
+			disconnect(timer, SIGNAL(timeout()), this, SIGNAL(sendCommands()));
+		}
+		quit();
+	}
+}
 void SenderThread::enqueue(MidiEvent *event){
-	// If it is a NoteOnEvent or an OffEvent, we put it in _noteQueue. 
-	if (dynamic_cast <NoteOnEvent*>(event) || dynamic_cast <OffEvent*>(event)) 
-		_noteQueue->push_back(event);
+	if (!isRunning ()){
+		start(QThread::TimeCriticalPriority);
+	}
+	// If it is a NoteOnEvent or an OffEvent, we put it in _noteQueue.
+	if (qobject_cast <NoteOnEvent*>(event) || qobject_cast <OffEvent*>(event))
+		_noteQueue->enqueue(event->save());
 	// Otherwise, it goes into _eventQueue.
-	else 
-		_eventQueue->push_back(event);
+	else
+		_eventQueue->enqueue(event->save());
 }

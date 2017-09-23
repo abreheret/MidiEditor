@@ -23,29 +23,32 @@
 
 class NewNoteTool : public EventTool {
 
+	Q_OBJECT
+
 	public:
 		NewNoteTool();
 		NewNoteTool(NewNoteTool &other);
+		Tool::ToolType type() const Q_DECL_OVERRIDE;
 
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
+		ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
-		void draw(QPainter *painter);
-		bool press(bool leftClick);
-		bool release();
-		bool move(int mouseX, int mouseY);
-		bool releaseOnly();
+		void draw(QPainter *painter) Q_DECL_OVERRIDE;
+		bool press(bool leftClick) Q_DECL_OVERRIDE;
+		bool release() Q_DECL_OVERRIDE;
+		bool move(qreal mouseX, qreal mouseY) Q_DECL_OVERRIDE;
+		bool releaseOnly() Q_DECL_OVERRIDE;
 
 		static int editTrack();
 		static int editChannel();
 		static void setEditTrack(int i);
 		static void setEditChannel(int i);
-		
+
 		static bool enableVelocityDragging;
 	private:
 		bool inDrag;
 		int line;
-		int xPos;
+		qreal xPos;
 		int velocity;
 		static int _channel, _track;
 };

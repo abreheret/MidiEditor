@@ -22,11 +22,13 @@
 #include <QImage>
 #include <QString>
 #include <QList>
+#include "../gui/GraphicObject.h"
 
 #include "../protocol/ProtocolEntry.h"
 
 class Protocol;
 class MidiFile;
+//class GraphicObject;
 class EditorTool;
 class ToolButton;
 class StandardTool;
@@ -53,7 +55,23 @@ class StandardTool;
 
 class Tool : public ProtocolEntry {
 
+	Q_OBJECT
+
 	public:
+
+		enum ToolType {
+			None,
+			Editor,
+			Eraser,
+			EventMove,
+			Event,
+			NewNote,
+			Select,
+			SizeChange,
+			Standard
+		};
+
+		virtual ToolType type() const;
 
 		/**
 		 * \brief creates a new Tool.
@@ -142,11 +160,24 @@ class Tool : public ProtocolEntry {
 		 * The following functions are redefinitions from the superclass
 		 * ProtocolEntry
 		 */
-		virtual ProtocolEntry *copy();
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
 
-		virtual void reloadState(ProtocolEntry *entry);
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
-		MidiFile *file();
+		MidiFile *file() Q_DECL_OVERRIDE;
+
+		/**
+		 * \brief These helpers will return pixel-aligned values
+		 * when antialiasing is disabled and precise valeus
+		 * when it isn't.
+		 */
+		static QRectF qRectF(QRectF other) { return GraphicObject::qRectF(other); }
+		static QRectF qRectF(qreal x, qreal y, qreal w, qreal h) { return GraphicObject::qRectF(x, y, w, h); }
+		static QLineF qLineF(QLineF other) { return GraphicObject::qLineF(other); }
+		static QLineF qLineF(qreal x1, qreal y1, qreal x2, qreal y2) { return GraphicObject::qLineF(x1, y1, x2, y2); }
+		static QPolygonF qPolygonF(QPolygonF other) { return GraphicObject::qPolygonF(other); }
+		static QPointF qPointF(QPointF other) { return GraphicObject::qPointF(other); }
+		static QPointF qPointF(qreal x, qreal y) { return GraphicObject::qPointF(x, y); }
 
 	protected:
 

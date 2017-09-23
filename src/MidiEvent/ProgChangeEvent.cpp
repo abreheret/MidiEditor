@@ -24,8 +24,12 @@ ProgChangeEvent::ProgChangeEvent(int channel, int prog, MidiTrack *track) : Midi
 	_program = prog;
 }
 
-ProgChangeEvent::ProgChangeEvent(ProgChangeEvent &other) : MidiEvent(other){
+ProgChangeEvent::ProgChangeEvent(const ProgChangeEvent &other) : MidiEvent(other){
 	_program = other._program;
+}
+
+MidiEvent::EventType ProgChangeEvent::type() const {
+	return ProgramChangeEventType;
 }
 
 int ProgChangeEvent::line(){
@@ -38,8 +42,8 @@ QString ProgChangeEvent::toMessage(){
 
 QByteArray ProgChangeEvent::save(){
 	QByteArray array = QByteArray();
-	array.append(0xC0 | channel());
-	array.append(_program);
+	array.append(0xC0 | qint8(channel()));
+	array.append(qint8(_program));
 	return array;
 }
 
@@ -48,7 +52,7 @@ ProtocolEntry *ProgChangeEvent::copy(){
 }
 
 void ProgChangeEvent::reloadState(ProtocolEntry *entry){
-	ProgChangeEvent *other = dynamic_cast<ProgChangeEvent*>(entry);
+	ProgChangeEvent *other = qobject_cast<ProgChangeEvent*>(entry);
 	if(!other){
 		return;
 	}

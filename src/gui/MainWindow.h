@@ -23,8 +23,14 @@
 #include <QScrollBar>
 #include <QCloseEvent>
 #include <QSettings>
+#include <QToolBar>
+#ifdef Q_OS_MAC
+#include <QtMacExtras>
+#endif
 
 class MatrixWidget;
+class TimelineWidget;
+class PianoWidget;
 class MidiEvent;
 class MidiFile;
 class ChannelListWidget;
@@ -40,6 +46,7 @@ class RemoteServer;
 class MiscWidget;
 class QGridLayout;
 class MidiTrack;
+class QScrollArea;
 class QShowEvent;
 class Update;
 
@@ -54,18 +61,19 @@ class MainWindow : public QMainWindow {
 		void setStartDir(QString dir);
 		void setInitFile(const char * file);
 		static MainWindow *_mainWindow;
-        static MainWindow *getMainWindow();
-		// Alert that the input and output ports are ready. 
+		static MainWindow *getMainWindow();
+		// Alert that the input and output ports are ready.
 		// This lets us load the UI without having to wait as long.
 		void ioReady(bool isInput);
+
 	protected:
-		void dropEvent(QDropEvent *ev);
-		void dragEnterEvent(QDragEnterEvent *ev);
+		void dropEvent(QDropEvent *ev) Q_DECL_OVERRIDE;
+		void dragEnterEvent(QDragEnterEvent *ev) Q_DECL_OVERRIDE;
 
 	public slots:
 
 		void loadInitFile();
-		void matrixSizeChanged(int maxScrollTime, int maxScrollLine, int vX, int vY);
+		void matrixSizeChanged(int maxScrollTime, double maxScrollLine, int vX, double vY);
 		void play();
 		void playStop();
 		void stop(bool autoConfirmRecord = false, bool addEvents = true, bool resetPause = true);
@@ -91,8 +99,7 @@ class MainWindow : public QMainWindow {
 		void donate();
 		void about();
 		void setFileLengthMs();
-		void scrollPositionsChanged(int startMs, int maxMs, int startLine,
-				int maxLine);
+		void scrollPositionsChanged(int x, int y);
 		void record();
 		void newFile();
 		void panic();
@@ -177,13 +184,16 @@ class MainWindow : public QMainWindow {
 		void updateDetected(Update *update);
 
 	protected:
-		void closeEvent(QCloseEvent *event);
-		void keyPressEvent(QKeyEvent* e);
-		void keyReleaseEvent(QKeyEvent *event);
+		void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+		void keyPressEvent(QKeyEvent* e) Q_DECL_OVERRIDE;
+		void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
 	private:
 		MatrixWidget *mw_matrixWidget;
+		TimelineWidget *mw_timelineWidget;
+		PianoWidget *mw_pianoWidget;
 		QScrollBar *vert, *hori;
+		QScrollArea *matrixArea, *timelineArea, *pianoArea, *miscArea;
 		ChannelListWidget *channelWidget;
 		ProtocolWidget *protocolWidget;
 		TrackListWidget *_trackWidget;
@@ -200,7 +210,7 @@ class MainWindow : public QMainWindow {
 		QAction *_colorsByChannel, *_colorsByTracks;
 
 		QComboBox *_chooseEditTrack, *_chooseEditChannel;
-		
+
 #ifdef ENABLE_REMOTE
 		RemoteServer *_remoteServer;
 #endif
@@ -213,12 +223,14 @@ class MainWindow : public QMainWindow {
 			*_allChannelsAudible, *_allChannelsMute, *_allTracksVisible, *_allTracksInvisible, *stdToolAction, *undoAction, *redoAction, *_pasteAction, *pasteActionTB;
 		MiscWidget *_miscWidget;
 
-		QWidget *setupActions(QWidget *parent);
-
+		QToolBar *setupActions(QWidget *parent);
+#ifdef Q_OS_MAC
+//		QMacToolBar *setupMacActions();
+#endif
 		int _quantizationGrid;
 		int quantize(int t, QList<int> ticks);
 		QList<QAction*> _activateWithSelections;
-        bool inputIsReady, outputIsReady;
+		bool inputIsReady, outputIsReady;
 };
 
 #endif

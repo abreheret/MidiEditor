@@ -23,15 +23,18 @@
 
 class EraserTool : public EventTool {
 
+	Q_OBJECT
+
 	public:
 		EraserTool();
 		EraserTool(EraserTool &other);
+		Tool::ToolType type() const Q_DECL_OVERRIDE;
 
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
-		bool move(int mouseX, int mouseY);
-		void draw(QPainter *painter);
-		bool release();
+		ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		void reloadState(ProtocolEntry *entry)Q_DECL_OVERRIDE;
+		bool move(qreal mouseX, qreal mouseY) Q_DECL_OVERRIDE;
+		void draw(QPainter *painter) Q_DECL_OVERRIDE;
+		bool release() Q_DECL_OVERRIDE;
 };
 
 #endif

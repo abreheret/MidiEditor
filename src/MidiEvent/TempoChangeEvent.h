@@ -23,19 +23,22 @@
 
 class TempoChangeEvent : public MidiEvent {
 
+	Q_OBJECT
+
 	public:
 		TempoChangeEvent(int channel, int value, MidiTrack *track);
-		TempoChangeEvent(TempoChangeEvent &other);
+		TempoChangeEvent(const TempoChangeEvent &other);
+		MidiEvent::EventType type() const Q_DECL_OVERRIDE;
 
 		int beatsPerQuarter();
-		double msPerTick();
+		qreal msPerTick();
 
-		virtual ProtocolEntry *copy();
-		virtual void reloadState(ProtocolEntry *entry);
-		int line();
-		QByteArray save();
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
+		int line() Q_DECL_OVERRIDE;
+		QByteArray save() Q_DECL_OVERRIDE;
 
-		QString typeString();
+		QString typeString() Q_DECL_OVERRIDE;
 
 		void setBeats(int beats);
 

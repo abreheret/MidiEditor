@@ -23,6 +23,9 @@
 #include <QTimer>
 #include "../MidiEvent/NoteOnEvent.h"
 #include "MidiOutput.h"
+#include "MidiPlayer.h"
+
+#include "../Singleton.h"
 
 SingleNotePlayer::SingleNotePlayer() {
 	playing = false;
@@ -30,22 +33,35 @@ SingleNotePlayer::SingleNotePlayer() {
 	timer = new QTimer();
 	timer->setInterval(SINGLE_NOTE_LENGTH_MS);
 	timer->setSingleShot(true);
-	connect(timer, &QTimer::timeout, this, &SingleNotePlayer::timeout);
+	connect(timer, &QTimer::timeout, this, &SingleNotePlayer::stop);
 }
 
 void SingleNotePlayer::play(NoteOnEvent *event){
+	if (MidiPlayer::instance()->isPlaying()) {
+		return;
+	}
 	if(playing){
-		MidiOutput::sendCommand(offMessage);
+		MidiOutput::instance()->sendCommand(offMessage);
 		timer->stop();
 	}
 	offMessage = event->saveOffEvent();
-	MidiOutput::sendCommand(event);
+	MidiOutput::instance()->sendCommand(event);
 	playing = true;
 	timer->start();
 }
 
-void SingleNotePlayer::timeout(){
-	MidiOutput::sendCommand(offMessage);
+void SingleNotePlayer::stop(){
+	MidiOutput::instance()->sendCommand(offMessage);
 	timer->stop();
 	playing = false;
+	MidiPlayer::instance()->stop();
+}
+SingleNotePlayer *SingleNotePlayer::createInstance() {
+	return new SingleNotePlayer();
+}
+SingleNotePlayer *SingleNotePlayer::instance() {
+	return Singleton<SingleNotePlayer>::instance(SingleNotePlayer::createInstance);
+}
+bool SingleNotePlayer::isPlaying() {
+	return playing;
 }

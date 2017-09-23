@@ -173,7 +173,7 @@ void RecordDialog::enter(){
 			// check whether to add event or not
 			MidiEvent *toCheck = it.value();
 
-			OffEvent *off = dynamic_cast<OffEvent*>(toCheck);
+			OffEvent *off = qobject_cast<OffEvent*>(toCheck);
 			if(off) {
 				toCheck = off->onEvent();
 			}
@@ -188,19 +188,19 @@ void RecordDialog::enter(){
 
 			// set channels
 			TempoChangeEvent *tempo =
-					dynamic_cast<TempoChangeEvent*>(toCheck);
+					qobject_cast<TempoChangeEvent*>(toCheck);
 			if(tempo) {
 				currentChannel = 17;
 			}
 
 			TimeSignatureEvent *time =
-					dynamic_cast<TimeSignatureEvent*>(toCheck);
+					qobject_cast<TimeSignatureEvent*>(toCheck);
 			if(time) {
 				currentChannel = 18;
 			}
 
 			TextEvent *text =
-					dynamic_cast<TextEvent*>(toCheck);
+					qobject_cast<TextEvent*>(toCheck);
 			if(text) {
 				currentChannel = 16;
 			}
@@ -210,7 +210,7 @@ void RecordDialog::enter(){
 				toAdd->setFile(_file);
 				toAdd->setChannel(currentChannel, false);
 				toAdd->setTrack(track, false);
-				_file->channel(toAdd->channel())->insertEvent(toAdd, _file->tick(it.key()));
+				_file->insertEventInChannel(toAdd->channel(), toAdd, _file->tick(it.key()));
 			}
 			it++;
 		}

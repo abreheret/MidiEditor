@@ -28,7 +28,7 @@ void DataLineEditor::changed(QString text){
 	bool ok;
 	int i = text.toInt(&ok, 16);
 	if(ok){
-		emit dataChanged(_line, (unsigned char)i);
+		emit dataChanged(_line, quint8(i));
 	}
 }
 
@@ -54,7 +54,7 @@ QByteArray DataEditor::data(){
 
 void DataEditor::rebuild(){
 
-	QGridLayout *layout = dynamic_cast<QGridLayout*>(_central->layout());
+	QGridLayout *layout = qobject_cast<QGridLayout*>(_central->layout());
 	if (layout) {
 		QList<QWidget*> widgets = _central->findChildren<QWidget *>();
 		foreach(QWidget * child, widgets) {
@@ -69,14 +69,15 @@ void DataEditor::rebuild(){
 		DataLineEditor *dle0 = new DataLineEditor(0, plus);
 		connect(dle0, SIGNAL(plusClicked(int)), this, SLOT(plusClicked(int)));
 
-		foreach(unsigned char c, _data){
+		foreach(qint8 c, _data){
+
 			QLabel *label = new QLabel("0x", _central);
 			layout->addWidget(label, row, 0, 1, 1);
 
 			QLineEdit *edit = new QLineEdit(_central);
 			edit->setInputMask("HH");
 			QString text;
-			text.sprintf("%02X", c);
+			text.sprintf("%02X", quint8(c));
 			edit->setText(text);
 			layout->addWidget(edit, row, 1, 1, 1);
 
@@ -91,18 +92,18 @@ void DataEditor::rebuild(){
 			DataLineEditor *dle = new DataLineEditor(row, plus, minus, edit);
 			connect(dle, SIGNAL(minusClicked(int)), this, SLOT(minusClicked(int)));
 			connect(dle, SIGNAL(plusClicked(int)), this, SLOT(plusClicked(int)));
-			connect(dle, SIGNAL(dataChanged(int,unsigned char)), this, SLOT(dataChanged(int,unsigned char)));
+			connect(dle, SIGNAL(dataChanged(int,quint8)), this, SLOT(dataChanged(int,quint8)));
 			row++;
 		}
 	}
 }
 
-void DataEditor::dataChanged(int line, unsigned char data){
-	_data[line-1] = data;
+void DataEditor::dataChanged(int line, quint8 data){
+	_data[line-1] = qint8(data);
 }
 
 void DataEditor::plusClicked(int line){
-	_data = _data.insert(line, (char)0);
+	_data = _data.insert(line, qint8(0));
 	rebuild();
 }
 

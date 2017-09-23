@@ -21,6 +21,7 @@
 #include "../midi/MidiFile.h"
 #include "ToolButton.h"
 #include "EditorTool.h"
+#include "../gui/GraphicObject.h"
 
 EditorTool *Tool::_currentTool = 0;
 MidiFile *Tool::_currentFile = 0;
@@ -37,6 +38,10 @@ Tool::Tool(Tool &other) {
 	_button = other._button;
 	_toolTip = other._toolTip;
 	_standardTool = other._standardTool;
+}
+
+Tool::ToolType Tool::type() const {
+	return Tool::None;
 }
 
 void Tool::buttonClick(){
@@ -68,7 +73,7 @@ ProtocolEntry *Tool::copy(){
 	return t;
 }
 
-void Tool::reloadState(ProtocolEntry *entry) { 
+void Tool::reloadState(ProtocolEntry *entry) {
 	Tool *other = (Tool*)entry;
 	if(!other){
 		return;

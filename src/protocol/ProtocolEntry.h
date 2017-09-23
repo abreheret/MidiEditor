@@ -19,6 +19,7 @@
 #ifndef PROTOCOLENTRY_H
 #define PROTOCOLENTRY_H
 
+#include <QtCore/qobject.h>
 class MidiFile;
 
 /**
@@ -37,7 +38,9 @@ class MidiFile;
  * After changing itself, the Method protocol(ProtocolEntry *oldObj,
  * ProtocolEntry *newObj) has to be called, with "this" as newObj.
  */
-class ProtocolEntry {
+class ProtocolEntry : public QObject {
+
+	Q_OBJECT
 
 	public:
 
@@ -54,6 +57,9 @@ class ProtocolEntry {
 		 */
 		virtual ProtocolEntry *copy();
 
+		ProtocolEntry(QObject *parent = 0);
+		ProtocolEntry(const ProtocolEntry &other);
+
 		/**
 		 * \brief reloads the state of entry.
 		 *
@@ -61,7 +67,7 @@ class ProtocolEntry {
 		 * copy().
 		 */
 		virtual void reloadState(ProtocolEntry *entry);
-		
+
 		/**
 		 * \brief writes the old object oldObj and the new object newObj to the
 		 * protocol.

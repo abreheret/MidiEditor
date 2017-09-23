@@ -37,31 +37,26 @@
 #include "../MidiEvent/TempoChangeEvent.h"
 #include "../MidiEvent/TimeSignatureEvent.h"
 
-QColor *MidiChannel::colorByChannelNumber(int number){
-
-	QColor *color;
-
+QColor MidiChannel::colorByChannelNumber(int number) {
 	switch(number){
-		case 0: { color = new QColor(241, 70, 57, 255);break; }
-		case 1: { color =  new QColor(205, 241, 0, 255);break; }
-		case 2: { color = new QColor(50, 201, 20, 255);break; }
-		case 3: { color = new QColor(107, 241, 231, 255);break; }
-		case 4: { color =  new QColor(127, 67, 255, 255);break; }
-		case 5: { color = new QColor(241, 127, 200, 255);break; }
-		case 6: { color = new QColor(170, 212, 170, 255);break; }
-		case 7: { color =  new QColor(222, 202, 170, 255);break; }
-		case 8: { color = new QColor(241, 201, 20, 255);break; }
-		case 9: { color = new QColor(80, 80, 80, 255);break; }
-		case 10: { color = new QColor(202, 50, 127, 255);break; }
-		case 11: { color = new QColor(0, 132, 255, 255);break; }
-		case 12: { color =  new QColor(102, 127, 37, 255);break; }
-		case 13: { color = new QColor(241, 164, 80, 255);break; }
-		case 14: { color = new QColor(107, 30, 107, 255);break; }
-		case 15: { color = new QColor(50, 127, 127, 255);break; }
-		default: { color = new QColor(50, 50, 255, 255); break; }
+		case 0: { return QColor(241, 70, 57, 255); }
+		case 1: { return QColor(205, 241, 0, 255); }
+		case 2: { return QColor(50, 201, 20, 255); }
+		case 3: { return QColor(107, 241, 231, 255); }
+		case 4: { return QColor(127, 67, 255, 255); }
+		case 5: { return QColor(241, 127, 200, 255); }
+		case 6: { return QColor(170, 212, 170, 255); }
+		case 7: { return QColor(222, 202, 170, 255); }
+		case 8: { return QColor(241, 201, 20, 255); }
+		case 9: { return QColor(80, 80, 80, 255); }
+		case 10: { return QColor(202, 50, 127, 255); }
+		case 11: { return QColor(0, 132, 255, 255); }
+		case 12: { return QColor(102, 127, 37, 255); }
+		case 13: { return QColor(241, 164, 80, 255); }
+		case 14: { return QColor(107, 30, 107, 255); }
+		case 15: { return QColor(50, 127, 127, 255); }
+		default: { return QColor(50, 50, 255, 255); }
 	}
-
-	return color;
 }
 
 MidiChannel::MidiChannel(MidiFile *f, int num){
@@ -76,17 +71,18 @@ MidiChannel::MidiChannel(MidiFile *f, int num){
 	_events = new QMultiMap<int, MidiEvent*>;
 
 	// the color only depends on the number
-	_color = colorByChannelNumber(num);
+	_color = new QColor(colorByChannelNumber(num));
 }
 
-MidiChannel::MidiChannel(MidiChannel &other){
+MidiChannel::MidiChannel(const MidiChannel &other) : ProtocolEntry(other) {
 	_midiFile = other._midiFile;
 	_visible = other._visible;
 	_mute = other._mute;
 	_solo = other._solo;
 	_events = new QMultiMap<int, MidiEvent*>(*(other._events));
-	_color = other._color;
+	//_events->swap(*(other._events));
 	_num = other._num;
+	_color = other._color;
 }
 
 ProtocolEntry *MidiChannel::copy(){
@@ -94,7 +90,7 @@ ProtocolEntry *MidiChannel::copy(){
 }
 
 void MidiChannel::reloadState(ProtocolEntry *entry){
-	MidiChannel *other = dynamic_cast<MidiChannel*>(entry);
+	MidiChannel *other = qobject_cast<MidiChannel*>(entry);
 	if(!other){
 		return;
 	}
@@ -103,9 +99,9 @@ void MidiChannel::reloadState(ProtocolEntry *entry){
 	_mute = other->_mute;
 	_solo = other->_solo;
 	_events = other->_events;
-	_color = other->_color;
+	//_color = other->_color;
 	_num = other->_num;
-
+	_color = other->_color;
 }
 
 MidiFile *MidiChannel::file(){
@@ -153,8 +149,8 @@ QMultiMap<int, MidiEvent*> *MidiChannel::eventMap(){
 	return _events;
 }
 
-QColor *MidiChannel::color(){
-	return _color;
+QColor MidiChannel::color(){
+	return *_color;
 }
 
 NoteOnEvent* MidiChannel::insertNote(int note, int startTick, int endTick,int velocity, MidiTrack *track){
@@ -189,7 +185,7 @@ bool MidiChannel::removeEvent(MidiEvent *event){
 
 	ProtocolEntry *toCopy = copy();
 	_events->remove(event->midiTime(), event);
-	OnEvent *on = dynamic_cast<OnEvent*>(event);
+	OnEvent *on = qobject_cast<OnEvent*>(event);
 	if(on && on->offEvent()){
 		_events->remove(on->offEvent()->midiTime(), on->offEvent());
 	}
@@ -202,10 +198,10 @@ bool MidiChannel::removeEvent(MidiEvent *event){
 }
 
 void MidiChannel::insertEvent(MidiEvent *event, int tick){
-	ProtocolEntry *toCopy = copy();
+	//ProtocolEntry *toCopy = copy();
 	event->setFile(file());
 	event->setMidiTime(tick, false);
-	protocol(toCopy, this);
+	protocol(copy(), this);
 }
 
 void MidiChannel::deleteAllEvents(){
@@ -223,7 +219,7 @@ int MidiChannel::progAtTick(int tick){
 	}
 	if(_events->size() ) {
 		while(it != _events->begin()){
-			ProgChangeEvent *ev = dynamic_cast<ProgChangeEvent*>(it.value());
+			ProgChangeEvent *ev = qobject_cast<ProgChangeEvent*>(it.value());
 			if(ev && it.key()<=tick){
 				return ev->program();
 			}
@@ -233,7 +229,7 @@ int MidiChannel::progAtTick(int tick){
 
 	// default: first
 	foreach(MidiEvent *event, *_events){
-		ProgChangeEvent *ev = dynamic_cast<ProgChangeEvent*>(event);
+		ProgChangeEvent *ev = qobject_cast<ProgChangeEvent*>(event);
 		if(ev){
 			return ev->program();
 		}

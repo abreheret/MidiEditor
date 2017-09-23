@@ -23,6 +23,7 @@
 
 class MatrixWidget;
 class MidiEvent;
+class MidiFile;
 class SelectTool;
 class NoteOnEvent;
 
@@ -34,7 +35,7 @@ class NoteOnEvent;
 #define MOUSE_MODE 2
 
 #define VelocityEditor 0
-#define ControllEditor 1
+#define ControlEditor 1
 #define PitchBendEditor 2
 #define KeyPressureEditor 3
 #define ChannelPressureEditor 4
@@ -45,25 +46,27 @@ class MiscWidget : public PaintWidget {
 	Q_OBJECT
 
 	public:
-		MiscWidget(MatrixWidget *mw, QWidget *parent=0);
+		MiscWidget(MatrixWidget *mw, QWidget *parent = 0);
 
 		static QString modeToString(int mode);
 		void setMode(int mode);
 		void setEditMode(int mode);
+		void setFile(MidiFile *midiFile);
 
 	public slots:
 		void setChannel(int);
 		void setControl(int ctrl);
+		void redraw();
 
 	protected:
-		void paintEvent(QPaintEvent *event);
-		void keyPressEvent(QKeyEvent* e);
-		void keyReleaseEvent(QKeyEvent *event);
+		void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+		void keyPressEvent(QKeyEvent* e) Q_DECL_OVERRIDE;
+		void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
-		void mouseReleaseEvent(QMouseEvent *event);
-		void mousePressEvent(QMouseEvent *event);
-		void leaveEvent(QEvent *event);
-		void mouseMoveEvent(QMouseEvent *event);
+		void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+		void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+		void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
+		void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
 	private:
 		MatrixWidget *matrixWidget;
@@ -79,8 +82,8 @@ class MiscWidget : public PaintWidget {
 		QList<QPair<int, int> > getTrack(QList<MidiEvent*> *accordingEvents = 0);
 		void computeMinMax();
 		QPair<int, int> processEvent(MidiEvent *e, bool *ok);
-		double interpolate(QList<QPair<int, int> > track, int x);
-		int value(double y);
+		qreal interpolate(QList<QPair<qreal, qreal> > track, qreal x);
+		qreal value(double y);
 		bool filter(MidiEvent *e);
 
 		int _max, _default;
@@ -93,12 +96,14 @@ class MiscWidget : public PaintWidget {
 		int trackIndex;
 
 		// free hand
-		QList<QPair<int, int> > freeHandCurve;
+		QList<QPair<qreal, qreal> > freeHandCurve;
 		bool isDrawingFreehand;
 
 		// line
-		int lineX, lineY;
+		qreal lineX, lineY;
 		bool isDrawingLine;
+
+		MidiFile *file;
 };
 
 #endif

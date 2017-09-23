@@ -1,10 +1,11 @@
 #include "GuiSettingsWidget.h"
-#include "MatrixWidget.h"
 
 #include <QLabel>
 #include <QGridLayout>
 #include <QCheckBox>
 #include <QSettings>
+
+#include "MatrixWidget.h"
 #include "../tool/StandardTool.h"
 #include "../tool/NewNoteTool.h"
 
@@ -46,6 +47,7 @@ GuiSettingsWidget::GuiSettingsWidget(QSettings *settings, QWidget *parent) : Set
 
 void GuiSettingsWidget::setAntiAliasing(bool enable) {
 	MatrixWidget::antiAliasingEnabled = enable;
+	QPixmapCache::clear();
 }
 
 void GuiSettingsWidget::setSelectAndMove(bool enable) {

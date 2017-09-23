@@ -24,10 +24,14 @@ ChannelPressureEvent::ChannelPressureEvent(int channel, int value, MidiTrack *tr
 	_value = value;
 }
 
-ChannelPressureEvent::ChannelPressureEvent(ChannelPressureEvent &other) :
+ChannelPressureEvent::ChannelPressureEvent(const ChannelPressureEvent &other) :
 		MidiEvent(other)
 {
 	_value = other._value;
+}
+
+MidiEvent::EventType ChannelPressureEvent::type() const {
+	return ChannelPressureEventType;
 }
 
 int ChannelPressureEvent::line(){
@@ -38,10 +42,10 @@ QString ChannelPressureEvent::toMessage(){
 	return "";
 }
 
-QByteArray ChannelPressureEvent::save(){
+QByteArray ChannelPressureEvent::save() {
 	QByteArray array = QByteArray();
-	array.append(0xD0 | channel());
-	array.append(_value);
+	array.append(0xD0 | qint8(channel()));
+	array.append(qint8(_value));
 	return array;
 }
 
@@ -50,7 +54,7 @@ ProtocolEntry *ChannelPressureEvent::copy(){
 }
 
 void ChannelPressureEvent::reloadState(ProtocolEntry *entry){
-	ChannelPressureEvent *other = dynamic_cast<ChannelPressureEvent*>(entry);
+	ChannelPressureEvent *other = qobject_cast<ChannelPressureEvent*>(entry);
 	if(!other){
 		return;
 	}

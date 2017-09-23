@@ -41,6 +41,8 @@ class MainWindow;
  */
 class EditorTool : public Tool {
 
+	Q_OBJECT
+
 	public:
 
 		/**
@@ -52,6 +54,8 @@ class EditorTool : public Tool {
 		 * \brief creates a new EditorTool copying &other.
 		 */
 		EditorTool(EditorTool &other);
+
+		Tool::ToolType type() const Q_DECL_OVERRIDE;
 
 		/**
 		 * \brief draws the EditorTools data to painter.
@@ -110,7 +114,7 @@ class EditorTool : public Tool {
 		 * Returns wether the Widget has to be repainted after the Tools
 		 * action
 		 */
-		virtual bool move(int mouseX, int mouseY);
+		virtual bool move(qreal mouseX, qreal mouseY);
 
 		/**
 		 * \brief this method is called when the mouse has exited the Widget.
@@ -136,21 +140,21 @@ class EditorTool : public Tool {
 		 */
 		void select();
 
-		bool selected();
+		bool selected() Q_DECL_OVERRIDE;
 
-		virtual void buttonClick();
+		virtual void buttonClick() Q_DECL_OVERRIDE;
 
-		virtual ProtocolEntry *copy();
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
 
-		virtual void reloadState(ProtocolEntry *entry);
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 		static void setMatrixWidget(MatrixWidget *w);
 		static void setMainWindow(MainWindow *mw);
 
-		bool pointInRect(int x, int y,  int x_start, int y_start, int x_end, int y_end);
+		bool pointInRect(qreal x, qreal y,  qreal x_start, qreal y_start, qreal x_end, qreal y_end);
 
 	protected:
 		bool etool_selected;
-		int mouseX, mouseY;
+		qreal mouseX, mouseY;
 		bool mouseIn;
 		static MatrixWidget *matrixWidget;
 		static MainWindow *_mainWindow;

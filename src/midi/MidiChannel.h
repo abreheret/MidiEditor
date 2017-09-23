@@ -53,6 +53,8 @@ class NoteOnEvent;
  */
 class MidiChannel : public ProtocolEntry {
 
+	Q_OBJECT
+
 	public:
 
 		/**
@@ -65,12 +67,12 @@ class MidiChannel : public ProtocolEntry {
 		/**
 		 * \brief creates a copy of other.
 		 */
-		MidiChannel(MidiChannel &other);
+		MidiChannel(const MidiChannel &other);
 
 		/**
 		 * \brief returns the channels file.
 		 */
-		MidiFile *file();
+		MidiFile *file() Q_DECL_OVERRIDE;
 
 		/**
 		 * \brief returns the channels number.
@@ -85,7 +87,7 @@ class MidiChannel : public ProtocolEntry {
 		 *
 		 * The color only depends on the channel number.
 		 */
-		QColor *color();
+		QColor color();
 
 		/**
 		 * \brief returns the eventMap of the channel.
@@ -155,15 +157,15 @@ class MidiChannel : public ProtocolEntry {
 		/**
 		 * \brief returns the color of the channel with the given number.
 		 */
-		static QColor *colorByChannelNumber(int number);
+		static QColor colorByChannelNumber(int number);
 
 		/*
 		 * The following methods reimplement methods from the superclass
 		 * ProtocolEntry
 		 */
-		ProtocolEntry *copy();
+		ProtocolEntry *copy() Q_DECL_OVERRIDE;
 
-		void reloadState(ProtocolEntry *entry);
+		void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
 	protected:
 

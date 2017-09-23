@@ -25,24 +25,27 @@ class OffEvent;
 
 class NoteOnEvent : public OnEvent{
 
+	Q_OBJECT
+
 	public:
 		NoteOnEvent(int note, int velocity, int ch, MidiTrack *track);
-		NoteOnEvent(NoteOnEvent &other);
+		NoteOnEvent(const NoteOnEvent &other);
+		MidiEvent::EventType type() const Q_DECL_OVERRIDE;
 
 		int note();
 		int velocity();
-		int line();
+		int line() Q_DECL_OVERRIDE;
 
 		void setNote(int n);
 		void setVelocity(int v);
-		virtual ProtocolEntry *copy();
-		virtual void reloadState(ProtocolEntry *entry);
-		QString toMessage();
-		QString offEventMessage();
-		QByteArray save();
-		QByteArray saveOffEvent();
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
+		QString toMessage() Q_DECL_OVERRIDE;
+		QString offEventMessage() Q_DECL_OVERRIDE;
+		QByteArray save() Q_DECL_OVERRIDE;
+		QByteArray saveOffEvent() Q_DECL_OVERRIDE;
 
-		QString typeString();
+		QString typeString() Q_DECL_OVERRIDE;
 
 	protected:
 		int _note, _velocity;

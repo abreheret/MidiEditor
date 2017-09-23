@@ -23,23 +23,26 @@
 
 class PitchBendEvent : public MidiEvent {
 
+	Q_OBJECT
+
 	public:
 		PitchBendEvent(int channel, int val, MidiTrack *track);
-		PitchBendEvent(PitchBendEvent &other);
+		PitchBendEvent(const PitchBendEvent &other);
+		MidiEvent::EventType type() const Q_DECL_OVERRIDE;
 
-		virtual int line();
+		virtual int line() Q_DECL_OVERRIDE;
 		int value();
 		void setValue(int v);
 
-		QString toMessage();
-		QByteArray save();
+		QString toMessage() Q_DECL_OVERRIDE;
+		QByteArray save() Q_DECL_OVERRIDE;
 
-		virtual ProtocolEntry *copy();
-		virtual void reloadState(ProtocolEntry *entry);
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
-		QString typeString();
+		QString typeString() Q_DECL_OVERRIDE;
 
-		virtual bool isOnEvent();
+		virtual bool isOnEvent() Q_DECL_OVERRIDE;
 	private:
 		int _value;
 };

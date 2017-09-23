@@ -26,10 +26,14 @@ PitchBendEvent::PitchBendEvent(int channel, int value, MidiTrack *track) :
 	_value = value;
 }
 
-PitchBendEvent::PitchBendEvent(PitchBendEvent &other) :
+PitchBendEvent::PitchBendEvent(const PitchBendEvent &other) :
 		MidiEvent(other)
 {
 	_value = other._value;
+}
+
+MidiEvent::EventType PitchBendEvent::type() const {
+	return PitchBendEventType;
 }
 
 int PitchBendEvent::line(){
@@ -43,9 +47,9 @@ QString PitchBendEvent::toMessage(){
 
 QByteArray PitchBendEvent::save(){
 	QByteArray array = QByteArray();
-	array.append(0xE0 | channel());
-	array.append(_value & 0x7F);
-	array.append((_value >> 7) & 0x7F);
+	array.append(0xE0 | qint8(channel()));
+	array.append(qint8(_value) & 0x7F);
+	array.append((qint8(_value) >> 7) & 0x7F);
 	return array;
 }
 
@@ -54,7 +58,7 @@ ProtocolEntry *PitchBendEvent::copy(){
 }
 
 void PitchBendEvent::reloadState(ProtocolEntry *entry){
-	PitchBendEvent *other = dynamic_cast<PitchBendEvent*>(entry);
+	PitchBendEvent *other = qobject_cast<PitchBendEvent*>(entry);
 	if(!other){
 		return;
 	}

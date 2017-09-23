@@ -43,6 +43,10 @@
 #include <QScrollArea>
 #include <QMimeData>
 
+//#ifdef Q_OS_MAC
+#include <QtMacExtras>
+//#endif
+
 #include "DonateDialog.h"
 #include "AboutDialog.h"
 #include "FileLengthDialog.h"
@@ -58,6 +62,8 @@
 #include "InstrumentChooser.h"
 #include "SettingsDialog.h"
 #include "NToleQuantizationDialog.h"
+#include "TimelineWidget.h"
+#include "PianoWidget.h"
 
 #include "../tool/Tool.h"
 #include "../tool/SelectTool.h"
@@ -117,10 +123,13 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	QString ip = _settings->value("udp_client_ip", "").toString();
 #endif
 	bool alternativeStop = _settings->value("alt_stop", false).toBool();
-	MidiOutput::isAlternativePlayer = alternativeStop;
+	MidiOutput::setAlternativePlayer(alternativeStop);
 
 	bool antiAliasing = _settings->value("antialiasing", true).toBool();
 	MatrixWidget::antiAliasingEnabled = antiAliasing;
+	if (!QApplication::arguments().contains("--no-antialiasing")) {
+		MatrixWidget::antiAliasingEnabled = false;
+	}
 
 	bool velocityDragging = _settings->value("velocity_dragging", false).toBool();
 	NewNoteTool::enableVelocityDragging = velocityDragging;
@@ -135,10 +144,11 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	bool magnet = _settings->value("magnet", false).toBool();
 	EventTool::enableMagnet(magnet);
 
+	bool metronomeEnabled = _settings->value("metronome", false).toBool();
 
 
-	MidiInput::setThruEnabled(_settings->value("thru", false).toBool());
-	Metronome::setEnabled(_settings->value("metronome", false).toBool());
+	MidiInput::instance()->setThruEnabled(_settings->value("thru", false).toBool());
+	Metronome::setEnabled(metronomeEnabled);
 
 #ifdef ENABLE_REMOTE
 	 _remoteServer = new RemoteServer();
@@ -153,13 +163,13 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	connect(_remoteServer, SIGNAL(forwardRequest()), this, SLOT(forward()));
 	connect(_remoteServer, SIGNAL(pauseRequest()), this, SLOT(pause()));
 
-	connect(MidiPlayer::playerThread(),
+	connect(MidiPlayer::player(),
 			SIGNAL(timeMsChanged(int)), _remoteServer, SLOT(setTime(int)));
-	connect(MidiPlayer::playerThread(),
+	connect(MidiPlayer::player(),
 			SIGNAL(meterChanged(int, int)), _remoteServer, SLOT(setMeter(int, int)));
-	connect(MidiPlayer::playerThread(),
+	connect(MidiPlayer::player(),
 			SIGNAL(tonalityChanged(int)), _remoteServer, SLOT(setTonality(int)));
-	connect(MidiPlayer::playerThread(),
+	connect(MidiPlayer::player(),
 			SIGNAL(measureChanged(int, int)), _remoteServer, SLOT(setMeasure(int)));
 
 #endif
@@ -168,17 +178,7 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	connect(UpdateManager::instance(), SIGNAL(updateDetected(Update*)), this, SLOT(updateDetected(Update*)));
 	_quantizationGrid = _settings->value("quantization", 3).toInt();
 
-	// metronome
-	connect(MidiPlayer::playerThread(),
-			SIGNAL(measureChanged(int, int)), Metronome::instance(), SLOT(measureUpdate(int, int)));
-	connect(MidiPlayer::playerThread(),
-			SIGNAL(measureUpdate(int,int)), Metronome::instance(), SLOT(measureUpdate(int, int)));
-	connect(MidiPlayer::playerThread(),
-			SIGNAL(meterChanged(int, int)), Metronome::instance(), SLOT(meterChanged(int, int)));
-	connect(MidiPlayer::playerThread(),
-			SIGNAL(playerStopped()), Metronome::instance(), SLOT(playbackStopped()));
-	connect(MidiPlayer::playerThread(),
-			SIGNAL(playerStarted()), Metronome::instance(), SLOT(playbackStarted()));
+
 
 	startDirectory = QDir::homePath();
 
@@ -193,7 +193,7 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 
 	EditorTool::setMainWindow(this);
 
-	setWindowTitle(QApplication::applicationName()+" "+QApplication::applicationVersion());
+	setWindowTitle(QApplication::applicationName());
 	setWindowIcon(QIcon(":/run_environment/graphics/icon.png"));
 
 	QWidget *central = new QWidget(this);
@@ -230,22 +230,79 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	rightSplitter->addWidget(lowerTabWidget);
 
 	// MatrixArea
-	QWidget *matrixArea = new QWidget(leftSplitter);
-	leftSplitter->addWidget(matrixArea);
-	matrixArea->setContentsMargins(0,0,0,0);
-	mw_matrixWidget = new MatrixWidget(matrixArea);
-	vert = new QScrollBar(Qt::Vertical, matrixArea);
-	QGridLayout *matrixAreaLayout = new QGridLayout(matrixArea);
-	matrixAreaLayout->setHorizontalSpacing(6);
-	QWidget *placeholder0 = new QWidget(matrixArea);
-	placeholder0->setFixedHeight(50);
-	matrixAreaLayout->setContentsMargins(0,0,0,0);
-	matrixAreaLayout->addWidget(mw_matrixWidget, 0, 0, 2, 1);
-	matrixAreaLayout->addWidget(placeholder0, 0, 1, 1, 1);
-	matrixAreaLayout->addWidget(vert, 1, 1, 1, 1);
-	matrixAreaLayout->setColumnStretch(0, 1);
-	matrixArea->setLayout(matrixAreaLayout);
+	//QWidget *matrixAreaParent = new QWidget(leftSplitter);
+	//QGridLayout *matrixAreaParentLayout = new QGridLayout(matrixAreaParent);
+	QWidget *matrixAreaContainer = new QWidget(leftSplitter);
+	QGridLayout *matrixAreaLayout = new QGridLayout(matrixAreaContainer);
+	matrixAreaLayout->setSpacing(0);
+	matrixArea = new QScrollArea(matrixAreaContainer);
+	//matrixAreaParentLayout->addWidget(matrixArea, 0, 0, 0 ,0);
+	//matrixArea->setVisible(false);
 
+	matrixArea->setContentsMargins(0,0,0,0);
+	matrixArea->setWidgetResizable(true);
+
+
+	//matrixAreaLayout->setHorizontalSpacing(6);
+	timelineArea = new QScrollArea(matrixAreaContainer);
+	timelineArea->setFixedHeight(50);
+	timelineArea->setWidgetResizable(true);
+	timelineArea->setContentsMargins(0, 0, 0, 0);
+	QScrollBar *timelineScrollBar = timelineArea->horizontalScrollBar();
+	timelineArea->verticalScrollBar()->hide();
+	timelineScrollBar->hide();
+
+	pianoArea = new QScrollArea(matrixAreaContainer);
+	pianoArea->setContentsMargins(0, 0, 0, 0);
+	pianoArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	timelineArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	QScrollBar *pianoScrollBar = pianoArea->verticalScrollBar();
+	pianoScrollBar->hide();
+	pianoArea->horizontalScrollBar()->hide();
+	timelineScrollBar->setStyleSheet("QScrollBar {height:0px;}");
+	pianoScrollBar->setStyleSheet("QScrollBar {width:0px;}");
+	pianoArea->setWidgetResizable(true);
+	pianoArea->setFixedWidth(110);
+	pianoArea->setMinimumHeight(1);
+
+	mw_matrixWidget = new MatrixWidget(matrixArea);
+	mw_timelineWidget = new TimelineWidget(timelineArea);
+	mw_timelineWidget->setFixedHeight(50);
+	mw_timelineWidget->setMinimumWidth(50);
+	pianoArea->setBackgroundRole(QPalette::Dark);
+	mw_pianoWidget = new PianoWidget(pianoArea);
+	mw_pianoWidget->setFixedWidth(110);
+	mw_pianoWidget->setMinimumHeight(1);
+
+	matrixAreaLayout->setContentsMargins(0,0,0,0);
+	matrixAreaLayout->addWidget(matrixArea, 1, 1, 2, 2);
+	matrixAreaLayout->addWidget(timelineArea, 0, 1, 1, 2);
+	matrixAreaLayout->addWidget(pianoArea, 1, 0, 2, 1);
+
+	matrixAreaLayout->setColumnStretch(0, 1);
+	matrixAreaContainer->setLayout(matrixAreaLayout);
+	//mw_matrixWidget->setFixedHeight(1529);
+	//mw_matrixWidget->setFixedWidth(1529);
+	mw_matrixWidget->setMinimumSize(QSize(150,150));
+	matrixArea->setWidget(mw_matrixWidget);
+
+
+	timelineArea->setWidget(mw_timelineWidget);
+	pianoArea->setWidget(mw_pianoWidget);
+	matrixArea->setFrameShape(QFrame::NoFrame);
+	pianoArea->setFrameShape(QFrame::NoFrame);
+	timelineArea->setFrameShape(QFrame::NoFrame);
+
+	//timelineArea->verticalScrollBar()->setEnabled(false);
+	//timelineArea->horizontalScrollBar()->setEnabled(false);
+	vert = matrixArea->verticalScrollBar();//new QScrollBar(Qt::Vertical, matrixArea);
+	hori = matrixArea->horizontalScrollBar();
+
+	//mw_matrixWidget->show();
+	//matrixArea->setVisible(true);
+	leftSplitter->addWidget(matrixAreaContainer);
+	mw_pianoWidget->setMatrixWidget(mw_matrixWidget);
+	mw_timelineWidget->setMatrixWidget(mw_matrixWidget);
 	bool screenLocked = _settings->value("screen_locked", false).toBool();
 	mw_matrixWidget->setScreenLocked(screenLocked);
 	int div = _settings->value("div", 2).toInt();
@@ -255,9 +312,9 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	QWidget *velocityArea = new QWidget(leftSplitter);
 	velocityArea->setContentsMargins(0,0,0,0);
 	leftSplitter->addWidget(velocityArea);
-	hori = new QScrollBar(Qt::Horizontal, velocityArea);
-	hori->setSingleStep(500);
-	hori->setPageStep(5000);
+	//new QScrollBar(Qt::Horizontal, velocityArea);
+	//hori->setSingleStep(500);
+	//hori->setPageStep(5000);
 	QGridLayout *velocityAreaLayout = new QGridLayout(velocityArea);
 	velocityAreaLayout->setContentsMargins(0,0,0,0);
 	velocityAreaLayout->setHorizontalSpacing(6);
@@ -267,17 +324,36 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	velocityAreaLayout->addWidget(_miscWidgetControl, 0,0,1,1);
 	// there is a Scrollbar on the right side of the velocityWidget doing
 	// nothing but making the VelocityWidget as big as the matrixWidget
-	QScrollBar *scrollNothing = new QScrollBar(Qt::Vertical, velocityArea);
-	scrollNothing->setMinimum(0);
-	scrollNothing->setMaximum(0);
-	velocityAreaLayout->addWidget(scrollNothing, 0,2,1,1);
-	velocityAreaLayout->addWidget(hori, 1, 1, 1, 1);
+
+	//velocityAreaLayout->addWidget(hori, 1, 1, 1, 1);
 	velocityAreaLayout->setRowStretch(0, 1);
 	velocityArea->setLayout(velocityAreaLayout);
+	miscArea = new QScrollArea(velocityArea);
+	miscArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	miscArea->setWidgetResizable(true);
+	miscArea->setContentsMargins(0, 0, 0, 0);
+	miscArea->setMinimumWidth(100);
+	miscArea->setFrameShape(QFrame::NoFrame);
+	velocityAreaLayout->addWidget(miscArea, 0, 1, 1, 1);
 
-	_miscWidget = new MiscWidget(mw_matrixWidget, velocityArea);
+	_miscWidget = new MiscWidget(mw_matrixWidget, miscArea);
 	_miscWidget->setContentsMargins(0,0,0,0);
-	velocityAreaLayout->addWidget(_miscWidget, 0, 1, 1, 1);
+	miscArea->setWidget(_miscWidget);
+
+	QScrollBar *miscScrollBar = miscArea->horizontalScrollBar();
+	miscScrollBar->hide();
+	miscScrollBar->setStyleSheet("QScrollBar {height:0px;}");
+
+	// Sync the scroll bars.
+	// Until we can make a magical QScrollArea that will show what we want,
+	// this is what we are stuck with.
+	connect(hori, SIGNAL(valueChanged(int)), timelineScrollBar, SLOT(setValue(int)));
+	connect(timelineScrollBar, SIGNAL(valueChanged(int)), hori, SLOT(setValue(int)));
+	connect(vert, SIGNAL(valueChanged(int)), pianoScrollBar, SLOT(setValue(int)));
+	connect(pianoScrollBar, SIGNAL(valueChanged(int)), vert, SLOT(setValue(int)));
+	connect(hori, SIGNAL(valueChanged(int)), miscScrollBar, SLOT(setValue(int)));
+	connect(miscScrollBar, SIGNAL(valueChanged(int)), hori, SLOT(setValue(int)));
+
 
 	// controls for velocity widget
 	_miscControlLayout = new QGridLayout(_miscWidgetControl);
@@ -349,6 +425,9 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	tracks->setLayout(tracksLayout);
 	QToolBar *tracksTB = new QToolBar(tracks);
 	tracksTB->setIconSize(QSize(20, 20));
+	// macOS hack to remove gradient
+	tracksTB->setStyleSheet("QToolBar { border: none; }");
+
 	tracksLayout->addWidget(tracksTB, 0, 0, 1, 1);
 
 	QAction *newTrack = new QAction("Add track", this);
@@ -399,6 +478,7 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	channels->setLayout(channelsLayout);
 	QToolBar *channelsTB = new QToolBar(channels);
 	channelsTB->setIconSize(QSize(20, 20));
+	channelsTB->setStyleSheet("QToolBar { border: none; }");
 	channelsLayout->addWidget(channelsTB, 0, 0, 1, 1);
 
 	_allChannelsAudible = new QAction("All channels audible", this);
@@ -466,30 +546,29 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	chooserLayout->addWidget(_chooseEditTrack, 1, 1, 1, 1);
 	connect(_chooseEditTrack, SIGNAL(activated(int)), this, SLOT(editTrack(int)));
 	chooserLayout->setColumnStretch(1, 1);
-	// connect Scrollbars and Widgets
-	connect(vert, SIGNAL(valueChanged(int)), mw_matrixWidget,
-			SLOT(scrollYChanged(int)));
-	connect(hori, SIGNAL(valueChanged(int)), mw_matrixWidget,
-			SLOT(scrollXChanged(int)));
 
 	connect(channelWidget, SIGNAL(channelStateChanged()), mw_matrixWidget,
 			SLOT(repaint()));
-	connect(mw_matrixWidget, SIGNAL(sizeChanged(int, int, int, int)), this,
-			SLOT(matrixSizeChanged(int, int, int, int)));
+	connect(mw_matrixWidget, SIGNAL(sizeChanged(int, double, int, double)), this,
+			SLOT(matrixSizeChanged(int, double, int, double)));
 
-	connect(mw_matrixWidget, SIGNAL(scrollChanged(int, int, int, int)), this,
-			SLOT(scrollPositionsChanged(int, int, int, int)));
+	connect(mw_matrixWidget, SIGNAL(scrollChanged(int, int)), this,
+			SLOT(scrollPositionsChanged(int, int)));
 
 	setCentralWidget(central);
-
-	QWidget *buttons = setupActions(central);
-
+//#ifdef Q_OS_MAC
+	//setupMacActions();
+//#else
+	QToolBar *buttons = setupActions(this);
+	addToolBar(buttons);
+//#endif
 	rightSplitter->setStretchFactor(0, 5);
 	rightSplitter->setStretchFactor(1, 5);
 
 	// Add the Widgets to the central Layout
 	centralLayout->setSpacing(0);
-	centralLayout->addWidget(buttons,0,0);
+	//centralLayout->addWidget(buttons,0,0);
+
 	centralLayout->addWidget(mainSplitter,1,0);
 	centralLayout->setRowStretch(1, 1);
 	central->setLayout(centralLayout);
@@ -550,19 +629,15 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *ev)
 	ev->accept();
 }
 
-void MainWindow::scrollPositionsChanged(int startMs,int maxMs,int startLine,
-		int maxLine)
+void MainWindow::scrollPositionsChanged(int x,int y)
 {
-	hori->setMaximum(maxMs);
-	hori->setValue(startMs);
-	vert->setMaximum(maxLine);
-	vert->setValue(startLine);
+	matrixArea->ensureVisible(x, y, 50, 0);
 }
 
 void MainWindow::setFile(MidiFile *file){
 
 	EventTool::clearSelection();
-	Selection::setFile(file);
+	Selection::instance()->setFile(file);
 	Metronome::instance()->setFile(file);
 	protocolWidget->setFile(file);
 	channelWidget->setFile(file);
@@ -575,32 +650,39 @@ void MainWindow::setFile(MidiFile *file){
 	Tool::setFile(file);
 	this->file = file;
 	connect(file, SIGNAL(trackChanged()), this, SLOT(updateTrackMenu()));
-	setWindowTitle(QApplication::applicationName()+" - " +file->path()+"[*]");
+	//setWindowTitle(QApplication::applicationName());
+	setWindowFilePath(file->path());
+	markEdited(false);
 	connect(file,SIGNAL(cursorPositionChanged()),channelWidget,SLOT(update()));
 	connect(file,SIGNAL(recalcWidgetSize()),mw_matrixWidget,SLOT(calcSizes()));
 	connect(file->protocol(), SIGNAL(fileModified(bool)), this, SLOT(markEdited(bool)));
 	connect(file->protocol(), SIGNAL(actionFinished()), eventWidget(), SLOT(reload()));
 	connect(file->protocol(), SIGNAL(actionFinished()), this, SLOT(checkEnableActionsForSelection()));
 	mw_matrixWidget->setFile(file);
+	mw_timelineWidget->setFile(file);
+	mw_pianoWidget->setFile(file);
+	_miscWidget->setFile(file);
 	updateChannelMenu();
 	updateTrackMenu();
 	mw_matrixWidget->update();
-	_miscWidget->update();
+	mw_timelineWidget->update();
+	mw_pianoWidget->update();
+	_miscWidget->redraw();
 	checkEnableActionsForSelection();
 }
 
-void MainWindow::matrixSizeChanged(int maxScrollTime, int maxScrollLine,
-		int vX, int vY)
+void MainWindow::matrixSizeChanged(int maxScrollTime, double maxScrollLine,
+		int vX, double vY)
 {
-	vert->setMaximum(maxScrollLine);
+	vert->setMaximum(qRound(maxScrollLine));
 	hori->setMaximum(maxScrollTime);
-	vert->setValue(vY);
+	vert->setValue(qRound(vY));
 	hori->setValue(vX);
-	mw_matrixWidget->repaint();
+	//mw_matrixWidget->repaint();
 }
 
 void MainWindow::playStop() {
-	if (MidiPlayer::isPlaying()) {
+	if (MidiPlayer::instance()->isPlaying()) {
 		stop();
 	} else {
 		play();
@@ -610,10 +692,10 @@ void MainWindow::playStop() {
 void MainWindow::play(){
 	// warn if there is no output port
 	if (_settings->value("output_port", "").toString() == ""
-			&& MidiOutput::outputPort() == "" &&
+			&& MidiOutput::instance()->outputPort() == "" &&
 			!_settings->value("ignore_empty_port", false).toBool()) {
 		QMessageBox *emptyOutputWarning = new QMessageBox(this);
-		emptyOutputWarning->setModal(true);
+		emptyOutputWarning->setWindowModality(Qt::WindowModal);
 		emptyOutputWarning->setText("There is no MIDI output selected. Would you like to open the settings to set one?");
 		emptyOutputWarning->setInformativeText( "Without an output port, playback will not work. "
 												"To select an output port, select \"Yes\" and check an output device in the left column.\n\n"
@@ -627,7 +709,8 @@ void MainWindow::play(){
 											"for instructions.");
 #else
 #ifdef Q_OS_UNIX
-		emptyOutputWarning->setDetailedText("On Unix-based systems, ")
+		// more info in the future
+		emptyOutputWarning->setDetailedText("On Unix-based systems, check your package manager for ALSA, Jack, or Fluidsynth.");
 #endif
 #ifdef Q_OS_WIN
 		emptyOutputWarning->setDetailedText("On Windows, the default \"Microsoft GS Wavetable Synth\" has some compatibility issues with some MIDI effects.\n\n"
@@ -652,7 +735,7 @@ void MainWindow::play(){
 				break;
 		}
 	}
-	if(file && !MidiInput::recording() && !MidiPlayer::isPlaying()){
+	if(file && !MidiInput::instance()->recording() && !MidiPlayer::instance()->isPlaying()){
 		mw_matrixWidget->timeMsChanged(file->msOfTick(file->cursorTick()), true);
 
 		_miscWidget->setEnabled(false);
@@ -662,12 +745,12 @@ void MainWindow::play(){
 		_trackWidget->setEnabled(false);
 		eventWidget()->setEnabled(false);
 
-		MidiPlayer::play(file);
-		connect(MidiPlayer::playerThread(),
+		MidiPlayer::instance()->play(file);
+		connect(MidiPlayer::player(),
 				SIGNAL(playerStopped()), this,	SLOT(stop()));
 
-		#ifdef __WINDOWS_MM__
-		connect(MidiPlayer::playerThread(),
+		#ifdef Q_OS_WIN32
+		connect(MidiPlayer::player(),
 				SIGNAL(timeMsChanged(int)), mw_matrixWidget, SLOT(timeMsChanged(int)));
 		#endif
 #ifdef ENABLE_REMOTE
@@ -680,7 +763,7 @@ void MainWindow::play(){
 void MainWindow::record(){
 	// warn if there is no input port selected
 	if (_settings->value("input_port", "").toString() == "" &&
-			MidiOutput::outputPort() == "" &&
+			MidiOutput::instance()->outputPort() == "" &&
 			!_settings->value("ignore_empty_port", false).toBool()) {
 		QMessageBox *emptyOutputWarning = new QMessageBox(this);
 		emptyOutputWarning->setModal(true);
@@ -708,7 +791,7 @@ void MainWindow::record(){
 		newFile();
 	}
 
-	if(!MidiInput::recording() && !MidiPlayer::isPlaying()){
+	if(!MidiInput::instance()->recording() && !MidiPlayer::instance()->isPlaying()){
 		// play current file
 		if(file){
 
@@ -728,12 +811,12 @@ void MainWindow::record(){
 #ifdef ENABLE_REMOTE
 			_remoteServer->record();
 #endif
-			MidiPlayer::play(file);
-			MidiInput::startInput();
-			connect(MidiPlayer::playerThread(),
+			MidiPlayer::instance()->play(file);
+			MidiInput::instance()->startInput();
+			connect(MidiPlayer::player(),
 					SIGNAL(playerStopped()), this,	SLOT(stop()));
-			#ifdef __WINDOWS_MM__
-			connect(MidiPlayer::playerThread(),
+			#ifdef Q_OS_WIN32
+			connect(MidiPlayer::player(),
 					SIGNAL(timeMsChanged(int)), mw_matrixWidget, SLOT(timeMsChanged(int)));
 			#endif
 		}
@@ -743,8 +826,8 @@ void MainWindow::record(){
 
 void MainWindow::pause(){
 	if(file){
-		if(MidiPlayer::isPlaying()){
-			file->setPauseTick(file->tick(MidiPlayer::timeMs()));
+		if(MidiPlayer::instance()->isPlaying()){
+			file->setPauseTick(file->tick(MidiPlayer::instance()->timeMs()));
 			stop(false, false, false);
 		}
 	}
@@ -756,7 +839,7 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		return;
 	}
 
-	disconnect(MidiPlayer::playerThread(),
+	disconnect(MidiPlayer::player(),
 			SIGNAL(playerStopped()), this,	SLOT(stop()));
 
 
@@ -764,15 +847,15 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		file->setPauseTick(-1);
 		mw_matrixWidget->update();
 	}
-	if(!MidiInput::recording() && MidiPlayer::isPlaying()){
-		MidiPlayer::stop();
+	if(!MidiInput::instance()->recording() && MidiPlayer::instance()->isPlaying()){
+		MidiPlayer::instance()->stop();
 		_miscWidget->setEnabled(true);
 		channelWidget->setEnabled(true);
 		_trackWidget->setEnabled(true);
 		protocolWidget->setEnabled(true);
 		mw_matrixWidget->setEnabled(true);
 		eventWidget()->setEnabled(true);
-		mw_matrixWidget->timeMsChanged(MidiPlayer::timeMs(), true);
+		mw_matrixWidget->timeMsChanged(MidiPlayer::instance()->timeMs(), true);
 		_trackWidget->setEnabled(true);
 #ifdef ENABLE_REMOTE
 		_remoteServer->stop();
@@ -785,8 +868,8 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 		return;
 	}
 
-	if(MidiInput::recording()){
-		MidiPlayer::stop();
+	if(MidiInput::instance()->recording()){
+		MidiPlayer::instance()->stop();
 		panic();
 		_miscWidget->setEnabled(true);
 		channelWidget->setEnabled(true);
@@ -797,7 +880,7 @@ void MainWindow::stop(bool autoConfirmRecord, bool addEvents, bool resetPause){
 #ifdef ENABLE_REMOTE
 		_remoteServer->stop();
 #endif
-		QMultiMap<int, MidiEvent*> events = MidiInput::endInput(track);
+		QMultiMap<int, MidiEvent*> events = MidiInput::instance()->endInput(track);
 
 		if(events.isEmpty() && !autoConfirmRecord){
 			QMessageBox::information(this, "Information", "No events recorded.");
@@ -824,8 +907,8 @@ void MainWindow::forward(){
 	if(file->pauseTick() >= 0){
 		oldTick = file->pauseTick();
 	}
-	if(MidiPlayer::isPlaying() && !MidiInput::recording()){
-		oldTick = file->tick(MidiPlayer::timeMs());
+	if(MidiPlayer::instance()->isPlaying() && !MidiInput::instance()->recording()){
+		oldTick = file->tick(MidiPlayer::instance()->timeMs());
 		stop(true);
 	}
 	file->measure(oldTick, oldTick, &eventlist, &ticksleft);
@@ -837,6 +920,7 @@ void MainWindow::forward(){
 		mw_matrixWidget->timeMsChanged(file->msOfTick(newTick), true);
 	}
 	mw_matrixWidget->update();
+	mw_timelineWidget->update();
 }
 
 void MainWindow::back(){
@@ -848,8 +932,8 @@ void MainWindow::back(){
 	if(file->pauseTick() >= 0){
 		oldTick = file->pauseTick();
 	}
-	if(MidiPlayer::isPlaying() && !MidiInput::recording()){
-		oldTick = file->tick(MidiPlayer::timeMs());
+	if(MidiPlayer::instance()->isPlaying() && !MidiInput::instance()->recording()){
+		oldTick = file->tick(MidiPlayer::instance()->timeMs());
 		stop(true);
 	}
 	file->measure(oldTick, oldTick, &eventlist, &ticksleft);
@@ -869,6 +953,7 @@ void MainWindow::back(){
 		mw_matrixWidget->timeMsChanged(file->msOfTick(newTick), true);
 	}
 	mw_matrixWidget->update();
+	mw_timelineWidget->update();
 }
 
 void MainWindow::backToBegin(){
@@ -878,6 +963,7 @@ void MainWindow::backToBegin(){
 	file->setCursorTick(0);
 
 	mw_matrixWidget->update();
+	mw_timelineWidget->update();
 }
 
 void MainWindow::save(){
@@ -1070,6 +1156,7 @@ void MainWindow::openFile(QString filePath){
 		updateRecentPathsList();
 	} else {
 		QMessageBox::warning(this, "Error", QString("The file is damaged and cannot be opened. "));
+		delete mf;
 	}
 }
 
@@ -1163,11 +1250,11 @@ void MainWindow::closeEvent(QCloseEvent *event){
 	// stop any playback
 	stop();
 
-	if(MidiOutput::outputPort() != ""){
-		_settings->setValue("out_port", MidiOutput::outputPort());
+	if(MidiOutput::instance()->outputPort() != ""){
+		_settings->setValue("out_port", MidiOutput::instance()->outputPort());
 	}
-	if(MidiInput::inputPort() != ""){
-		_settings->setValue("in_port", MidiInput::inputPort());
+	if(MidiInput::instance()->inputPort() != ""){
+		_settings->setValue("in_port", MidiInput::instance()->inputPort());
 	}
 #ifdef ENABLE_REMOTE
 	if(_remoteServer->clientIp() != ""){
@@ -1185,7 +1272,7 @@ void MainWindow::closeEvent(QCloseEvent *event){
 
 	// save the current Path
 	_settings->setValue("open_path", startDirectory);
-	_settings->setValue("alt_stop", MidiOutput::isAlternativePlayer);
+	_settings->setValue("alt_stop", MidiOutput::isAlternativePlayer());
 	_settings->setValue("ticks_per_quarter", MidiFile::defaultTimePerQuarter);
 	_settings->setValue("screen_locked", mw_matrixWidget->screenLocked());
 	_settings->setValue("magnet", EventTool::magnetEnabled());
@@ -1196,7 +1283,7 @@ void MainWindow::closeEvent(QCloseEvent *event){
 	_settings->setValue("colors_from_channel", mw_matrixWidget->colorsByChannel());
 
 	_settings->setValue("metronome", Metronome::enabled());
-	_settings->setValue("thru", MidiInput::thru());
+	_settings->setValue("thru", MidiInput::instance()->thru());
 	_settings->setValue("quantization", _quantizationGrid);
 
 	_settings->setValue("auto_update", UpdateManager::autoCheckForUpdates());
@@ -1270,7 +1357,7 @@ void MainWindow::newFile(){
 }
 
 void MainWindow::panic(){
-	MidiPlayer::panic();
+	MidiPlayer::instance()->panic();
 }
 
 void MainWindow::screenLockPressed(bool enable) {
@@ -1292,11 +1379,11 @@ void MainWindow::scaleSelection(){
 
 		file->protocol()->startNewAction("Scale events", 0);
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
-			e->setMidiTime((e->midiTime()-minTime)*scale + minTime);
-			OnEvent *on = dynamic_cast<OnEvent*>(e);
+			e->setMidiTime(qRound((e->midiTime()-minTime)*scale + minTime));
+			OnEvent *on = qobject_cast<OnEvent*>(e);
 			if(on){
 				MidiEvent *off = on->offEvent();
-				off->setMidiTime((off->midiTime()-minTime)*scale + minTime);
+				off->setMidiTime(qRound((off->midiTime()-minTime)*scale + minTime));
 			}
 		}
 		file->protocol()->endAction();
@@ -1317,7 +1404,7 @@ void MainWindow::alignLeft(){
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 			int onTime = e->midiTime();
 			e->setMidiTime(minTime);
-			OnEvent *on = dynamic_cast<OnEvent*>(e);
+			OnEvent *on = qobject_cast<OnEvent*>(e);
 			if(on){
 				MidiEvent *off = on->offEvent();
 				off->setMidiTime(minTime + (off->midiTime()-onTime));
@@ -1332,7 +1419,7 @@ void MainWindow::alignRight(){
 		// find maximum
 		int maxTime = 0;
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
-			OnEvent *on = dynamic_cast<OnEvent*>(e);
+			OnEvent *on = qobject_cast<OnEvent*>(e);
 			if(on){
 				MidiEvent *off = on->offEvent();
 				if(off->midiTime() > maxTime){
@@ -1344,7 +1431,7 @@ void MainWindow::alignRight(){
 		file->protocol()->startNewAction("Align right", new QImage(":/run_environment/graphics/tool/align_right.png"));
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 				int onTime = e->midiTime();
-				OnEvent *on = dynamic_cast<OnEvent*>(e);
+				OnEvent *on = qobject_cast<OnEvent*>(e);
 				if(on){
 						MidiEvent *off = on->offEvent();
 						e->setMidiTime(maxTime - (off->midiTime()-onTime));
@@ -1363,7 +1450,7 @@ void MainWindow::equalize()
 		int avgTime = 0;
 		int count = 0;
 		foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
-			OnEvent *on = dynamic_cast<OnEvent*>(e);
+			OnEvent *on = qobject_cast<OnEvent*>(e);
 			if(on){
 				MidiEvent *off = on->offEvent();
 				avgStart += e->midiTime();
@@ -1377,7 +1464,7 @@ void MainWindow::equalize()
 
 			file->protocol()->startNewAction("Equalize", new QImage(":/run_environment/graphics/tool/equalize.png"));
 			foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
-				OnEvent *on = dynamic_cast<OnEvent*>(e);
+				OnEvent *on = qobject_cast<OnEvent*>(e);
 				if(on){
 						MidiEvent *off = on->offEvent();
 						e->setMidiTime(avgStart);
@@ -1392,7 +1479,7 @@ void MainWindow::equalize()
 void MainWindow::deleteSelectedEvents(){
 	bool showsSelected = false;
 	if(Tool::currentTool()){
-		EventTool *eventTool = dynamic_cast<EventTool*>(Tool::currentTool());
+		EventTool *eventTool = qobject_cast<EventTool*>(Tool::currentTool());
 		if(eventTool){
 			showsSelected = eventTool->showsSelection();
 		}
@@ -1442,7 +1529,7 @@ void MainWindow::moveSelectedEventsToChannel(QAction *action){
 		foreach(MidiEvent *ev, Selection::instance()->selectedEvents()){
 			file->channel(ev->channel())->removeEvent(ev);
 			ev->setChannel(num, true);
-			OnEvent *onevent = dynamic_cast<OnEvent*>(ev);
+			OnEvent *onevent = qobject_cast<OnEvent*>(ev);
 			if(onevent){
 				channel->insertEvent(onevent->offEvent(), onevent->offEvent()->midiTime());
 				onevent->offEvent()->setChannel(num);
@@ -1467,7 +1554,7 @@ void MainWindow::moveSelectedEventsToTrack(QAction *action) {
 		file->protocol()->startNewAction("Move selected events to track "+QString::number(num));
 		foreach(MidiEvent *ev, Selection::instance()->selectedEvents()){
 			ev->setTrack(track, true);
-			OnEvent *onevent = dynamic_cast<OnEvent*>(ev);
+			OnEvent *onevent = qobject_cast<OnEvent*>(ev);
 			if(onevent){
 				onevent->offEvent()->setTrack(track);
 			}
@@ -1900,7 +1987,7 @@ void MainWindow::transposeNSemitones(){
 
 	QList<NoteOnEvent*> events;
 	foreach(MidiEvent *event, Selection::instance()->selectedEvents()){
-		NoteOnEvent *on = dynamic_cast<NoteOnEvent*>(event);
+		NoteOnEvent *on = qobject_cast<NoteOnEvent*>(event);
 		if(on){
 			events.append(on);
 		}
@@ -1931,7 +2018,6 @@ void MainWindow::colorsByChannel(){
 	mw_matrixWidget->setColorsByChannel();
 	_colorsByChannel->setChecked(true);
 	_colorsByTracks->setChecked(false);
-	mw_matrixWidget->registerRelayout();
 	mw_matrixWidget->update();
 	_miscWidget->update();
 }
@@ -1939,12 +2025,14 @@ void MainWindow::colorsByTrack(){
 	mw_matrixWidget->setColorsByTracks();
 	_colorsByChannel->setChecked(false);
 	_colorsByTracks->setChecked(true);
-	mw_matrixWidget->registerRelayout();
 	mw_matrixWidget->update();
 	_miscWidget->update();
 }
 
 void MainWindow::editChannel(int i, bool assign){
+	if (!file) {
+		return;
+	}
 	NewNoteTool::setEditChannel(i);
 
 	// assign channel to track
@@ -1952,10 +2040,10 @@ void MainWindow::editChannel(int i, bool assign){
 		file->track(NewNoteTool::editTrack())->assignChannel(i);
 	}
 
-	MidiOutput::setStandardChannel(i);
+	MidiOutput::instance()->setStandardChannel(i);
 
 	int prog = file->channel(i)->progAtTick(file->cursorTick());
-	MidiOutput::sendProgram(i, prog);
+	MidiOutput::instance()->sendProgram(i, prog);
 
 	updateChannelMenu();
 }
@@ -2001,7 +2089,7 @@ void MainWindow::spreadSelection(){
 	}
 
 	bool ok;
-	float numMs = QInputDialog::getDouble(this, "Set spread-time",
+	qreal numMs = QInputDialog::getDouble(this, "Set spread-time",
 		"Spread time [ms]", 10,
 		5,500, 2, &ok);
 
@@ -2048,14 +2136,14 @@ void MainWindow::spreadSelection(){
 				int num = events.count();
 				if(num>1){
 
-					float timeToInsert = file->msOfTick(position)+numMs*num/2;
+					qreal timeToInsert = file->msOfTick(position)+numMs*num/2;
 
 
 					for(int y = 0; y<num; y++){
 
 						MidiEvent *toMove = events.at(y);
 
-						toMove->setMidiTime(file->tick(timeToInsert), true);
+						toMove->setMidiTime(file->tick(qRound(timeToInsert)), true);
 						numSpreads++;
 
 						timeToInsert -= numMs;
@@ -2077,7 +2165,7 @@ void MainWindow::manual(){
 	args << QLatin1String("-collectionFile")
 	<< QLatin1String("midieditor-collection.qhc");
 
-#ifdef __WINDOWS_MM__
+#ifdef Q_OS_WIN32
 	process->start(QLatin1String("assistant/assistant"), args);
 #else
 	process->start(QLatin1String("assistant"), args);
@@ -2095,11 +2183,11 @@ void MainWindow::changeMiscMode(int mode){
 	} else {
 		_miscChannel->setEnabled(true);
 	}
-	if(mode == ControllEditor || mode == KeyPressureEditor){
+	if(mode == ControlEditor || mode == KeyPressureEditor){
 		_miscController->setEnabled(true);
 		_miscController->clear();
 
-		if(mode == ControllEditor){
+		if(mode == ControlEditor){
 			for(int i = 0; i<128; i++){
 				_miscController->addItem(MidiFile::controlChangeName(i));
 			}
@@ -2125,7 +2213,7 @@ void MainWindow::selectModeChanged(QAction *action){
 	}
 }
 
-QWidget *MainWindow::setupActions(QWidget *parent){
+QToolBar *MainWindow::setupActions(QWidget *parent){
 
 	// Menubar
 	QMenu *fileMB = menuBar()->addMenu("File");
@@ -2369,7 +2457,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 		} else if(i == 2){
 			text = "Quarter note";
 		} else {
-			text = QString::number((int)qPow(2, i))+"th note";
+			text = QString::number(qRound(qPow(2, i)))+"th note";
 		}
 
 		QAction *a = new QAction(text, this);
@@ -2544,7 +2632,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 		} else if(i == 2){
 			text = "Quarter note";
 		} else if(i > 0){
-			text = QString::number((int)qPow(2, i))+"th note";
+			text = QString::number(qRound(qPow(2, i)))+"th note";
 		}
 		QAction *a = new QAction(text, this);
 		a->setData(variant);
@@ -2678,7 +2766,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	QAction *thruAction = new QAction("Connect Midi In/Out", this);
 	thruAction->setIcon(QIcon(":/run_environment/graphics/tool/connection.png"));
 	thruAction->setCheckable(true);
-	thruAction->setChecked(MidiInput::thru());
+	thruAction->setChecked(MidiInput::instance()->thru());
 	connect(thruAction, SIGNAL(toggled(bool)), this, SLOT(enableThru(bool)));
 	midiMB->addAction(thruAction);
 
@@ -2701,12 +2789,19 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	connect(donateAction, SIGNAL(triggered()), this, SLOT(donate()));
 	helpMB->addAction(donateAction);
 
-	QWidget *buttonBar = new QWidget(parent);
+	QToolBar *out = new QToolBar("Toolbar", parent);
+	out->setFloatable(false);
+	out->setContentsMargins(0,0,0,0);
+	out->layout()->setSpacing(0);
+	out->setMovable(false);
+
+	QWidget *buttonBar = new QWidget(out);
 	QGridLayout *btnLayout = new QGridLayout(buttonBar);
 	buttonBar->setLayout(btnLayout);
 	btnLayout->setSpacing(0);
 	buttonBar->setContentsMargins(0,0,0,0);
 	QToolBar *fileTB = new QToolBar("File", buttonBar);
+
 
 	fileTB->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 	fileTB->setFloatable(false);
@@ -2836,9 +2931,20 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 
 	btnLayout->setColumnStretch(4, 1);
 
-	return buttonBar;
+
+	out->addWidget(buttonBar);
+return out;
 }
 
+#ifdef Q_OS_MAC
+
+/*QMacToolBar *MainWindow::setupMacActions() {
+	QMacToolBar *toolBar = new QMacToolBar(this);
+	QMacToolBarItem *item2 = new QMacToolBarItem(toolBar);
+	item2->setIcon(
+	return 0;
+}*/
+#endif
 void MainWindow::pasteToChannel(QAction *action){
 	EventTool::setPasteChannel(action->data().toInt());
 }
@@ -2869,7 +2975,7 @@ void MainWindow::enableMetronome(bool enable){
 }
 
 void MainWindow::enableThru(bool enable){
-	MidiInput::setThruEnabled(enable);
+	MidiInput::instance()->setThruEnabled(enable);
 }
 
 void MainWindow::quantizationChanged(QAction *action){
@@ -2889,7 +2995,7 @@ void MainWindow::quantizeSelection(){
 	foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 		int onTime = e->midiTime();
 		e->setMidiTime(quantize(onTime, ticks));
-		OnEvent *on = dynamic_cast<OnEvent*>(e);
+		OnEvent *on = qobject_cast<OnEvent*>(e);
 		if(on){
 			MidiEvent *off = on->offEvent();
 			off->setMidiTime(quantize(off->midiTime(), ticks));
@@ -2984,7 +3090,7 @@ void MainWindow::quantizeNtole(){
 	foreach(MidiEvent *e, Selection::instance()->selectedEvents()){
 		int onTime = e->midiTime();
 		e->setMidiTime(quantize(onTime, ntoleTicks));
-		OnEvent *on = dynamic_cast<OnEvent*>(e);
+		OnEvent *on = qobject_cast<OnEvent*>(e);
 		if(on){
 			MidiEvent *off = on->offEvent();
 			off->setMidiTime(quantize(off->midiTime(), ntoleTicks));
@@ -3003,7 +3109,7 @@ void MainWindow::quantizeNtole(){
 
 void MainWindow::setSpeed(QAction *action){
 	double d = action->data().toDouble();
-	MidiPlayer::setSpeedScale(d);
+	MidiPlayer::instance()->setSpeedScale(d);
 }
 
 void MainWindow::checkEnableActionsForSelection(){

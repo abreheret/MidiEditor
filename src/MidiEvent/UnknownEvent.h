@@ -22,20 +22,24 @@
 #include "MidiEvent.h"
 #include <QByteArray>
 
-class UnknownEvent : public MidiEvent{
+class UnknownEvent : public MidiEvent {
+
+	Q_OBJECT
 
 	public:
 		UnknownEvent(int channel, int type, QByteArray data, MidiTrack *track);
-		UnknownEvent(UnknownEvent &other);
+		UnknownEvent(const UnknownEvent &other);
+		MidiEvent::EventType type() const Q_DECL_OVERRIDE;
+
 		QByteArray data();
-		int line();
-		QByteArray save();
-		int type();
-		void setType(int type);
+		int line() Q_DECL_OVERRIDE;
+		QByteArray save() Q_DECL_OVERRIDE;
+		int unknownType();
+		void setUnknownType(int type);
 		void setData(QByteArray d);
 
-		virtual ProtocolEntry *copy();
-		virtual void reloadState(ProtocolEntry *entry);
+		virtual ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		virtual void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
 	private:
 		QByteArray _data;

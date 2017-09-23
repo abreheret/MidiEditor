@@ -2,19 +2,17 @@
 #define METRONOME_H
 
 #include <QObject>
-
+#include <QSoundEffect>
 
 class MidiFile;
 
 class Metronome : public QObject {
+
 	Q_OBJECT
 
 	public:
-		Metronome(QObject *parent = 0);
-
 		void setFile(MidiFile *file);
 		static Metronome *instance();
-
 		static bool enabled();
 		static void setEnabled(bool b);
 
@@ -24,14 +22,18 @@ class Metronome : public QObject {
 		void playbackStarted();
 		void playbackStopped();
 
+	signals:
+		void click();
+
+
 	private:
-		static Metronome *_instance;
+		Metronome(QObject *parent = 0);
+		static Metronome *createInstance();
 		MidiFile *_file;
 		void reset();
 		int num, denom, lastPos, lastMeasure;
-		void click();
 		static bool _enable;
-
+		static QSoundEffect *clickSound;
 };
 
 #endif

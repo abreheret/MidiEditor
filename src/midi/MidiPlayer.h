@@ -31,25 +31,30 @@ class MidiPlayer : public QObject {
 	Q_OBJECT
 
 	public:
-		static void play(MidiFile *file);
-		static void play(NoteOnEvent *event);
-		static void stop();
-		static bool isPlaying();
-		static int timeMs();
-		static PlayerThread *playerThread();
-		static double speedScale();
-		static void setSpeedScale(double d);
+		static MidiPlayer *instance();
+
+		bool isPlaying();
+		int timeMs();
+		double speedScale();
+		void setSpeedScale(double d);
+		static PlayerThread *player();
 
 		/**
 		 * Send all Notes off to every channel.
 		 */
-		static void panic();
+		void panic();
+
+	public slots:
+		void play(MidiFile *file);
+		void play(NoteOnEvent *event);
+		void stop();
 
 	private:
-		static PlayerThread *filePlayer;
-		static bool playing;
-		static SingleNotePlayer *singleNotePlayer;
-		static double _speed;
+		MidiPlayer();
+		static MidiPlayer *createInstance();
+		bool playing;
+		double _speed;
+		static PlayerThread *_playerThread;
 };
 
 #endif

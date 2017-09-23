@@ -26,6 +26,8 @@ class QString;
 
 class SettingsWidget : public QWidget {
 
+	Q_OBJECT
+
 	public:
 
 		SettingsWidget(QString title, QWidget *parent = 0);

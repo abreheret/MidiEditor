@@ -19,7 +19,7 @@
 #include "ProtocolStep.h"
 
 #include <QImage>
-
+#include <QUuid>
 #include "ProtocolItem.h"
 
 ProtocolStep::ProtocolStep(QString description, QImage *img, bool modified){
@@ -27,6 +27,7 @@ ProtocolStep::ProtocolStep(QString description, QImage *img, bool modified){
 	_modified = modified;
 	_itemStack = new QStack<ProtocolItem*>;
 	_image = img;
+	_uuid = QUuid::createUuid().toString();
 }
 
 ProtocolStep::~ProtocolStep(){
@@ -64,4 +65,8 @@ QImage *ProtocolStep::image(){
 
 bool ProtocolStep::modified() {
 	return _modified;
+}
+
+QString ProtocolStep::id() {
+	return _uuid;
 }

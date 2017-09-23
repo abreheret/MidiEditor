@@ -23,20 +23,23 @@
 
 class SizeChangeTool : public EventTool {
 
+	Q_OBJECT
+
 	public:
 		SizeChangeTool();
 		SizeChangeTool(SizeChangeTool &other);
+		Tool::ToolType type() const Q_DECL_OVERRIDE;
 
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
+		ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
 
-		void draw(QPainter *painter);
-		bool press(bool leftClick);
-		bool release();
-		bool move(int mouseX, int mouseY);
-		bool releaseOnly();
+		void draw(QPainter *painter) Q_DECL_OVERRIDE;
+		bool press(bool leftClick) Q_DECL_OVERRIDE;
+		bool release() Q_DECL_OVERRIDE;
+		bool move(qreal mouseX, qreal mouseY) Q_DECL_OVERRIDE;
+		bool releaseOnly() Q_DECL_OVERRIDE;
 
-		bool showsSelection();
+		bool showsSelection() Q_DECL_OVERRIDE;
 
 	private:
 		bool inDrag, dragsOnEvent;

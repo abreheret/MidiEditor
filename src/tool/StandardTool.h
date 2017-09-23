@@ -28,20 +28,23 @@ class NewNoteTool;
 
 class StandardTool :public EventTool {
 
+	Q_OBJECT
+
 	public:
 		StandardTool();
 		StandardTool(StandardTool &other);
+		Tool::ToolType type() const Q_DECL_OVERRIDE;
 
-		void draw(QPainter *painter);
-		bool press(bool leftClick);
-		bool move(int mouseX, int mouseY);
-		bool release();
-		
+		void draw(QPainter *painter) Q_DECL_OVERRIDE;
+		bool press(bool leftClick) Q_DECL_OVERRIDE;
+		bool move(qreal mouseX, qreal mouseY) Q_DECL_OVERRIDE;
+		bool release() Q_DECL_OVERRIDE;
+
 		static bool selectAndMoveEnabled;
 
-		ProtocolEntry *copy();
-		void reloadState(ProtocolEntry *entry);
-		bool showsSelection();
+		ProtocolEntry *copy() Q_DECL_OVERRIDE;
+		void reloadState(ProtocolEntry *entry) Q_DECL_OVERRIDE;
+		bool showsSelection() Q_DECL_OVERRIDE;
 	private:
 		EventMoveTool *moveTool;
 		SelectTool *selectTool;

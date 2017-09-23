@@ -26,6 +26,7 @@
 #include "../midi/MidiFile.h"
 #include "StandardTool.h"
 #include "Selection.h"
+#include "../gui/GraphicObject.h"
 
 EventMoveTool::EventMoveTool(bool upDown, bool leftRight) : EventTool() {
 	moveUpDown = upDown;
@@ -53,13 +54,17 @@ EventMoveTool::EventMoveTool(EventMoveTool &other) : EventTool(other){
 	startY = 0;
 }
 
-ProtocolEntry *EventMoveTool::copy(){
+Tool::ToolType EventMoveTool::type() const {
+	return Tool::EventMove;
+}
+
+ProtocolEntry *EventMoveTool::copy() {
 	return new EventMoveTool(*this);
 }
 
-void EventMoveTool::reloadState(ProtocolEntry *entry){
+void EventMoveTool::reloadState(ProtocolEntry *entry) {
 	EventTool::reloadState(entry);
-	EventMoveTool *other = dynamic_cast<EventMoveTool*>(entry);
+	EventMoveTool *other = qobject_cast<EventMoveTool*>(entry);
 	if(!other){
 		return;
 	}
@@ -71,7 +76,7 @@ void EventMoveTool::reloadState(ProtocolEntry *entry){
 	startY = 0;
 }
 
-void EventMoveTool::draw(QPainter *painter){
+void EventMoveTool::draw(QPainter *painter) {
 	paintSelectedEvents(painter);
 	int currentX = computeRaster();
 
@@ -99,20 +104,20 @@ void EventMoveTool::draw(QPainter *painter){
 			if(event->shown()){
 				painter->setPen(Qt::lightGray);
 				painter->setBrush(Qt::darkBlue);
-				painter->drawRoundedRect(event->x()-shiftX, event->y()-customShiftY,
-						event->width(), event->height(), 1, 1);
+				painter->drawRoundedRect(qRectF(event->x()-shiftX, event->y()-customShiftY,
+						event->width(), event->height()), 1, 1);
 				painter->setPen(Qt::gray);
-				painter->drawLine(event->x()-shiftX, 0, event->x()-shiftX,
-						matrixWidget->height());
-				painter->drawLine(event->x()+event->width()-shiftX, 0,
-						event->x()+event->width()-shiftX, matrixWidget->height());
+				painter->drawLine(qLineF(event->x()-shiftX, 0, event->x()-shiftX,
+						matrixWidget->height()));
+				painter->drawLine(qLineF(event->x()+event->width()-shiftX, 0,
+						event->x()+event->width()-shiftX, matrixWidget->height()));
 				painter->setPen(Qt::black);
 			}
 		}
 	}
 }
 
-bool EventMoveTool::press(bool leftClick){
+bool EventMoveTool::press(bool leftClick)  {
 	Q_UNUSED(leftClick);
 	inDrag = true;
 	startX = mouseX;
@@ -132,12 +137,12 @@ bool EventMoveTool::press(bool leftClick){
 bool EventMoveTool::release(){
 	inDrag = false;
 	matrixWidget->setCursor(Qt::ArrowCursor);
-	int currentX = computeRaster();
-	int shiftX = startX-currentX;
+	qreal currentX = computeRaster();
+	qreal shiftX = startX-currentX;
 	if(!moveLeftRight){
 		shiftX = 0;
 	}
-	int shiftY = startY - mouseY;
+	qreal shiftY = startY - mouseY;
 	if(!moveUpDown){
 		shiftY = 0;
 	}
@@ -162,8 +167,8 @@ bool EventMoveTool::release(){
 	// backwards to hold stability
 	for(int i = Selection::instance()->selectedEvents().count()-1;i>=0;i--){
 		MidiEvent *event = Selection::instance()->selectedEvents().at(i);
-		NoteOnEvent *ev = dynamic_cast<NoteOnEvent*>(event);
-		OffEvent *off = dynamic_cast<OffEvent*>(event);
+		NoteOnEvent *ev = qobject_cast<NoteOnEvent*>(event);
+		OffEvent *off = qobject_cast<OffEvent*>(event);
 		if(ev){
 			int note = ev->note()+numLines;
 			if(note<0){
@@ -191,12 +196,12 @@ bool EventMoveTool::release(){
 	return true;
 }
 
-bool EventMoveTool::move(int mouseX, int mouseY){
+bool EventMoveTool::move(qreal mouseX, qreal mouseY) {
 	EventTool::move(mouseX, mouseY);
 	return inDrag;
 }
 
-bool EventMoveTool::releaseOnly(){
+bool EventMoveTool::releaseOnly()  {
 	inDrag = false;
 	matrixWidget->setCursor(Qt::ArrowCursor);
 	startX = 0;
@@ -209,11 +214,11 @@ void EventMoveTool::setDirections(bool upDown, bool leftRight){
 	moveLeftRight = leftRight;
 }
 
-bool EventMoveTool::showsSelection(){
+bool EventMoveTool::showsSelection()  {
 	return true;
 }
 
-int EventMoveTool::computeRaster(){
+qreal EventMoveTool::computeRaster(){
 
 	if(!moveLeftRight){
 		return mouseX;
@@ -229,7 +234,7 @@ int EventMoveTool::computeRaster(){
 			firstTick = event->midiTime();
 		}
 
-		NoteOnEvent *onEvent = dynamic_cast<NoteOnEvent*>(event);
+		NoteOnEvent *onEvent = qobject_cast<NoteOnEvent*>(event);
 		if(onEvent){
 			if((lastTick == -1) || (onEvent->offEvent()->midiTime() > lastTick)){
 				lastTick = onEvent->offEvent()->midiTime();
@@ -245,11 +250,11 @@ int EventMoveTool::computeRaster(){
 		return mouseX;
 	}
 
-	int firstX, distFirst;
-	int lastX, distLast;
+	qreal firstX, distFirst;
+	qreal lastX, distLast;
 
 	if(useFirst){
-		int firstXReal = matrixWidget->xPosOfMs(file()->msOfTick(firstTick))+mouseX-startX;
+		qreal firstXReal = matrixWidget->xPosOfMs(file()->msOfTick(firstTick))+mouseX-startX;
 		firstX = rasteredX(firstXReal);
 		distFirst = firstX - firstXReal;
 		if(distFirst == 0){
@@ -257,7 +262,7 @@ int EventMoveTool::computeRaster(){
 		}
 	}
 	if(useLast){
-		int lastXReal = matrixWidget->xPosOfMs(file()->msOfTick(lastTick))+mouseX-startX;
+		qreal lastXReal = matrixWidget->xPosOfMs(file()->msOfTick(lastTick))+mouseX-startX;
 		lastX = rasteredX(lastXReal);
 		distLast = lastX-lastXReal;
 		if(distLast == 0){

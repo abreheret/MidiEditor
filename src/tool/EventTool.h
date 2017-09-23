@@ -28,10 +28,13 @@ class MidiTrack;
 
 class EventTool: public EditorTool {
 
+	Q_OBJECT
+
 	public:
 
 		EventTool();
 		EventTool(EventTool &other);
+		Tool::ToolType type() const;
 
 		static void selectEvent(MidiEvent *event, bool single, bool ignoreStr=false);
 		static void deselectEvent(MidiEvent *event);
@@ -50,7 +53,7 @@ class EventTool: public EditorTool {
 		static void setPasteChannel(int channel);
 		static int pasteChannel();
 
-		int rasteredX(int x, int *tick = 0);
+		int rasteredX(qreal x, int *tick = 0);
 
 		static void enableMagnet(bool enable);
 		static bool magnetEnabled();

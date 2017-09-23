@@ -23,6 +23,9 @@
 #include <QAction>
 #include <QToolBar>
 #include <QPainter>
+#include <QStyleFactory>
+#include <QPushButton>
+#include <QToolButton>
 
 #include "../midi/MidiFile.h"
 #include "../midi/MidiChannel.h"
@@ -40,7 +43,7 @@ ChannelListItem::ChannelListItem(int ch, ChannelListWidget *parent) : QWidget(pa
 	setLayout(layout);
 	layout->setVerticalSpacing(1);
 
-	colored = new ColoredWidget(*(MidiChannel::colorByChannelNumber(channel)), this);
+	colored = new ColoredWidget(MidiChannel::colorByChannelNumber(channel), this);
 	layout->addWidget(colored, 0, 0, 2, 1);
 	QString text = "Channel "+QString::number(channel);
 	if(channel==16){
@@ -53,9 +56,11 @@ ChannelListItem::ChannelListItem(int ch, ChannelListWidget *parent) : QWidget(pa
 	instrumentLabel = new QLabel("none", this);
 	instrumentLabel->setFixedHeight(15);
 	layout->addWidget(instrumentLabel, 1, 1, 1, 1);
-
 	QToolBar *toolBar = new QToolBar(this);
 	toolBar->setIconSize(QSize(12, 12));
+
+	// macOS hack to remove unwanted gradients.
+	toolBar->setStyleSheet("QToolBar { border: none; }");
 	QPalette palette = toolBar->palette();
 	palette.setColor(QPalette::Background, Qt::white);
 	toolBar->setPalette(palette);
@@ -94,6 +99,7 @@ ChannelListItem::ChannelListItem(int ch, ChannelListWidget *parent) : QWidget(pa
 
 	layout->setRowStretch(2,1);
 	setContentsMargins(5, 1, 5, 0);
+
 	setFixedHeight(ROW_HEIGHT);
 }
 
@@ -146,7 +152,7 @@ void ChannelListItem::onBeforeUpdate() {
 	if(channelList->midiFile()->channel(channel)->eventMap()->isEmpty()){
 		colored->setColor(Qt::lightGray);
 	} else {
-		colored->setColor(*(MidiChannel::colorByChannelNumber(channel)));
+		colored->setColor(MidiChannel::colorByChannelNumber(channel));
 	}
 
 	if(visibleAction->isChecked() != channelList->midiFile()->channel(channel)->visible()){
@@ -217,6 +223,10 @@ ColoredWidget::ColoredWidget(QColor color, QWidget *parent) : QWidget(parent) {
 }
 
 void ColoredWidget::paintEvent(QPaintEvent *event){
+	Q_UNUSED(event)
+
+	if (paintingActive()) return;
+
 	QPainter p;
 	int l = width()-1;
 	int x = 0;

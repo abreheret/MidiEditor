@@ -21,20 +21,26 @@
 
 #include <QQueue>
 #include <QThread>
+#include <QTimer>
 
 #include "MidiOutput.h"
 
 class SenderThread : public QThread {
 
+	Q_OBJECT
+
 	public:
 		SenderThread();
-		void run();
+		void run() Q_DECL_OVERRIDE;
 		void enqueue(MidiEvent *event);
 
+	public slots:
+		void stop();
+		void sendCommands();
 	private:
-		QQueue<MidiEvent*> *_eventQueue;
-		QQueue<MidiEvent*> *_noteQueue;
-
+		QQueue<QByteArray> *_eventQueue;
+		QQueue<QByteArray> *_noteQueue;
+		QTimer *timer;
 };
 
 #endif

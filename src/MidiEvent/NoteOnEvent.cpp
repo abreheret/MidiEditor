@@ -28,9 +28,13 @@ NoteOnEvent::NoteOnEvent(int note, int velocity, int ch, MidiTrack *track) : OnE
 	OffEvent::enterOnEvent(this);
 }
 
-NoteOnEvent::NoteOnEvent(NoteOnEvent &other) : OnEvent(other){
+NoteOnEvent::NoteOnEvent(const NoteOnEvent &other) : OnEvent(other){
 	_note = other._note;
 	_velocity = other._velocity;
+}
+
+MidiEvent::EventType NoteOnEvent::type() const {
+	return NoteOnEventType;
 }
 
 int NoteOnEvent::note(){
@@ -68,7 +72,7 @@ ProtocolEntry *NoteOnEvent::copy(){
 }
 
 void NoteOnEvent::reloadState(ProtocolEntry *entry){
-	NoteOnEvent *other = dynamic_cast<NoteOnEvent*>(entry);
+	NoteOnEvent *other = qobject_cast<NoteOnEvent*>(entry);
 	if(!other){
 		return;
 	}
@@ -90,17 +94,17 @@ QString NoteOnEvent::offEventMessage(){
 
 QByteArray NoteOnEvent::save(){
 	QByteArray array = QByteArray();
-	array.append(0x90 | channel());
-	array.append(note());
-	array.append(velocity());
+	array.append(0x90 | qint8(channel()));
+	array.append(qint8(note()));
+	array.append(qint8(velocity()));
 	return array;
 }
 
 QByteArray NoteOnEvent::saveOffEvent(){
 	QByteArray array = QByteArray();
-	array.append(0x80 | channel());
-	array.append(note());
-	array.append((char)0x0);
+	array.append(0x80 | qint8(channel()));
+	array.append(qint8(note()));
+	array.append(qint8(0x0));
 	return array;
 }
 

@@ -41,23 +41,27 @@
 quint8 MidiEvent::_startByte = 0;
 EventWidget *MidiEvent::_eventWidget = 0;
 
-MidiEvent::MidiEvent(int channel, MidiTrack *track) : ProtocolEntry(), GraphicObject(){
+MidiEvent::MidiEvent(int channel, MidiTrack *track) : ProtocolEntry(),
+	GraphicObject() {
 	_track = track;
 	numChannel = channel;
 	timePos = 0;
 	midiFile = 0;
 }
 
-MidiEvent::MidiEvent(MidiEvent &other) : ProtocolEntry(other), GraphicObject() {
+MidiEvent::MidiEvent(const MidiEvent &other) : ProtocolEntry(other), GraphicObject() {
 	_track = other._track;
 	numChannel = other.numChannel;
 	timePos = other.timePos;
 	midiFile = other.midiFile;
 }
 
+MidiEvent::EventType MidiEvent::type() const {
+	return MidiEvent::MidiEventType;
+}
+
 MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
-		bool *endEvent, MidiTrack *track, quint8 startByte, quint8 secondByte)
-{
+									bool *endEvent, MidiTrack *track, quint8 startByte, quint8 secondByte) {
 
 	// first try to load the event. If this does not work try to use
 	// old first byte as new first byte. This is implemented in the end of this
@@ -68,11 +72,10 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 	*ok = true;
 
 	quint8 tempByte;
-
 	quint8 prevStartByte = _startByte;
 
-	if(!startByte){
-		(*content)>>tempByte;
+	if (!startByte) {
+		(*content) >> tempByte;
 	} else {
 		tempByte = startByte;
 	}
@@ -80,84 +83,80 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 
 	int channel = tempByte & 0x0F;
 
-
-	switch(tempByte&0xF0){
-
+	switch (tempByte & 0xF0) {
 		case 0x80: {
 			// Note Off
-			if(!startByte){
-				(*content)>>tempByte;
+			if (!startByte) {
+				(*content) >> tempByte;
 			} else {
 				tempByte = secondByte;
 			}
 			int note = tempByte;
-			if(note<0 || note>127){
+			if (note < 0 || note > 127) {
 				*ok = false;
 				return 0;
 			}
 			// skip byte (velocity)
-			(*content)>>tempByte;
+			(*content) >> tempByte;
 
-			OffEvent *event = new OffEvent(channel, 127-note, track);
+			OffEvent *event = new OffEvent(channel, 127 - note, track);
 			*ok = true;
 			return event;
 		}
 
-
 		case 0x90: {
 			// Note On
-			if(!startByte){
-				(*content)>>tempByte;
+			if (!startByte) {
+				(*content) >> tempByte;
 			} else {
 				tempByte = secondByte;
 			}
 			int note = tempByte;
-			if(note<0 || note>127){
+			if (note < 0 || note > 127) {
 				*ok = false;
 				return 0;
 			}
-			(*content)>>tempByte;
+			(*content) >> tempByte;
 			int velocity = tempByte;
 			*ok = true;
 
-			if(velocity>0){
+			if (velocity > 0) {
 				NoteOnEvent *event = new NoteOnEvent(note, velocity, channel, track);
 				return event;
 			} else {
-				OffEvent *event = new OffEvent(channel, 127-note, track);
+				OffEvent *event = new OffEvent(channel, 127 - note, track);
 				return event;
 			}
 		}
 
 		case 0xA0: {
 			// Key Pressure
-			if(!startByte){
-				(*content)>>tempByte;
+			if (!startByte) {
+				(*content) >> tempByte;
 			} else {
 				tempByte = secondByte;
 			}
 			int note = tempByte;
-			if(note<0 || note>127){
+			if (note < 0 || note > 127) {
 				*ok = false;
 				return 0;
 			}
-			(*content)>>tempByte;
+			(*content) >> tempByte;
 			int value = tempByte;
 
 			*ok = true;
-
 			return new KeyPressureEvent(channel, value, note, track);
 		}
 
 		case 0xB0: {
 			// Controller
-			if(!startByte){
-				(*content)>>tempByte;
+			if (!startByte) {
+				(*content) >> tempByte;
 			} else {
 				tempByte = secondByte;
 			}
 			int control = tempByte;
-			(*content)>>tempByte;
+			(*content) >> tempByte;
 			int value = tempByte;
 			*ok = true;
 			return new ControlChangeEvent(channel, control, value, track);
@@ -165,8 +164,8 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 
 		case 0xC0: {
 			// programm change
-			if(!startByte){
-				(*content)>>tempByte;
+			if (!startByte) {
+				(*content) >> tempByte;
 			} else {
 				tempByte = secondByte;
 			}
@@ -176,28 +175,27 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 
 		case 0xD0: {
 			// Key Pressure
-			if(!startByte){
-				(*content)>>tempByte;
+			if (!startByte) {
+				(*content) >> tempByte;
 			} else {
 				tempByte = secondByte;
 			}
 			int value = tempByte;
 
 			*ok = true;
-
 			return new ChannelPressureEvent(channel, value, track);
 		}
 
 		case 0xE0: {
 
 			// Pitch Wheel
-			if(!startByte){
-				(*content)>>tempByte;
+			if (!startByte) {
+				(*content) >> tempByte;
 			} else {
 				tempByte = secondByte;
 			}
 			quint8 first = tempByte;
-			(*content)>>tempByte;
+			(*content) >> tempByte;
 			quint8 second = tempByte;
 
 			int value = (second << 7) | first;
@@ -211,17 +209,14 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 			// System Message
 			channel = 16; // 16 is channel without number
 
-
-			switch(tempByte & 0x0F){
-
+			switch (tempByte & 0x0F) {
 				case 0x00: {
-
 					// SysEx
 					QByteArray array;
-					while(tempByte!=0xF7){
-						(*content)>>tempByte;
-						if(tempByte!=0xF7){
-							array.append((char)tempByte);
+					while (tempByte != 0xF7) {
+						(*content) >> tempByte;
+						if (tempByte != 0xF7) {
+							array.append(qint8(tempByte));
 						}
 					}
 					*ok = true;
@@ -230,12 +225,12 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 
 				case 0x0F: {
 					// MetaEvent
-					if(!startByte){
-						(*content)>>tempByte;
+					if (!startByte) {
+						(*content) >> tempByte;
 					} else {
 						tempByte = secondByte;
 					}
-					switch(tempByte){
+					switch (tempByte) {
 						case 0x51: {
 							// TempoChange
 							//(*content)>>tempByte;
@@ -243,43 +238,43 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 							//	*ok = false;
 							//	return 0;
 							//}
-							quint32 value;
-							(*content)>>value;
+							uint value;
+							(*content) >> value;
 							// 1te Stelle abziehen,
-							value-=50331648;
-							return new TempoChangeEvent(17, (int)value, track);
+							value -= 50331648;
+							return new TempoChangeEvent(17, int(value), track);
 						}
 						case 0x58: {
 							// TimeSignature
-							(*content)>>tempByte;
-							if(tempByte!=4){
+							(*content) >> tempByte;
+							if (tempByte != 4) {
 								*ok = false;
 								return 0;
 							}
 
-							(*content)>>tempByte;
-							int num = (int)tempByte;
-							(*content)>>tempByte;
-							int denom = (int)tempByte;
-							(*content)>>tempByte;
-							int metronome = (int)tempByte;
-							(*content)>>tempByte;
-							int num32 = (int)tempByte;
+							(*content) >> tempByte;
+							int num = int(tempByte);
+							(*content) >> tempByte;
+							int denom = int(tempByte);
+							(*content) >> tempByte;
+							int metronome = int(tempByte);
+							(*content) >> tempByte;
+							int num32 = int(tempByte);
 							return new TimeSignatureEvent(18, num, denom, metronome, num32, track);
 						}
 						case 0x59: {
 							// keysignature
-							(*content)>>tempByte;
-							if(tempByte!=2){
+							(*content) >> tempByte;
+							if (tempByte != 2) {
 								*ok = false;
 								return 0;
 							}
 							qint8 t;
-							(*content)>>t;
-							int tonality = (int)t;
-							(*content)>>tempByte;
+							(*content) >> t;
+							int tonality = int(t);
+							(*content) >> tempByte;
 							bool minor = true;
-							if(tempByte == 0){
+							if (tempByte == 0) {
 								minor = false;
 							}
 							return new KeySignatureEvent(channel, tonality, minor, track);
@@ -291,47 +286,42 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 							return 0;
 						}
 						default: {
-							if(tempByte >= 0x01 && tempByte <=0x07){
-
+							if (tempByte >= 0x01 && tempByte <= 0x07) {
 								// textevent
 								// read type
 								TextEvent *textEvent = new TextEvent(channel, track);
-								textEvent->setType(tempByte);
+								textEvent->setTextType(TextEvent::TextType(tempByte));
 								int length = MidiFile::variableLengthvalue(content);
 								// use wchar_t because some files use Unicode.
 								wchar_t str [128] = L"";
-								for(int i = 0; i<length; i++){
-									(*content)>>tempByte;
+								for (int i = 0; i < length; i++) {
+									(*content) >> tempByte;
 									wchar_t temp [2] = { btowc(tempByte) };
 									wcsncat(str, temp, 1);
 								}
 								textEvent->setText(QString::fromWCharArray(str));
 								*ok = true;
 								return textEvent;
-
 							} else {
-
 								// tempByte is meta event type
-								int typeByte = ((char)tempByte);
+								int typeByte = (qint8(tempByte));
 
 								// read length
 								int length = MidiFile::variableLengthvalue(content);
 
 								// content
 								QByteArray array;
-								for(int i = 0; i<length; i++){
-									(*content)>>tempByte;
-									array.append((char)tempByte);
+								for (int i = 0; i < length; i++) {
+									(*content) >> tempByte;
+									array.append(qint8(tempByte));
 								}
 								*ok = true;
 								return new UnknownEvent(channel, typeByte, array, track);
 							}
 						}
 					}
-
 				}
 			}
-
 		}
 	}
 
@@ -343,26 +333,26 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 	return loadMidiEvent(content, ok, endEvent, track, _startByte, tempByte);
 }
 
-void MidiEvent::setTrack(MidiTrack *track, bool toProtocol){
+void MidiEvent::setTrack(MidiTrack *track, bool toProtocol) {
 	ProtocolEntry *toCopy = copy();
 
 	_track = track;
-	if(toProtocol){
+	if (toProtocol) {
 		protocol(toCopy, this);
 	} else {
 		delete toCopy;
 	}
 }
 
-MidiTrack *MidiEvent::track(){
+MidiTrack *MidiEvent::track() {
 	return _track;
 }
 
-void MidiEvent::setChannel(int ch, bool toProtocol){
+void MidiEvent::setChannel(int ch, bool toProtocol) {
 	int oldChannel = channel();
 	ProtocolEntry *toCopy = copy();
 	numChannel = ch;
-	if(toProtocol){
+	if (toProtocol) {
 		protocol(toCopy, this);
 		file()->channelEvents(oldChannel)->remove(midiTime(), this);
 		// tells the new channel to add this event
@@ -372,25 +362,24 @@ void MidiEvent::setChannel(int ch, bool toProtocol){
 	}
 }
 
-int MidiEvent::channel(){
+int MidiEvent::channel() {
 	return numChannel;
 }
 
-QString MidiEvent::toMessage(){
+QString MidiEvent::toMessage() {
 	return "";
 }
 
-QByteArray MidiEvent::save(){
+QByteArray MidiEvent::save() {
 	return QByteArray();
 }
 
-void MidiEvent::setMidiTime(int t, bool toProtocol){
+void MidiEvent::setMidiTime(int t, bool toProtocol) {
 
 	// if its once TimeSig / TempoChange at 0, dont delete event
-	if(toProtocol && (channel()==18 || channel()==17)){
-		if(midiTime()==0 && midiFile->channel(channel())->eventMap()->count(0)
-				== 1)
-		{
+	if (toProtocol && (channel() == 18 || channel() == 17)) {
+		if (midiTime() == 0 && midiFile->channel(channel())->eventMap()->count(0)
+				== 1) {
 			return;
 		}
 	}
@@ -398,10 +387,10 @@ void MidiEvent::setMidiTime(int t, bool toProtocol){
 	ProtocolEntry *toCopy = copy();
 	file()->channelEvents(numChannel)->remove(timePos, this);
 	timePos = t;
-	if(timePos>file()->endTick()){
-		file()->setMaxLengthMs(file()->msOfTick(timePos)+100);
+	if (timePos > file()->endTick()) {
+		file()->setMaxLengthMs(file()->msOfTick(timePos) + 100);
 	}
-	if(toProtocol){
+	if (toProtocol) {
 		protocol(toCopy, this);
 	} else {
 		delete toCopy;
@@ -410,36 +399,36 @@ void MidiEvent::setMidiTime(int t, bool toProtocol){
 	file()->channelEvents(numChannel)->insert(timePos, this);
 }
 
-int MidiEvent::midiTime(){
+int MidiEvent::midiTime() {
 	return timePos;
 }
 
-void MidiEvent::setFile(MidiFile *f){
+void MidiEvent::setFile(MidiFile *f) {
 	midiFile = f;
 }
 
-MidiFile *MidiEvent::file(){
+MidiFile *MidiEvent::file() {
 	return midiFile;
 }
 
-int MidiEvent::line(){
+int MidiEvent::line() {
 	return 0;
 }
 
-void MidiEvent::draw(QPainter *p, QColor c){
+void MidiEvent::draw(QPainter *p, QColor c) {
 	p->setPen(Qt::gray);
 	p->setBrush(c);
-	p->drawRoundedRect(x(), y(), width(), height(), 1, 1);
+	p->drawRoundedRect(qRectF(x(), y(), width(), height()), 1, 1);
 }
 
-ProtocolEntry *MidiEvent::copy(){
+ProtocolEntry *MidiEvent::copy() {
 	return new MidiEvent(*this);
 }
 
-void MidiEvent::reloadState(ProtocolEntry *entry){
+void MidiEvent::reloadState(ProtocolEntry *entry) {
 
-	MidiEvent *other = dynamic_cast<MidiEvent*>(entry);
-	if(!other){
+	MidiEvent *other = qobject_cast<MidiEvent *>(entry);
+	if (!other) {
 		return;
 	}
 	_track = other->_track;
@@ -451,32 +440,32 @@ void MidiEvent::reloadState(ProtocolEntry *entry){
 	midiFile = other->midiFile;
 }
 
-QString MidiEvent::typeString(){
+QString MidiEvent::typeString() {
 	return "Midi Event";
 }
 
-void MidiEvent::setEventWidget(EventWidget *widget){
+void MidiEvent::setEventWidget(EventWidget *widget) {
 	_eventWidget = widget;
 }
 
-EventWidget *MidiEvent::eventWidget(){
+EventWidget *MidiEvent::eventWidget() {
 	return _eventWidget;
 }
 
-bool MidiEvent::shownInEventWidget(){
-	if(!_eventWidget){
+bool MidiEvent::shownInEventWidget() {
+	if (!_eventWidget) {
 		return false;
 	}
 	return _eventWidget->events().contains(this);
 }
 
-bool MidiEvent::isOnEvent(){
+bool MidiEvent::isOnEvent() {
 	return true;
 }
 
-QMap<int, QString> MidiEvent::knownMetaTypes(){
+QMap<int, QString> MidiEvent::knownMetaTypes() {
 	QMap<int, QString> meta;
-	for(int i = 1; i<8; i++){
+	for (int i = 1; i < 8; i++) {
 		meta.insert(i, "Text Event");
 	}
 	meta.insert(0x51, "Tempo Change Event");
@@ -486,23 +475,23 @@ QMap<int, QString> MidiEvent::knownMetaTypes(){
 	return meta;
 }
 
-void MidiEvent::setTemporaryRecordID(int id){
+void MidiEvent::setTemporaryRecordID(int id) {
 	_tempID = id;
 }
 
-int MidiEvent::temporaryRecordID(){
+int MidiEvent::temporaryRecordID() {
 	return _tempID;
 }
 
-void MidiEvent::moveToChannel(int ch){
+void MidiEvent::moveToChannel(int ch) {
 
 	int oldChannel = channel();
 
-	if(oldChannel > 15){
+	if (oldChannel > 15) {
 		return;
 	}
 
-	if(oldChannel == ch){
+	if (oldChannel == ch) {
 		return;
 	}
 
@@ -514,5 +503,5 @@ void MidiEvent::moveToChannel(int ch){
 
 	protocol(toCopy, this);
 
-	midiFile->channel(ch)->insertEvent(this, midiTime());
+	midiFile->insertEventInChannel(ch, this, midiTime());
 }
