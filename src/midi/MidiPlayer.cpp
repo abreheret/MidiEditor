@@ -42,8 +42,8 @@ void MidiPlayer::play(MidiFile *file) {
 	}
 // I don't know why we are reinstancing this.
 #ifdef Q_OS_WIN32
-	delete filePlayer;
-	filePlayer = new PlayerThread();
+	delete _playerThread;
+	_playerThread = new PlayerThread();
 
 	connect(_playerThread,
 			SIGNAL(measureChanged(int, int)), Metronome::instance(), SLOT(measureUpdate(int,
