@@ -30,7 +30,33 @@
 #include "UpdateManager.h"
 #include <QResource>
 
-int main(int argc, char *argv[]) {
+#ifdef NO_CONSOLE_MODE
+#include <windows.h>
+#include<tchar.h>
+std::string wstrtostr(const std::wstring &wstr) {
+	std::string strTo;
+	char *szTo = new char[wstr.length() + 1];
+	szTo[wstr.size()] = '\0';
+	WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, szTo, (int)wstr.length(), NULL, NULL);
+	strTo = szTo;
+	delete[] szTo;
+	return strTo;
+}
+int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmd, int show) {
+	int argc = 1;
+	char * argv[] = { "", "" };
+	std::string str;
+	LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &argc);
+	if (NULL != szArglist && argc > 1) {
+		str = wstrtostr(szArglist[1]);
+		argv[1] = &str.at(0);
+		argc = 2;
+	}
+
+#else
+int main(int argc, char *argv[])
+{
+#endif
 	QApplication a(argc, argv);
 #ifdef Q_OS_MAC
 	// macOS registers resources in a separate location because of .app packaging.
