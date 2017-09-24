@@ -127,7 +127,7 @@ void MidiPlayer::panic() {
 		array.clear();
 		array.append(qint8(0xB0 | i));
 		array.append(qint8(120));
-		array.append(qint8(0));
+		array.append(char(0));
 		MidiOutput::instance()->sendCommand(array);
 	}
 	if (MidiOutput::isAlternativePlayer()) {
@@ -136,7 +136,7 @@ void MidiPlayer::panic() {
 				QByteArray array;
 				array.append(qint8(0x80 | channel));
 				array.append(qint8(note));
-				array.append(qint8(0));
+				array.append(char(0));
 				MidiOutput::instance()->sendCommand(array);
 			}
 		}

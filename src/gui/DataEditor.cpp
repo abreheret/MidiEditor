@@ -103,7 +103,7 @@ void DataEditor::dataChanged(int line, quint8 data){
 }
 
 void DataEditor::plusClicked(int line){
-	_data = _data.insert(line, qint8(0));
+	_data = _data.insert(line, char(0));
 	rebuild();
 }
 

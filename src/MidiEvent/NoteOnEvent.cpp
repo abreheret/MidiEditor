@@ -104,7 +104,7 @@ QByteArray NoteOnEvent::saveOffEvent(){
 	QByteArray array = QByteArray();
 	array.append(0x80 | qint8(channel()));
 	array.append(qint8(note()));
-	array.append(qint8(0x0));
+	array.append(char(0x0));
 	return array;
 }
 

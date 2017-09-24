@@ -49,7 +49,7 @@ QByteArray KeySignatureEvent::save(){
 	if(_minor){
 		array.append(qint8(0x01));
 	} else {
-		array.append(qint8(0x00));
+		array.append(char(0x00));
 	}
 	return array;
 }
