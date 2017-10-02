@@ -33,6 +33,7 @@ if(MSVC)
 	option(NO_CONSOLE_MODE "Have a console to debuging" OFF)
 	if(ARCH STREQUAL "x64" ) 
 		set(QT5_DIR "C:/Qt/5.9.1/msvc2015_64/lib/cmake" CACHE STRING "Additional search paths for QT5")
+		add_definitions(-D__ARCH64__)
 	else()
 		set(QT5_DIR "C:/Qt/5.9.1/msvc2015/lib/cmake" CACHE STRING "Additional search paths for QT5")
 	endif()
@@ -54,10 +55,6 @@ else()
 	find_path(Qt5Widgets_DIR Qt5WidgetsConfig.cmake PATHS "${QT5_DIR}/Qt5Widgets" )
 	find_path(Qt5Network_DIR Qt5NetworkConfig.cmake PATHS "${QT5_DIR}/Qt5Network" )
 	find_path(Qt5Xml_DIR     Qt5XmlConfig.cmake     PATHS "${QT5_DIR}/Qt5Xml"     )
-endif()
-
-if(ARCH STREQUAL "x64" ) 
-	add_definitions(-D__ARCH64__)
 endif()
 
 # Avoid Unicode -> QString issues. 
