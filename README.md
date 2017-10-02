@@ -8,7 +8,7 @@ MidiEditor
 Download : Windows [last release](https://github.com/abreheret/MidiEditor/releases/)
 
 ### Building Dependencies
-* [Qt5.7](https://www.qt.io/download-open-source/)
+* [Qt >= 5.7](https://www.qt.io/download-open-source/)
 * [CMake](https://cmake.org/download/) >= 2.8.11 
 * Linux : 
      * [sfml](http://www.sfml-dev.org/download-fr.php) `sudo apt-get install libsfml-dev`
