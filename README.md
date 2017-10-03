@@ -22,7 +22,7 @@ MidiEditor is a free software providing an interface to edit, record, and play M
 
 The editor is able to open existing Midi files and modify their content. New files can be created and the user can enter his own composition by either recording Midi data from a connected Midi device (e.g., a digital piano or a keyboard) or by manually creating new notes and other Midi events. The recorded data can be easily quantified and edited afterwards using MidiEditor.
 
-![image](http://midieditor.sourceforge.net/img/midieditor-full.png)
+![image](midieditor.png)
 
 ### Features
 
