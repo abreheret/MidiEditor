@@ -69,7 +69,7 @@ QByteArray TextEvent::save(){
 	_text.toWCharArray(text_wchar);
 	
 	for(int i = 0; i < wcslen(text_wchar); i++){
-		char buffer [4];
+		char buffer [1];
 		wcrtomb(buffer, text_wchar[i], &mbs);
 		array.append(buffer);
 	}
