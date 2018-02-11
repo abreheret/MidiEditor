@@ -5,7 +5,10 @@
 MidiEditor 
 ===========
 
-[![Appveyor Build Status](https://img.shields.io/appveyor/ci/abreheret/midieditor.svg)](https://ci.appveyor.com/project/abreheret/MidiEditor)
+-----------------
+| **`  Linux  `** | **` Windows `** |  
+|-----------------|---------------------|
+| [![Build Status](https://api.travis-ci.org/abreheret/MidiEditor.svg?branch=master)](https://travis-ci.org/abreheret/MidiEditor) | [![Appveyor Build Status](https://img.shields.io/appveyor/ci/abreheret/midieditor.svg)](https://ci.appveyor.com/project/abreheret/MidiEditor) |
 
 
 Download : Windows [last release](https://github.com/abreheret/MidiEditor/releases/)
