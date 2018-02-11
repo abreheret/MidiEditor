@@ -66,8 +66,6 @@ find_package(Qt5Xml     REQUIRED)
 
 # Turn on automatic invocation of the MOC
 set(CMAKE_AUTOMOC ON)
-#add_definitions(${Qt5Core_DEFINITIONS})
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 
 file( GLOB main      src/*.cpp            )
 file( GLOB gui       src/gui/*.cpp        )
