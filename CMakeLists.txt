@@ -120,12 +120,12 @@ set(DIR_NAME_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/${NAME_RELEASE})
 set_target_properties( MidiEditor PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${DIR_NAME_RELEASE})
 add_dependencies(MidiEditor ressources)
 add_custom_command(TARGET ressources POST_BUILD   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/ressources.rcc ${DIR_NAME_RELEASE}/ressources.rcc )
-add_custom_command(TARGET MidiEditor POST_BUILD 
-                   COMMAND ${QT5_DIR}/../../bin/windeployqt ${DIR_NAME_RELEASE}
-				   COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${NAME_RELEASE}.zip" --format=zip ${DIR_NAME_RELEASE} )
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION ${DIR_NAME_RELEASE}/metronome)
 
 if(MSVC)
+	add_custom_command(TARGET MidiEditor POST_BUILD 
+                   COMMAND ${QT5_DIR}/../../bin/windeployqt ${DIR_NAME_RELEASE}
+		   COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${NAME_RELEASE}.zip" --format=zip ${DIR_NAME_RELEASE} )
 	target_link_libraries(MidiEditor Winmm.lib ${MidiEditorDep})
 	
 	if(NO_CONSOLE_MODE)
