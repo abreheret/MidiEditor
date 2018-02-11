@@ -5,6 +5,9 @@
 MidiEditor 
 ===========
 
+[![Appveyor Build Status](https://img.shields.io/appveyor/ci/abreheret/midieditor.svg)](https://ci.appveyor.com/project/abreheret/MidiEditor)
+
+
 Download : Windows [last release](https://github.com/abreheret/MidiEditor/releases/)
 
 ### Building Dependencies
