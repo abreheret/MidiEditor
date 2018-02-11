@@ -1,0 +1,14 @@
+clone_folder: c:\projects\MidiEditor
+environment:
+    matrix:
+        - CMAKE_BUILD_TYPE: Release
+
+install:
+    - cmd: set QT5_DIR=C:\Qt\5.9.3\msvc2015_64\lib\cmake
+    - cmd: cd C:\projects\MidiEditor
+        
+build_script:
+    - cmd: mkdir build
+    - cmd: cd build
+    - cmd: cmake .. -DNO_CONSOLE_MODE=ON -DQT5_DIR=%QT5_DIR% -DOpenCV_DIR=%OPENCV_DIR% -G"Visual Studio 14 Win64"
+    - cmd: cmake --build . --config Release
