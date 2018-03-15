@@ -7,12 +7,12 @@ environment:
 
   matrix:
     - GENERATOR: "Visual Studio 14 Win64"
-      QT5_DIR: C:/Qt/5.9.3/msvc2015_64/lib/cmake
+      QT5_DIR: C:\Qt\5.9.3\msvc2015_64\lib\cmake
     - GENERATOR: "Visual Studio 14"
-      QT5_DIR: C:/Qt/5.9.3/msvc2015/lib/cmake
+      QT5_DIR: C:\Qt\5.9.3\msvc2015\lib\cmake
     
 install:
-    - cmd: echo "GENERATOR=%GENERATOR% CONFIG=%CONFIG% NO_CONSOLE=%NO_CONSOLE%"
+    - cmd: echo GENERATOR="%GENERATOR%" QT5_DIR=%QT5_DIR%
     - cmd: choco install curl
     - cmd: choco install nsis
     - cmd: cd C:\projects\MidiEditor
