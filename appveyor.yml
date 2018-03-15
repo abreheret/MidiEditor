@@ -6,10 +6,10 @@ environment:
      CONFIG: Release
 
   matrix:
-    - GENERATOR: "Visual Studio 14 Win64"
-      QT5_DIR: C:\Qt\5.9.3\msvc2015_64\lib\cmake
-    - GENERATOR: "Visual Studio 14"
-      QT5_DIR: C:\Qt\5.9.3\msvc2015\lib\cmake
+    - GENERATOR: "Visual Studio 15 2017 Win64"
+      QT5_DIR: C:\Qt\5.10.1\msvc2017_64\lib\cmake
+    - GENERATOR: "Visual Studio 15 2017"
+      QT5_DIR: C:\Qt\5.10.1\msvc2015\lib\cmake
     
 install:
     - cmd: echo GENERATOR="%GENERATOR%" QT5_DIR=%QT5_DIR%
