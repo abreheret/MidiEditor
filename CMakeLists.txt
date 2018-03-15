@@ -113,21 +113,25 @@ add_executable(MidiEditor
 include(ressources.cmake)
 set(MidiEditorDep Qt5::Widgets Qt5::Network Qt5::Xml)
 
-
-# prepare outup directory 
 set(NAME_RELEASE MidiEditor_${ARCH}_${GIT_TAG})
 set(DIR_NAME_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/${NAME_RELEASE})
 set_target_properties( MidiEditor PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${DIR_NAME_RELEASE})
 add_dependencies(MidiEditor ressources)
-add_custom_command(TARGET ressources POST_BUILD   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/ressources.rcc ${DIR_NAME_RELEASE}/ressources.rcc )
+add_custom_command(TARGET ressources POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/ressources.rcc ${DIR_NAME_RELEASE}/ressources.rcc )
+add_custom_command(TARGET MidiEditor PRE_BUILD COMMAND cmake -P ${CMAKE_BINARY_DIR}/version.cmake)
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION ${DIR_NAME_RELEASE}/metronome)
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/metronome)
+
+find_program(CURL curl)
+if( CURL-NOTFOUND )
+	message(STATUS "Curl is not found")
+else()
+	message(STATUS "Curl is found")
+endif()
 
 if(MSVC)
-	add_custom_command(TARGET MidiEditor POST_BUILD 
-                   COMMAND ${QT5_DIR}/../../bin/windeployqt ${DIR_NAME_RELEASE}
-		   COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${NAME_RELEASE}.zip" --format=zip ${DIR_NAME_RELEASE} )
 	target_link_libraries(MidiEditor Winmm.lib ${MidiEditorDep})
-	
 	if(NO_CONSOLE_MODE)
 		set_target_properties(MidiEditor PROPERTIES  LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 	endif()
@@ -142,33 +146,59 @@ if(MSVC)
                              "${QT5_DIR}/../../bin/Qt5Guid.dll"
                              "${QT5_DIR}/../../bin/Qt5Cored.dll")
     file(COPY ${QT5_DLLs_DEP_RELEASE} ${QT5_DLLs_DEP_DEBUG} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+	add_custom_target(make_zip 
+		COMMAND ${QT5_DIR}/../../bin/windeployqt ${DIR_NAME_RELEASE}
+		COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${NAME_RELEASE}.zip" --format=zip ${DIR_NAME_RELEASE}
+		DEPENDS MidiEditor)
+	if( NOT CURL-NOTFOUND )
+		add_custom_target(upload_file COMMAND curl --upload-file "${NAME_RELEASE}.zip" https://transfer.sh/${NAME_RELEASE}.zip DEPENDS make_zip)
+	endif()
+	if(INSTALL_WITH_CPACK)
+		install(DIRECTORY "${DIR_NAME_RELEASE}/" DESTINATION bin)
+		if(WIN32)#Windows
+			set(CPACK_GENERATOR NSIS)
+			set(CPACK_PACKAGE_INSTALL_DIRECTORY "MidiEditor")
+			set(CPACK_PACKAGE_EXECUTABLES "MidiEditor" "MidiEditor" ${CPACK_PACKAGE_EXECUTABLES}) 
+			set(CPACK_NSIS_MODIFY_PATH OFF)
+			set(CPACK_PACKAGE_CONTACT "Amaury Bréhéret abreheret@gmail.com")
+			set(CPACK_PACKAGE_NAME "MidiEditor")
+			set(CPACK_PACKAGE_VENDOR "https://github.com/abreheret/MidiEditor")
+			set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "MidiEditor - Installation ")
+			set(CPACK_PACKAGE_VERSION ${GIT_TAG})
+			set(CPACK_PACKAGE_FILE_NAME ${NAME_RELEASE} )
+			INCLUDE(CPack)		
+			add_custom_target(cpack_file 
+				COMMAND cpack -DCPACK_GENERATOR=WIX -C Release
+				COMMAND curl --upload-file "${NAME_RELEASE}.exe" https://transfer.sh/${NAME_RELEASE}.exe DEPENDS make_zip)
+		endif()
+	endif()
+	
 else()
 	target_link_libraries(MidiEditor asound sfml-system sfml-audio pthread ${MidiEditorDep})
+	add_custom_target(extract_appimage 
+		COMMAND echo "=== extract_appimage ==="
+		COMMAND chmod +x ${CMAKE_CURRENT_SOURCE_DIR}/scripts_to_build/linuxdeployqt-continuous-x86_64.AppImage
+	    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts_to_build/linuxdeployqt-continuous-x86_64.AppImage --appimage-extract 
+		DEPENDS MidiEditor)
+	find_program(QMAKE_APP qmake PATHS /opt/qt59/bin/ ${QT5_DIR}/../../bin)
+	if( QMAKE_APP-NOTFOUND )
+		message(FATAL_ERROR "QMake is not found")
+	else()
+		message(STATUS "QMake is found here : ${QMAKE_APP}")
+		add_custom_target(linux_deploy_qt 
+			COMMAND ${CMAKE_BINARY_DIR}/squashfs-root/usr/bin/linuxdeployqt ${DIR_NAME_RELEASE}/MidiEditor -appimage -qmake=${QMAKE_APP} 
+			DEPENDS extract_appimage)
+		add_custom_target(make_zip 
+			COMMAND echo "=== make_zip ==="
+			COMMAND ${CMAKE_COMMAND} -E rename Application-x86_64.AppImage ${NAME_RELEASE}.AppImage
+			DEPENDS linux_deploy_qt)		
+		if( NOT CURL-NOTFOUND )
+			add_custom_target(upload_file
+			  COMMAND curl --upload-file ${NAME_RELEASE}.AppImage https://transfer.sh/${NAME_RELEASE}.AppImage 
+			  DEPENDS make_zip)
+		endif()			
+	endif()		
 endif()
-add_custom_command(TARGET MidiEditor PRE_BUILD COMMAND cmake -P ${CMAKE_BINARY_DIR}/version.cmake)
 
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/midieditor.ico" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_environment/metronome/metronome-01.wav" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/metronome)
 
-if(INSTALL_WITH_CPACK)
-	install(DIRECTORY "${DIR_NAME_RELEASE}/" DESTINATION bin)
-	if(WIN32)#Windows
-		set(CPACK_GENERATOR NSIS)
-		set(CPACK_PACKAGE_INSTALL_DIRECTORY "MidiEditor")
-		set(CPACK_PACKAGE_EXECUTABLES "MidiEditor" "MidiEditor" ${CPACK_PACKAGE_EXECUTABLES}) 
-		set(CPACK_NSIS_MODIFY_PATH OFF)
-	else() #UNIX
-		set(CPACK_GENERATOR "DEB")
-		SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Amaury Bréhéret")
-		set (CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5widgets5:amd64 (>=5.7), libqt5network5:amd64 (>=5.7), libqt5xml:amd64 (>=5.7), libsfml-system,libsfml-audio,libasound,libpthread")
-		#set(CPACK_DEBIAN_PACKAGE_DEPENDS "qt5-default (>= 5.7),libsfml-system,libsfml-audio,libasound,libpthread") 
-		#set(CPACK_DEBIAN_PACKAGE_DEPENDS "libQt5Widgets,libQt5Network,libQt5Xml,libQt5Core,libsfml-system,libsfml-audio,libasound,libpthread")
-		set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-	endif()
-	set(CPACK_PACKAGE_CONTACT "Amaury Bréhéret abreheret@gmail.com")
-	set(CPACK_PACKAGE_NAME "MidiEditor")
-	set(CPACK_PACKAGE_VENDOR "https://github.com/abreheret/MidiEditor")
-	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "MidiEditor - Installation ")
-	set(CPACK_PACKAGE_VERSION ${GIT_TAG})
-	INCLUDE(CPack)
-endif()
+
