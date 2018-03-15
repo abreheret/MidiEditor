@@ -1,8 +1,9 @@
 clone_folder: c:\projects\MidiEditor
 
 environment:
-  - NO_CONSOLE: ON
-  - CONFIG: Release
+  NO_CONSOLE: ON
+  CONFIG: Release
+  
   matrix:
     - GENERATOR: "Visual Studio 14 Win64"
       QT5_DIR  : "C:\Qt\5.9.3\msvc2015_64\lib\cmake"
