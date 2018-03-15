@@ -20,5 +20,5 @@ install:
 build_script:
     - cmd: mkdir build
     - cmd: cd build
-    - cmd: cmake .. -DINSTALL_WITH_CPACK=ON -DNO_CONSOLE_MODE=%NO_CONSOLE% -DQT5_DIR=%QT5_DIR% -G%GENERATOR%
+    - cmd: cmake .. -DINSTALL_WITH_CPACK=ON -DNO_CONSOLE_MODE=%NO_CONSOLE% -DQT5_DIR="%QT5_DIR%" -G"%GENERATOR%"
     - cmd: cmake --build . --config %CONFIG% --target cpack_file
