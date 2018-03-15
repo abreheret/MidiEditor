@@ -8,7 +8,7 @@ environment:
   matrix:
     - GENERATOR: "Visual Studio 15 2017 Win64"
       QT5_DIR: C:\Qt\5.10.1\msvc2017_64\lib\cmake
-    - GENERATOR: "Visual Studio 15 2017"
+    - GENERATOR: "Visual Studio 14 2015"
       QT5_DIR: C:\Qt\5.10.1\msvc2015\lib\cmake
     
 install:
