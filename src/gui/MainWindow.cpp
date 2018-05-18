@@ -97,7 +97,7 @@
 #include <QtCore/qmath.h>
 
 MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
-	
+
 	file = 0;
 	_settings = new QSettings(QString("MidiEditor"), QString("NONE"));
 
@@ -486,9 +486,9 @@ MainWindow::MainWindow(QString initFile) : QMainWindow(), _initFile(initFile) {
 	copiedEventsChanged();
 	setAcceptDrops(true);
 	QTimer::singleShot(200, this, SLOT(loadInitFile()));
-	//if(UpdateManager::autoCheckForUpdates()){ 
-	//  QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates())); 
-	//} 
+	//if(UpdateManager::autoCheckForUpdates()){
+	//  QTimer::singleShot(500, UpdateManager::instance(), SLOT(checkForUpdates()));
+	//}
 }
 
 void MainWindow::loadInitFile() {
@@ -1848,7 +1848,7 @@ void MainWindow::editChannel(int i, bool assign){
 	int prog = file->channel(i)->progAtTick(file->cursorTick());
 	MidiOutput::sendProgram(i, prog);
 
-	updateChannelMenu();	
+	updateChannelMenu();
 }
 
 void MainWindow::editTrack(int i, bool assign){
@@ -2448,7 +2448,7 @@ QWidget *MainWindow::setupActions(QWidget *parent){
 	viewMB->addMenu(divMenu);
 
     // Playback
-	QAction *playStopAction = new QAction("PlayStop");
+	QAction *playStopAction = new QAction("PlayStop", this);
 	playStopAction->setShortcut(QKeySequence(Qt::Key_Space));
 	connect(playStopAction, SIGNAL(triggered()), this, SLOT(playStop()));
 	playbackMB->addAction(playStopAction);
