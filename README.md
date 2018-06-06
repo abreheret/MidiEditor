@@ -5,6 +5,8 @@
 MidiEditor 
 ===========
 
+The original author have created a Github repository with all update. Please go to https://github.com/markusschwenk/midieditor 
+
 -----------------
 | **`  Linux  `** | **` Windows `** |  
 |-----------------|---------------------|
