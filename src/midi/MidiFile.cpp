@@ -20,6 +20,7 @@
 
 #include <QFile>
 #include <QDataStream>
+#include <QtDebug>
 
 #include "../MidiEvent/MidiEvent.h"
 #include "../MidiEvent/OffEvent.h"
@@ -1262,9 +1263,11 @@ void MidiFile::meterAt(int tick, int *num, int *denum){
 	}
 }
 
-void MidiFile::printLog(QStringList *log){
-	foreach(QString str, *log){
-		qWarning(str.toUtf8().constData());
+void MidiFile::printLog(QStringList *log)
+{
+	foreach(QString str, *log)
+	{
+		qWarning() << str;
 	}
 }
 
