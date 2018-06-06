@@ -1,0 +1,24 @@
+clone_folder: c:\projects\MidiEditor
+
+environment:
+  global:
+     NO_CONSOLE: ON
+     CONFIG: Release
+
+  matrix:
+    - GENERATOR: "Visual Studio 14 2015 Win64"
+      QT5_DIR: C:\Qt\5.10.1\msvc2015_64\lib\cmake
+    - GENERATOR: "Visual Studio 14 2015"
+      QT5_DIR: C:\Qt\5.10.1\msvc2015\lib\cmake
+    
+install:
+    - cmd: echo GENERATOR="%GENERATOR%" QT5_DIR=%QT5_DIR%
+    - cmd: choco install curl
+    - cmd: choco install nsis
+    - cmd: cd C:\projects\MidiEditor
+        
+build_script:
+    - cmd: mkdir build
+    - cmd: cd build
+    - cmd: cmake .. -DINSTALL_WITH_CPACK=ON -DNO_CONSOLE_MODE=%NO_CONSOLE% -DQT5_DIR=%QT5_DIR% -G"%GENERATOR%"
+    - cmd: cmake --build . --config %CONFIG% --target cpack_file

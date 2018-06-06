@@ -120,10 +120,10 @@ void EventTool::paintSelectedEvents(QPainter *painter){
 		}
 
 		if(show){
-            painter->setBrush(Qt::darkBlue);
-            painter->setPen(Qt::lightGray);
-            painter->drawRoundedRect(event->x(), event->y(), event->width(),
-                    event->height(), 1, 1);
+			painter->setBrush(Qt::darkBlue);
+			painter->setPen(Qt::lightGray);
+			painter->drawRoundedRect(event->x(), event->y(), event->width(),
+					event->height(), 1, 1);
 		}
 	}
 }
@@ -177,9 +177,11 @@ void EventTool::copyAction(){
 			OnEvent *onEv = dynamic_cast<OnEvent*>(ev);
 			if(onEv){
 				OffEvent *offEv = dynamic_cast<OffEvent*>(onEv->offEvent()->copy());
+				if (offEv) {
 				offEv->setOnEvent(onEv);
 				copiedEvents->append(offEv);
 			}
+		}
 		}
 		_mainWindow->copiedEventsChanged();
 	}
@@ -211,8 +213,10 @@ void EventTool::pasteAction(){
 		OnEvent *onEv = dynamic_cast<OnEvent*>(ev);
 		if(onEv){
 			OffEvent *offEv = dynamic_cast<OffEvent*>(onEv->offEvent()->copy());
+			if (offEv) {
 			offEv->setOnEvent(onEv);
 			copiedCopiedEvents.append(offEv);
+			}
 		}
 	}
 

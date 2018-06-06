@@ -65,8 +65,8 @@ class MatrixWidget : public PaintWidget {
 		void setColorsByTracks();
 		bool colorsByChannel();
 
-        int msOfTick(int tick);
-        int xPosOfMs(int ms);
+		int msOfTick(int tick);
+		int xPosOfMs(int ms);
 		QList<QPair<int, int> > divs();
 
 	public slots:

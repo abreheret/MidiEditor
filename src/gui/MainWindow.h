@@ -140,8 +140,8 @@ class MainWindow : public QMainWindow {
 
 		void manual();
 
-        void changeMiscMode(int mode);
-        void selectModeChanged(QAction *action);
+		void changeMiscMode(int mode);
+		void selectModeChanged(QAction *action);
 
 		void pasteToChannel(QAction *action);
 		void pasteToTrack(QAction *action);
@@ -165,7 +165,7 @@ class MainWindow : public QMainWindow {
 
 		void setSpeed(QAction*);
 
-		void checkEnableActionsForSeelction();
+		void checkEnableActionsForSelection();
 		void toolChanged();
 		void copiedEventsChanged();
 
@@ -200,10 +200,10 @@ class MainWindow : public QMainWindow {
 		RemoteServer *_remoteServer;
 #endif
 
-        QWidget *_miscWidgetControl;
-        QGridLayout *_miscControlLayout;
+		QWidget *_miscWidgetControl;
+		QGridLayout *_miscControlLayout;
 
-        QComboBox *_miscMode, *_miscController, *_miscChannel;
+		QComboBox *_miscMode, *_miscController, *_miscChannel;
 		QAction *setSingleMode, *setLineMode, *setFreehandMode, *_allChannelsVisible, *_allChannelsInvisible, *_allTracksAudible, *_allTracksMute,
 			*_allChannelsAudible, *_allChannelsMute, *_allTracksVisible, *_allTracksInvisible, *stdToolAction, *undoAction, *redoAction, *_pasteAction, *pasteActionTB;
 		MiscWidget *_miscWidget;

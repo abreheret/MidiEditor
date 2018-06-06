@@ -191,18 +191,18 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 		case 0xE0: {
 
 			// Pitch Wheel
-            if(!startByte){
-                (*content)>>tempByte;
-            } else {
-                tempByte = secondByte;
-            }
-            quint8 first = tempByte;
-            (*content)>>tempByte;
-            quint8 second = tempByte;
+			if(!startByte){
+				(*content)>>tempByte;
+			} else {
+				tempByte = secondByte;
+			}
+			quint8 first = tempByte;
+			(*content)>>tempByte;
+			quint8 second = tempByte;
 
-            int value = (second << 7) | first;
+			int value = (second << 7) | first;
 
-            *ok = true;
+			*ok = true;
 
 			return new PitchBendEvent(channel, value, track);
 		}
@@ -298,12 +298,14 @@ MidiEvent *MidiEvent::loadMidiEvent(QDataStream *content, bool *ok,
 								TextEvent *textEvent = new TextEvent(channel, track);
 								textEvent->setType(tempByte);
 								int length = MidiFile::variableLengthvalue(content);
-								QByteArray array;
+								// use wchar_t because some files use Unicode.
+								wchar_t str [128] = L"";
 								for(int i = 0; i<length; i++){
 									(*content)>>tempByte;
-									array.append((char)tempByte);
+									wchar_t temp [2] = { btowc(tempByte) };
+									wcsncat(str, temp, 1);
 								}
-								textEvent->setText(QString(array));
+								textEvent->setText(QString::fromWCharArray(str));
 								*ok = true;
 								return textEvent;
 
@@ -425,9 +427,9 @@ int MidiEvent::line(){
 }
 
 void MidiEvent::draw(QPainter *p, QColor c){
-    p->setPen(Qt::gray);
-    p->setBrush(c);
-    p->drawRoundedRect(x(), y(), width(), height(), 1, 1);
+	p->setPen(Qt::gray);
+	p->setBrush(c);
+	p->drawRoundedRect(x(), y(), width(), height(), 1, 1);
 }
 
 ProtocolEntry *MidiEvent::copy(){

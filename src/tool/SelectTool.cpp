@@ -61,14 +61,14 @@ SelectTool::SelectTool(SelectTool &other) : EventTool(other){
 void SelectTool::draw(QPainter *painter){
 	paintSelectedEvents(painter);
 	if(SELECTION_TYPE_BOX && (x_rect || y_rect)){
-        painter->setPen(Qt::gray);
-        painter->setBrush(QColor(0,0,0,100));
-        painter->drawRect(x_rect, y_rect, mouseX-x_rect, mouseY-y_rect);
+		painter->setPen(Qt::gray);
+		painter->setBrush(QColor(0,0,0,100));
+		painter->drawRect(x_rect, y_rect, mouseX-x_rect, mouseY-y_rect);
 	} else if(stool_type == SELECTION_TYPE_RIGHT ||
 			stool_type == SELECTION_TYPE_LEFT)
 	{
 		if(mouseIn){
-            painter->setPen(Qt::black);
+			painter->setPen(Qt::black);
 			painter->setPen(Qt::gray);
 			painter->setBrush(QColor(0,0,0,100));
 			if(stool_type == SELECTION_TYPE_LEFT){

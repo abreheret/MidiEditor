@@ -46,15 +46,15 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PaintWidget(parent) {
 
 	screen_locked = false;
 	startTimeX = 0;
-	startLineY = 0;
+	startLineY = 50;
 	endTimeX = 0;
 	endLineY = 0;
 	file = 0;
 	scaleX = 1;
 	pianoEvent = new NoteOnEvent(0,100,0, 0);
-    scaleY = 1;
-    lineNameWidth = 110;
-    timeHeight = 50;
+	scaleY = 1;
+	lineNameWidth = 110;
+	timeHeight = 50;
 	currentTempoEvents = new QList<MidiEvent*>;
 	currentTimeSignatureEvents = new QList<TimeSignatureEvent*>;
 	msOfFirstEventInList = 0;
@@ -110,7 +110,7 @@ void MatrixWidget::scrollXChanged(int scrollPositionX){
 
 	if(!file) return;
 
-    startTimeX = scrollPositionX;
+	startTimeX = scrollPositionX;
 	endTimeX = startTimeX + ((width()-lineNameWidth)*1000)/(PIXEL_PER_S*scaleX);
 
 	// more space than needed: scale x
@@ -125,7 +125,7 @@ void MatrixWidget::scrollXChanged(int scrollPositionX){
 		endTimeX=file->maxTime();
 	}
 	registerRelayout();
-    repaint();
+	repaint();
 }
 
 void MatrixWidget::scrollYChanged(int scrollPositionY){
@@ -169,8 +169,8 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 		if(!QApplication::arguments().contains("--no-antialiasing")){
 			pixpainter->setRenderHint(QPainter::Antialiasing);
 		}
-        // dark gray shade
-        pixpainter->fillRect(0,0,width(),height(), Qt::darkGray);
+		// dark gray shade
+		pixpainter->fillRect(0,0,width(),height(), Qt::darkGray);
 
 		QFont f = pixpainter->font();
 		f.setPixelSize(12);
@@ -207,7 +207,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 		}
 
 		// fill background of the line descriptions
-        pixpainter->fillRect(PianoArea, QApplication::palette().window());
+		pixpainter->fillRect(PianoArea, QApplication::palette().window());
 
 		// fill the pianos background white
 		int pianoKeys = numLines;
@@ -215,7 +215,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 			pianoKeys-=(endLineY-127);
 		}
 		if(pianoKeys>0){
-            pixpainter->fillRect(0, timeHeight,lineNameWidth-10,
+			pixpainter->fillRect(0, timeHeight,lineNameWidth-10,
 					pianoKeys*lineHeight(),	Qt::white);
 		}
 
@@ -228,58 +228,58 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 			}
 
 			if(i>127){
-                c = QColor(194,194,194);
+				c = QColor(194,194,194);
 				if(i%2==1){
-                    c = QColor(234,246,255);
-                }
-            }
+					c = QColor(234,246,255);
+				}
+			}
 			pixpainter->fillRect(lineNameWidth, startLine, width(),
 					startLine+lineHeight(), c);
 		}
 
-        // paint measures and timeline
-        pixpainter->fillRect(0, 0, width(), timeHeight, QApplication::palette().window());
+		// paint measures and timeline
+		pixpainter->fillRect(0, 0, width(), timeHeight, QApplication::palette().window());
 
-        pixpainter->setClipping(true);
-        pixpainter->setClipRect(lineNameWidth, 0, width()-lineNameWidth-2,
-                height());
+		pixpainter->setClipping(true);
+		pixpainter->setClipRect(lineNameWidth, 0, width()-lineNameWidth-2,
+				height());
 
-        pixpainter->setPen(Qt::darkGray);
-        pixpainter->setBrush(Qt::white);
-        pixpainter->drawRect(lineNameWidth, 2, width()-lineNameWidth-1, timeHeight-2);
-        pixpainter->setPen(Qt::black);
+		pixpainter->setPen(Qt::darkGray);
+		pixpainter->setBrush(Qt::white);
+		pixpainter->drawRect(lineNameWidth, 2, width()-lineNameWidth-1, timeHeight-2);
+		pixpainter->setPen(Qt::black);
 
-        pixpainter->fillRect(0, timeHeight-3, width(), 3, QApplication::palette().window());
+		pixpainter->fillRect(0, timeHeight-3, width(), 3, QApplication::palette().window());
 
-        // paint time (ms)
+		// paint time (ms)
 		int numbers = (width()-lineNameWidth)/80;
-        if(numbers>0){
-            int step = (endTimeX-startTimeX)/numbers;
-            int realstep = 1;
-            int nextfak = 2;
-            int tenfak = 1;
-            while(realstep<=step){
-                realstep=nextfak*tenfak;
-                if(nextfak==1){
-                    nextfak++;
-                    continue;
-                }
-                if(nextfak==2){
-                    nextfak=5;
-                    continue;
-                }
-                if(nextfak==5){
-                    nextfak=1;
-                    tenfak*=10;
-                }
-            }
-            int startNumber = ((startTimeX)/realstep);
-            startNumber*=realstep;
-            if(startNumber<startTimeX){
-                startNumber+=realstep;
-            }
+		if(numbers>0){
+			int step = (endTimeX-startTimeX)/numbers;
+			int realstep = 1;
+			int nextfak = 2;
+			int tenfak = 1;
+			while(realstep<=step){
+				realstep=nextfak*tenfak;
+				if(nextfak==1){
+					nextfak++;
+					continue;
+				}
+				if(nextfak==2){
+					nextfak=5;
+					continue;
+				}
+				if(nextfak==5){
+					nextfak=1;
+					tenfak*=10;
+				}
+			}
+			int startNumber = ((startTimeX)/realstep);
+			startNumber*=realstep;
+			if(startNumber<startTimeX){
+				startNumber+=realstep;
+			}
 			pixpainter->setPen(Qt::gray);
-            while(startNumber<endTimeX){
+			while(startNumber<endTimeX){
 				int pos = xPosOfMs(startNumber);
 				QString text = "";
 				int hours = startNumber/(60000*60);
@@ -294,16 +294,16 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 				text+=QString("%1:").arg(minutes, 2, 10, QChar('0'));
 				text+=QString("%1").arg(seconds, 2, 10, QChar('0'));
 				text+=QString(".%1").arg(ms/10, 2, 10, QChar('0'));
-                int textlength = QFontMetrics(pixpainter->font()).width(text);
+				int textlength = QFontMetrics(pixpainter->font()).width(text);
 				if(startNumber>0){
 					pixpainter->drawText(pos-textlength/2, timeHeight/2-6, text);
 				}
-                pixpainter->drawLine(pos, timeHeight/2-1, pos, timeHeight);
-                startNumber+=realstep;
-            }
-        }
+				pixpainter->drawLine(pos, timeHeight/2-1, pos, timeHeight);
+				startNumber+=realstep;
+			}
+		}
 
-        // draw measures
+		// draw measures
 		int measure = file->measure(startTick,endTick, &currentTimeSignatureEvents);
 
 		TimeSignatureEvent *currentEvent = currentTimeSignatureEvents->at(0);
@@ -312,13 +312,13 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 			return;
 		}
 		int tick = currentEvent->midiTime();
-        while(tick+currentEvent->ticksPerMeasure()<=startTick){
+		while(tick+currentEvent->ticksPerMeasure()<=startTick){
 			tick += currentEvent->ticksPerMeasure();
-        }
+		}
 		while(tick<endTick){
 			TimeSignatureEvent *measureEvent = currentTimeSignatureEvents->at(i);
-            int xfrom = xPosOfMs(msOfTick(tick));
-            currentDivs.append(QPair<int, int>(xfrom, tick));
+			int xfrom = xPosOfMs(msOfTick(tick));
+			currentDivs.append(QPair<int, int>(xfrom, tick));
 			measure++;
 			int measureStartTick = tick;
 			tick += currentEvent->ticksPerMeasure();
@@ -329,22 +329,22 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 					i++;
 				}
 			}
-            int xto = xPosOfMs(msOfTick(tick));
-            pixpainter->setBrush(Qt::lightGray);
-            pixpainter->setPen(Qt::NoPen);
-            pixpainter->drawRoundedRect(xfrom+2, timeHeight/2+4, xto-xfrom-4, timeHeight/2-10, 5, 5);
-            if(tick>startTick){
-                pixpainter->setPen(Qt::gray);
-                pixpainter->drawLine(xfrom, timeHeight/2, xfrom, height());
-                QString text = "Measure "+QString::number(measure-1);
-                int textlength = QFontMetrics(pixpainter->font()).width(text);
-                if(textlength>xto-xfrom){
-                     text = QString::number(measure-1);
-                     textlength = QFontMetrics(pixpainter->font()).width(text);
-                }
-                int pos = (xfrom+xto)/2;
-                pixpainter->setPen(Qt::white);
-                pixpainter->drawText(pos-textlength/2, timeHeight-9, text);
+			int xto = xPosOfMs(msOfTick(tick));
+			pixpainter->setBrush(Qt::lightGray);
+			pixpainter->setPen(Qt::NoPen);
+			pixpainter->drawRoundedRect(xfrom+2, timeHeight/2+4, xto-xfrom-4, timeHeight/2-10, 5, 5);
+			if(tick>startTick){
+				pixpainter->setPen(Qt::gray);
+				pixpainter->drawLine(xfrom, timeHeight/2, xfrom, height());
+				QString text = "Measure "+QString::number(measure-1);
+				int textlength = QFontMetrics(pixpainter->font()).width(text);
+				if(textlength>xto-xfrom){
+					 text = QString::number(measure-1);
+					 textlength = QFontMetrics(pixpainter->font()).width(text);
+				}
+				int pos = (xfrom+xto)/2;
+				pixpainter->setPen(Qt::white);
+				pixpainter->drawText(pos-textlength/2, timeHeight-9, text);
 
 				if(_div>=0){
 					double metronomeDiv = 4/(double)qPow(2, _div);
@@ -362,15 +362,15 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 					}
 					pixpainter->setPen(oldPen);
 				}
-            }
+			}
 		}
 
 		// line between time texts and matrixarea
-        pixpainter->setPen(Qt::gray);
+		pixpainter->setPen(Qt::gray);
 		pixpainter->drawLine(0, timeHeight, width(), timeHeight);
-        pixpainter->drawLine(lineNameWidth, timeHeight, lineNameWidth, height());
+		pixpainter->drawLine(lineNameWidth, timeHeight, lineNameWidth, height());
 
-        pixpainter->setPen(Qt::black);
+		pixpainter->setPen(Qt::black);
 
 		// paint the events
 		pixpainter->setClipping(true);
@@ -391,7 +391,7 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 
 	painter->drawPixmap(0,0,*pixmap);
 
-    painter->setRenderHint(QPainter::Antialiasing);
+	painter->setRenderHint(QPainter::Antialiasing);
 	// draw the piano / linenames
 	for(int i = startLineY; i<=endLineY; i++){
 		int startLine = yPosOfLine(i);
@@ -402,57 +402,57 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 			QString text = "";
 			switch(i){
 				case MidiEvent::CONTROLLER_LINE: {
-                    text = "Control Change";
+					text = "Control Change";
 					break;
 				}
 				case MidiEvent::TEMPO_CHANGE_EVENT_LINE: {
-                    text = "Tempo Change";
+					text = "Tempo Change";
 					break;
 				}
 				case MidiEvent::TIME_SIGNATURE_EVENT_LINE: {
-                    text = "Time Signature";
+					text = "Time Signature";
 					break;
 				}
 				case MidiEvent::KEY_SIGNATURE_EVENT_LINE: {
-                    text = "Key Signature.";
+					text = "Key Signature.";
 					break;
 				}
 				case MidiEvent::PROG_CHANGE_LINE: {
-                    text = "Program Change";
+					text = "Program Change";
 					break;
 				}
 				case MidiEvent::KEY_PRESSURE_LINE: {
-                    text = "Key Pressure";
+					text = "Key Pressure";
 					break;
 				}
 				case MidiEvent::CHANNEL_PRESSURE_LINE: {
-                    text = "Channel Pressure";
+					text = "Channel Pressure";
 					break;
 				}
 				case MidiEvent::TEXT_EVENT_LINE: {
-                    text = "Text";
+					text = "Text";
 					break;
 				}
-                case MidiEvent::PITCH_BEND_LINE: {
-                    text = "Pitch Bend";
-                    break;
-                }
+				case MidiEvent::PITCH_BEND_LINE: {
+					text = "Pitch Bend";
+					break;
+				}
 				case MidiEvent::SYSEX_LINE: {
 					text = "System Exclusive";
 					break;
 				}
 				case MidiEvent::UNKNOWN_LINE: {
-                    text = "(Unknown)";
+					text = "(Unknown)";
 					break;
 				}
 			}
-            painter->setPen(Qt::darkGray);
+			painter->setPen(Qt::darkGray);
 			font = painter->font();
-            font.setPixelSize(10);
+			font.setPixelSize(10);
 			painter->setFont(font);
-            int textlength = QFontMetrics(font).width(text);
-            painter->drawText(lineNameWidth-15-textlength, startLine+
-                    lineHeight(), text);
+			int textlength = QFontMetrics(font).width(text);
+			painter->drawText(lineNameWidth-15-textlength, startLine+
+					lineHeight(), text);
 		}
 	}
 	if(Tool::currentTool()){
@@ -481,16 +481,16 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 	if(midiFile()->cursorTick()>=startTick &&
 			midiFile()->cursorTick()<=endTick)
 	{
-        painter->setPen(Qt::darkGray);
+		painter->setPen(Qt::darkGray);
 		int x = xPosOfMs(msOfTick(midiFile()->cursorTick()));
-        painter->drawLine(x, 0, x, height());
+		painter->drawLine(x, 0, x, height());
 		 QPointF points[3] = {
-		     QPointF(x-8, timeHeight/2+2),
-		     QPointF(x+8, timeHeight/2+2),
-		     QPointF(x, timeHeight-2),
+			 QPointF(x-8, timeHeight/2+2),
+			 QPointF(x+8, timeHeight/2+2),
+			 QPointF(x, timeHeight-2),
 		 };
 
-        painter->setBrush(QBrush(QColor(194,230,255), Qt::SolidPattern));
+		painter->setBrush(QBrush(QColor(194,230,255), Qt::SolidPattern));
 
 		painter->drawPolygon(points, 3);
 		painter->setPen(Qt::gray);
@@ -514,9 +514,9 @@ void MatrixWidget::paintEvent(QPaintEvent *event){
 	}
 
 	// border
-    painter->setPen(Qt::gray);
-    painter->drawLine(width()-1, height()-1, lineNameWidth, height()-1);
-    painter->drawLine(width()-1, height()-1, width()-1, 2);
+	painter->setPen(Qt::gray);
+	painter->drawLine(width()-1, height()-1, lineNameWidth, height()-1);
+	painter->drawLine(width()-1, height()-1, width()-1, 2);
 
 	// if the recorder is recording, show red circle
 	if(MidiInput::recording()){
@@ -621,12 +621,12 @@ void MatrixWidget::paintChannel(QPainter *painter, int channel){
 void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 		int width, int height)
 {
-    int borderRight = 10;
-    width = width-borderRight;
+	int borderRight = 10;
+	width = width-borderRight;
 	if(number>=0 && number<=127){
 
 		double scaleHeightBlack = 0.5;
-        double scaleWidthBlack = 0.6;
+		double scaleWidthBlack = 0.6;
 
 		bool isBlack = false;
 		bool blackOnTop = false;
@@ -639,19 +639,19 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 				blackOnTop = true;
 				name = "";
 				int i = number/12;
-                //if(i<4){
-                //	name="C";{
-                //		for(int j = 0; j<3-i; j++){
-                //			name+="'";
-                //		}
-                //	}
-                //} else {
-                //	name = "c";
-                //	for(int j = 0; j<i-4; j++){
-                //		name+="'";
-                //	}
-                //}
-                name = "C"+QString::number(i-1);
+				//if(i<4){
+				//	name="C";{
+				//		for(int j = 0; j<3-i; j++){
+				//			name+="'";
+				//		}
+				//	}
+				//} else {
+				//	name = "c";
+				//	for(int j = 0; j<i-4; j++){
+				//		name+="'";
+				//	}
+				//}
+				name = "C"+QString::number(i-1);
 				break;
 			}
 			// Cis
@@ -739,38 +739,38 @@ void MatrixWidget::paintPianoKey(QPainter *painter, int number, int x, int y,
 			pianoKeys.insert(number, QRect(x, y, width, height));
 		}
 
-        if(isBlack){
-            if(inRect){
-                painter->setBrush(Qt::lightGray);
-            } else if(selected){
-                painter->setBrush(Qt::darkGray);
-            } else {
-                painter->setBrush(Qt::black);
-            }
-        } else {
-            if(inRect){
-                painter->setBrush(Qt::darkGray);
-            } else if(selected){
-                painter->setBrush(Qt::lightGray);
-            } else {
-                painter->setBrush(Qt::white);
-            }
-        }
-        painter->setPen(Qt::darkGray);
-        painter->drawPolygon(keyPolygon, Qt::OddEvenFill);
+		if(isBlack){
+			if(inRect){
+				painter->setBrush(Qt::lightGray);
+			} else if(selected){
+				painter->setBrush(Qt::darkGray);
+			} else {
+				painter->setBrush(Qt::black);
+			}
+		} else {
+			if(inRect){
+				painter->setBrush(Qt::darkGray);
+			} else if(selected){
+				painter->setBrush(Qt::lightGray);
+			} else {
+				painter->setBrush(Qt::white);
+			}
+		}
+		painter->setPen(Qt::darkGray);
+		painter->drawPolygon(keyPolygon, Qt::OddEvenFill);
 
 
 		if(name!=""){
-            painter->setPen(Qt::gray);
+			painter->setPen(Qt::gray);
 			int textlength = QFontMetrics(painter->font()).width(name);
 			painter->drawText(x+width-textlength-2, y+height-1, name);
-            painter->setPen(Qt::black);
+			painter->setPen(Qt::black);
 		}
 		if(inRect && enabled){
 			// mark the current Line
 			QColor lineColor = QColor(0, 0, 100, 40);
 			painter->fillRect(x+width+borderRight, yPosOfLine(127-number),
-                    this->width()-x-width-borderRight, height, lineColor);
+					this->width()-x-width-borderRight, height, lineColor);
 		}
 	}
 }
@@ -783,7 +783,8 @@ void MatrixWidget::setFile(MidiFile *f){
 	scaleY = 1;
 
 	startTimeX = 0;
-	startLineY = 0;
+	// Roughly vertically center on Middle C. 
+	startLineY = 50;
 
 
 	connect(file->protocol(), SIGNAL(actionFinished()), this,
@@ -794,9 +795,9 @@ void MatrixWidget::setFile(MidiFile *f){
 
 	calcSizes();
 
-		// scroll down to see events
+	// scroll down to see events
 	int maxNote = -1;
-	for(int channel = 0; channel<16; channel++){
+	for(int channel = 0; channel < 16; channel++){
 
 		QMultiMap<int, MidiEvent*> *map = file->channelEvents(channel);
 
@@ -1069,23 +1070,19 @@ void MatrixWidget::wheelEvent(QWheelEvent *event){
 	Qt::KeyboardModifiers km = event->modifiers();
 	if (km) {
 		if (km == Qt::ShiftModifier) {
-			if (event->delta() > 0) {
+			if (event->delta() > 0) 
 				zoomVerIn();
-			} else {
+			else
 				zoomVerOut();
-			}
 		} else if (km == Qt::ControlModifier) {
-			if (event->delta() > 0) {
+			if (event->delta() > 0)
 				zoomHorIn();
-			} else {
+			else
 				zoomHorOut();
-			}
-		}
-	} else {
-		if (!file) return;
-		int maxTimeInFile = file->maxTime();
-		int widgetRange = endTimeX - startTimeX;
-		if (QApplication::keyboardModifiers().testFlag(Qt::AltModifier)){
+		} else if (km == Qt::AltModifier) {
+			if (!file) return;
+			int maxTimeInFile = file->maxTime();
+			int widgetRange = endTimeX - startTimeX;
 
 			int scroll = -1 * event->delta()*widgetRange / 1000;
 
@@ -1094,23 +1091,25 @@ void MatrixWidget::wheelEvent(QWheelEvent *event){
 			scrollXChanged(newStartTime);
 			emit scrollChanged(startTimeX, maxTimeInFile - widgetRange, startLineY, NUM_LINES - (endLineY - startLineY));
 		}
-		else {
-			int newStartLineY = startLineY;
+	} else {
+		if (!file) return;
+		int maxTimeInFile = file->maxTime();
+		int widgetRange = endTimeX - startTimeX;
 
-			if (event->delta() > 0){
-				newStartLineY -= 3;
-			}
-			else {
-				newStartLineY += 3;
-			}
+		int newStartLineY = startLineY;
 
-			if (newStartLineY < 0){
-				newStartLineY = 0;
-			}
-			// endline too large handled in scrollYchanged()
-			scrollYChanged(newStartLineY);
-			emit scrollChanged(startTimeX, maxTimeInFile - widgetRange, startLineY, NUM_LINES - (endLineY - startLineY));
-		}
+		if (event->delta() > 0)
+			newStartLineY -= 5;
+		else
+			newStartLineY += 5;
+
+		if (newStartLineY < 0)
+			newStartLineY = 0;
+
+		// endline too large handled in scrollYchanged()
+		scrollYChanged(newStartLineY);
+		emit scrollChanged(startTimeX, maxTimeInFile - widgetRange, startLineY, NUM_LINES - (endLineY - startLineY));
+
 	}
 }
 

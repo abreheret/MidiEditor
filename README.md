@@ -5,14 +5,23 @@
 MidiEditor 
 ===========
 
+The original author have created a Github repository with all update. Please go to https://github.com/markusschwenk/midieditor 
+
+-----------------
+| **`  Linux  `** | **` Windows `** |  
+|-----------------|---------------------|
+| [![Build Status](https://api.travis-ci.org/abreheret/MidiEditor.svg?branch=master)](https://travis-ci.org/abreheret/MidiEditor) | [![Appveyor Build Status](https://img.shields.io/appveyor/ci/abreheret/midieditor.svg)](https://ci.appveyor.com/project/abreheret/MidiEditor) |
+
+
 Download : Windows [last release](https://github.com/abreheret/MidiEditor/releases/)
 
 ### Building Dependencies
-* [Qt5.7](https://www.qt.io/download-open-source/)
-* [CMake](https://cmake.org/download/) >= 2.8.11 (Under Windows using Visual Studio 2013)
+* [Qt >= 5.7](https://www.qt.io/download-open-source/)
+* [CMake](https://cmake.org/download/) >= 2.8.11 
 * Linux : 
      * [sfml](http://www.sfml-dev.org/download-fr.php) `sudo apt-get install libsfml-dev`
      * asound `sudo apt-get install libasound2-dev`
+* Windows Compiler : Works under Visual Studio >= 2013
 * Windows deployment : [nsis](http://nsis.sourceforge.net/Download)
  
 ### Introduction
@@ -21,7 +30,7 @@ MidiEditor is a free software providing an interface to edit, record, and play M
 
 The editor is able to open existing Midi files and modify their content. New files can be created and the user can enter his own composition by either recording Midi data from a connected Midi device (e.g., a digital piano or a keyboard) or by manually creating new notes and other Midi events. The recorded data can be easily quantified and edited afterwards using MidiEditor.
 
-![image](http://midieditor.sourceforge.net/img/midieditor-full.png)
+![image](midieditor.png)
 
 ### Features
 

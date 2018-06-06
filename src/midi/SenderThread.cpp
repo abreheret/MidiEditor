@@ -18,23 +18,38 @@
 
 #include "SenderThread.h"
 #include "../MidiEvent/MidiEvent.h"
+#include "../MidiEvent/NoteOnEvent.h"
+#include "../MidiEvent/OffEvent.h"
 
 SenderThread::SenderThread() {
 	_eventQueue = new QQueue<MidiEvent*>;
+	_noteQueue = new QQueue<MidiEvent*>;
 }
 
 void SenderThread::run(){
 
 	while(true) {
+		// First, send the misc events, such as control change and program change events.
 		while(!_eventQueue->isEmpty()){
 			// send command
 			MidiOutput::sendEnqueuedCommand(_eventQueue->head()->save());
 			_eventQueue->pop_front();
+		}
+		// Now send the note events.
+		while(!_noteQueue->isEmpty()){
+			// send command
+			MidiOutput::sendEnqueuedCommand(_noteQueue->head()->save());
+			_noteQueue->pop_front();
 		}
 		msleep(1);
 	}
 }
 
 void SenderThread::enqueue(MidiEvent *event){
-	_eventQueue->push_back(event);
+	// If it is a NoteOnEvent or an OffEvent, we put it in _noteQueue. 
+	if (dynamic_cast <NoteOnEvent*>(event) || dynamic_cast <OffEvent*>(event)) 
+		_noteQueue->push_back(event);
+	// Otherwise, it goes into _eventQueue.
+	else 
+		_eventQueue->push_back(event);
 }

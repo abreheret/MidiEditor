@@ -42,22 +42,22 @@ QColor *MidiChannel::colorByChannelNumber(int number){
 	QColor *color;
 
 	switch(number){
-		case 0: { color = new QColor(241, 214, 107, 255);break; }
-		case 1: { color =  new QColor(205, 241, 142, 255);break; }
-		case 2: { color = new QColor(107, 241, 142, 255);break; }
+		case 0: { color = new QColor(241, 70, 57, 255);break; }
+		case 1: { color =  new QColor(205, 241, 0, 255);break; }
+		case 2: { color = new QColor(50, 201, 20, 255);break; }
 		case 3: { color = new QColor(107, 241, 231, 255);break; }
-		case 4: { color =  new QColor(200, 236, 255, 255);break; }
-		case 5: { color = new QColor(241, 107, 200, 255);break; }
+		case 4: { color =  new QColor(127, 67, 255, 255);break; }
+		case 5: { color = new QColor(241, 127, 200, 255);break; }
 		case 6: { color = new QColor(170, 212, 170, 255);break; }
-		case 7: { color =  new QColor(212, 204, 170, 255);break; }
-		case 8: { color = new QColor(238, 233, 138, 255);break; }
-		case 9: { color = new QColor(243, 94, 54, 255);break; }
-		case 10: { color = new QColor(255, 145, 26, 255);break; }
-		case 11: { color = new QColor(181, 132, 80, 255);break; }
-		case 12: { color =  new QColor(102, 162, 37, 255);break; }
-		case 13: { color = new QColor(241, 164, 107, 255);break; }
-		case 14: { color = new QColor(222, 213, 66, 255);break; }
-		case 15: { color = new QColor(202, 222, 66, 255);break; }
+		case 7: { color =  new QColor(222, 202, 170, 255);break; }
+		case 8: { color = new QColor(241, 201, 20, 255);break; }
+		case 9: { color = new QColor(80, 80, 80, 255);break; }
+		case 10: { color = new QColor(202, 50, 127, 255);break; }
+		case 11: { color = new QColor(0, 132, 255, 255);break; }
+		case 12: { color =  new QColor(102, 127, 37, 255);break; }
+		case 13: { color = new QColor(241, 164, 80, 255);break; }
+		case 14: { color = new QColor(107, 30, 107, 255);break; }
+		case 15: { color = new QColor(50, 127, 127, 255);break; }
 		default: { color = new QColor(50, 50, 255, 255); break; }
 	}
 

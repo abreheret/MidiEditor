@@ -97,10 +97,10 @@ void EventMoveTool::draw(QPainter *painter){
 				customShiftY = 0;
 			}
 			if(event->shown()){
-                painter->setPen(Qt::lightGray);
-                painter->setBrush(Qt::darkBlue);
+				painter->setPen(Qt::lightGray);
+				painter->setBrush(Qt::darkBlue);
 				painter->drawRoundedRect(event->x()-shiftX, event->y()-customShiftY,
-                        event->width(), event->height(), 1, 1);
+						event->width(), event->height(), 1, 1);
 				painter->setPen(Qt::gray);
 				painter->drawLine(event->x()-shiftX, 0, event->x()-shiftX,
 						matrixWidget->height());

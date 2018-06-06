@@ -56,17 +56,13 @@ int TextEvent::line(){
 }
 
 QByteArray TextEvent::save(){
-
 	QByteArray array = QByteArray();
+	QByteArray utf8text = _text.toUtf8();
 
 	array.append(char(0xFF));
 	array.append(_type);
-	array.append(MidiFile::writeVariableLengthValue(_text.length()));
-
-	for(int i = 0; i < _text.length(); i++){
-		array.append(_text.at(i));
-	}
-
+	array.append(MidiFile::writeVariableLengthValue(utf8text.size()));
+	array.append(utf8text);
 	return array;
 }
 

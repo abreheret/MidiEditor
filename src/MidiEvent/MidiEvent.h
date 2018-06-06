@@ -55,7 +55,7 @@ class MidiEvent : public ProtocolEntry, public GraphicObject{
 			KEY_PRESSURE_LINE,
 			CHANNEL_PRESSURE_LINE,
 			TEXT_EVENT_LINE,
-            PITCH_BEND_LINE,
+			PITCH_BEND_LINE,
 			SYSEX_LINE,
 			UNKNOWN_LINE
 		};

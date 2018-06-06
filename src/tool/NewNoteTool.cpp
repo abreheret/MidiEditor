@@ -214,16 +214,16 @@ bool NewNoteTool::release(){
 				file()->channel(_channel)->insertEvent(event, startTick);
 				selectEvent(event, true, true);
 				currentProtocol()->endAction();
-            } else if(line == MidiEvent::PITCH_BEND_LINE){
-                currentProtocol()->startNewAction(
-                        "Create Pitch Bend Event", image());
+			} else if(line == MidiEvent::PITCH_BEND_LINE){
+				currentProtocol()->startNewAction(
+						"Create Pitch Bend Event", image());
 				event = new PitchBendEvent(_channel, 8192, track);
-                int startMs = matrixWidget->msOfXPos(xPos);
-                int startTick = file()->tick(startMs);
-                file()->channel(_channel)->insertEvent(event, startTick);
+				int startMs = matrixWidget->msOfXPos(xPos);
+				int startTick = file()->tick(startMs);
+				file()->channel(_channel)->insertEvent(event, startTick);
 				selectEvent(event, true, true);
-                currentProtocol()->endAction();
-            } else if(line == MidiEvent::TEXT_EVENT_LINE){
+				currentProtocol()->endAction();
+			} else if(line == MidiEvent::TEXT_EVENT_LINE){
 				currentProtocol()->startNewAction(
 						"Create Text Event", image());
 				event = new TextEvent(16, track);

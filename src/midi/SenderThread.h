@@ -33,6 +33,7 @@ class SenderThread : public QThread {
 
 	private:
 		QQueue<MidiEvent*> *_eventQueue;
+		QQueue<MidiEvent*> *_noteQueue;
 
 };
 

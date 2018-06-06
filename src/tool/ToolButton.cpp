@@ -25,8 +25,8 @@ ToolButton::ToolButton(Tool *tool, QKeySequence sequence, QWidget *parent) : QAc
 	setText(button_tool->toolTip());
 	QImage image = *(button_tool->image());
 	setIcon(QIcon(QPixmap::fromImage(image)));
-    connect(this, SIGNAL(triggered()), this, SLOT(buttonClick()));
-    setCheckable(true);
+	connect(this, SIGNAL(triggered()), this, SLOT(buttonClick()));
+	setCheckable(true);
 	setShortcut(sequence);
 }
 
